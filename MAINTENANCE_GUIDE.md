@@ -78,6 +78,7 @@ pm2 logs agos-server --lines 10
 ### **Step 3: Test Changes**
 
 Visit your website to verify changes:
+
 - Main: `http://178.128.83.244:3000/`
 - Dashboard: `http://178.128.83.244:3000/dashboard`
 - Other modules as needed
@@ -87,6 +88,7 @@ Visit your website to verify changes:
 ## ⚡ **Quick Update Commands (Cheat Sheet)**
 
 ### **Local Machine (Windows PowerShell)**
+
 ```powershell
 cd "C:\Users\effie\Desktop\agos"
 git add .
@@ -95,6 +97,7 @@ git push origin main
 ```
 
 ### **Server (SSH Terminal)**
+
 ```bash
 cd ~/agos-flood-monitoring
 git pull origin main
@@ -150,6 +153,7 @@ npm run pm2:start
 ## 🔍 **Troubleshooting Commands**
 
 ### **Check Server Status**
+
 ```bash
 # PM2 process status
 pm2 status
@@ -162,6 +166,7 @@ pm2 monit
 ```
 
 ### **View Logs**
+
 ```bash
 # Recent logs
 pm2 logs agos-server --lines 20
@@ -174,6 +179,7 @@ pm2 logs agos-server --err
 ```
 
 ### **Server Health Checks**
+
 ```bash
 # Test API endpoint
 curl http://localhost:3000/api/health
@@ -183,6 +189,7 @@ sudo ss -tulpn | grep 3000
 ```
 
 ### **Git Issues**
+
 ```bash
 # Check git status
 git status
@@ -200,12 +207,14 @@ git reset --hard origin/main
 ## 🚨 **Critical Things to Remember**
 
 ### **❌ DO NOT Do These:**
+
 1. **Never delete the entire directory** - just use `git pull`
 2. **Don't run full installation** - existing setup works
 3. **Don't change .env production values** unless necessary
 4. **Don't stop PM2** unless restarting
 
 ### **✅ Always Remember To:**
+
 1. **Test locally first** before pushing to GitHub
 2. **Use descriptive commit messages**
 3. **Check PM2 status** after updates
@@ -217,17 +226,20 @@ git reset --hard origin/main
 ## 📁 **File Update Guidelines**
 
 ### **Safe to Update Anytime:**
+
 - `main/main.html`, `main/main-script.js`, `main/main-styles.css`
 - `module_*/` files (HTML, CSS, JS)
 - `README.md`, documentation files
 - Static files in `public/`
 
 ### **Requires Restart:**
+
 - `server.js` (restart PM2)
 - `package.json` (reinstall dependencies + restart)
 - `.env` files (restart PM2)
 
 ### **Requires Special Attention:**
+
 - `ecosystem.config.js` (may need PM2 reload)
 - Security configurations (test thoroughly)
 - Database configurations (if added)
@@ -237,6 +249,7 @@ git reset --hard origin/main
 ## 🔄 **Rollback Process (If Something Breaks)**
 
 ### **Quick Rollback:**
+
 ```bash
 # Check recent commits
 git log --oneline -5
@@ -249,6 +262,7 @@ pm2 restart agos-server
 ```
 
 ### **Emergency Restore:**
+
 ```bash
 # If git is broken, re-clone
 cd ~
@@ -271,6 +285,7 @@ npm run pm2:start
 ## 📊 **Monitoring Commands**
 
 ### **System Resources:**
+
 ```bash
 # Check memory usage
 free -h
@@ -283,6 +298,7 @@ htop
 ```
 
 ### **Application Monitoring:**
+
 ```bash
 # PM2 monitoring dashboard
 pm2 monit
@@ -299,6 +315,7 @@ pm2 logs agos-server --err --lines 50
 ## 🎯 **Best Practices**
 
 ### **Development Workflow:**
+
 1. Make changes locally
 2. Test locally with `npm start`
 3. Commit and push to GitHub
@@ -307,6 +324,7 @@ pm2 logs agos-server --err --lines 50
 6. Test live site
 
 ### **Commit Message Format:**
+
 ```bash
 git commit -m "Add: new feature description"
 git commit -m "Fix: bug description"
@@ -315,6 +333,7 @@ git commit -m "Style: UI improvements"
 ```
 
 ### **Update Schedule:**
+
 - **Small changes**: Update immediately
 - **Major changes**: Test thoroughly first
 - **Critical fixes**: Update and monitor closely
@@ -325,17 +344,20 @@ git commit -m "Style: UI improvements"
 ## 📞 **Emergency Contacts & Info**
 
 ### **Server Details:**
+
 - **IP:** 178.128.83.244
 - **User:** agosadmin
 - **Password:** 2000Rbbca12
 - **Port:** 3000
 
 ### **Key URLs:**
+
 - **Main Site:** http://178.128.83.244:3000/
 - **Health Check:** http://178.128.83.244:3000/api/health
 - **GitHub:** https://github.com/cri-kee-zel/agos-flood-monitoring
 
 ### **Important Commands:**
+
 ```bash
 # Quick status check
 pm2 status && curl -s http://localhost:3000/api/health

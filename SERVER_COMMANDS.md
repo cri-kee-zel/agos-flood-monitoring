@@ -3,12 +3,14 @@
 ## 🚀 Essential Commands Reference
 
 ### **Connect to Server**
+
 ```bash
 ssh agosadmin@178.128.83.244
 # Password: 2000Rbbca12
 ```
 
 ### **Navigate to Project**
+
 ```bash
 cd ~/agos-flood-monitoring
 ```
@@ -18,6 +20,7 @@ cd ~/agos-flood-monitoring
 ## 🔄 **Update Commands (Most Common)**
 
 ### **Standard Update Process:**
+
 ```bash
 # 1. Pull latest changes
 git pull origin main
@@ -30,6 +33,7 @@ pm2 status
 ```
 
 ### **Update with New Dependencies:**
+
 ```bash
 git pull origin main
 npm install --omit=dev
@@ -42,6 +46,7 @@ pm2 status
 ## 📊 **Monitoring Commands**
 
 ### **Check Application Status:**
+
 ```bash
 # Process status
 pm2 status
@@ -54,6 +59,7 @@ pm2 monit
 ```
 
 ### **View Logs:**
+
 ```bash
 # Recent logs (last 20 lines)
 pm2 logs agos-server --lines 20
@@ -66,6 +72,7 @@ pm2 logs agos-server --err
 ```
 
 ### **Health Checks:**
+
 ```bash
 # Test API
 curl http://localhost:3000/api/health
@@ -82,6 +89,7 @@ curl -I http://localhost:3000/dashboard
 ## 🛠️ **Management Commands**
 
 ### **PM2 Process Control:**
+
 ```bash
 # Start application
 pm2 start ecosystem.config.js
@@ -102,6 +110,7 @@ pm2 reload agos-server
 ```
 
 ### **Environment Management:**
+
 ```bash
 # View environment file
 cat .env
@@ -118,6 +127,7 @@ pm2 env 0
 ## 🔧 **Git Commands**
 
 ### **Basic Git Operations:**
+
 ```bash
 # Check status
 git status
@@ -133,6 +143,7 @@ git log --oneline -10
 ```
 
 ### **Troubleshooting Git:**
+
 ```bash
 # Force pull (overwrite local changes)
 git fetch origin
@@ -150,6 +161,7 @@ git branch
 ## 🚨 **Emergency Commands**
 
 ### **If Application Won't Start:**
+
 ```bash
 # Check what's using port 3000
 sudo ss -tulpn | grep 3000
@@ -163,6 +175,7 @@ npm run pm2:start
 ```
 
 ### **If Website Not Loading:**
+
 ```bash
 # Check if server is running
 pm2 status
@@ -175,6 +188,7 @@ pm2 restart agos-server
 ```
 
 ### **If Git Pull Fails:**
+
 ```bash
 # Check for conflicts
 git status
@@ -198,6 +212,7 @@ npm run pm2:start
 ## 📈 **System Commands**
 
 ### **Server Resources:**
+
 ```bash
 # Memory usage
 free -h
@@ -213,6 +228,7 @@ uptime
 ```
 
 ### **Network:**
+
 ```bash
 # Check firewall
 sudo ufw status
@@ -229,6 +245,7 @@ curl -I http://178.128.83.244:3000/api/health
 ## 🎯 **Quick Troubleshooting**
 
 ### **Website Not Working:**
+
 ```bash
 pm2 status                          # Check if running
 pm2 logs agos-server --lines 10     # Check for errors
@@ -237,6 +254,7 @@ pm2 restart agos-server             # Restart if needed
 ```
 
 ### **Can't Connect to Server:**
+
 ```bash
 # Try from local machine
 ssh agosadmin@178.128.83.244
@@ -248,6 +266,7 @@ ssh agosadmin@178.128.83.244
 ```
 
 ### **Application Errors:**
+
 ```bash
 pm2 logs agos-server --err          # Check error logs
 pm2 monit                           # Monitor resources
@@ -259,11 +278,13 @@ pm2 restart agos-server             # Try restart
 ## 📋 **Routine Maintenance**
 
 ### **Daily:**
+
 ```bash
 pm2 status
 ```
 
 ### **Weekly:**
+
 ```bash
 git pull origin main
 pm2 restart agos-server
@@ -272,6 +293,7 @@ df -h
 ```
 
 ### **Monthly:**
+
 ```bash
 # Update system packages
 sudo apt update && sudo apt upgrade -y
