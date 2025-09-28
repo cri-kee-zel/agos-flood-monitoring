@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AGOS Module 2 - AI-Enhanced Flood Mapping</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="/module_1/styles.css" />
+    <link rel="stylesheet" href="/module_2/module2-styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!--
+      NOTE FOR EDITORS (Module 2 - AI Mapping):
+      - You can edit layout, copy and styles in this file freely.
+      - DO NOT rename or remove the ELEMENT IDs listed below. They are
+        referenced by `module_2/module2-app.js` and changing them will
+        stop UI updates or cause runtime warnings/errors in the browser.
+        * flood-map
+        * satellite-layer
+        * refresh-satellite
+        * capture-screenshot
+        * satellite-status
+        * ai-status
+        * last-analysis
+        * ai-model-status
+        * analysis-timestamp
+        * flood-risk-gauge
+        * flood-risk-value
+        * ai-confidence
+        * sensor-validation
+        * weather-factor
+        * screenshot-container
+        * analyze-screenshot
+        * analysis-results
+        * detected-features
+        * flood-extent
+        * risk-assessment
+        * satellite-weight
+        * sensor-weight
+        * ground-level
+        * ground-flow
+        * sync-indicator
+        * sync-status
+        * prediction-timeline
+        * generate-report
+        * export-prediction
+        * emergency-alert
+        * report-modal
+        * close-report-modal
+        * loading-overlay
+
+      - Keep the external script tags (Leaflet, html2canvas, Chart.js, jspdf)
+        and the `/module_2/module2-app.js` include at the bottom so the
+        page has access to required libraries.
+
+      Safe edits: change text, rearrange panels, add new UI elements (but
+      give them IDs if you want JS to update them). If you change any of the
+      IDs above, update `module2-app.js` accordingly.
+    -->
+    <!-- Emergency Status Banner (inherited from Module 1) -->
+    <div id="emergency-banner" class="emergency-banner hidden">
+      <div class="emergency-content">
+        <span class="emergency-icon">⚠️</span>
+        <span class="emergency-text">FLOOD ALERT ACTIVE</span>
+        <span class="emergency-level" id="emergency-level">CRITICAL</span>
+      </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <h1>🛰️ AGOS AI MAPPING</h1>
+          <p>AI-Enhanced Flood Prediction & Satellite Analysis</p>
+        </div>
+        <div class="module-nav">
+          <button class="nav-btn" onclick="window.location.href='index.html'">
+            📊 Dashboard
+          </button>
+          <button class="nav-btn active">🛰️ AI Mapping</button>
+          <button class="nav-btn" onclick="alert('Module 3 coming soon!')">
+            📈 Analytics
+          </button>
+          <button class="nav-btn" onclick="alert('Module 4 coming soon!')">
+            🚨 Emergency
+          </button>
+        </div>
+        <div class="system-status" id="system-status">
+          <div class="status-item">
+            <span class="status-icon" id="satellite-status">🔴</span>
+            <span>Satellite</span>
+          </div>
+          <div class="status-item">
+            <span class="status-icon" id="ai-status">🔴</span>
+            <span>AI Model</span>
+          </div>
+          <div class="status-item">
+            <span class="status-icon">⏰</span>
+            <span id="last-analysis">Never</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="mapping-dashboard">
+      <!-- Left Panel: Map and Controls -->
+      <section class="map-panel">
+        <div class="panel-header">
+          <h2>🗺️ Real-Time Satellite Mapping</h2>
+          <div class="map-controls">
+            <select id="satellite-layer" class="control-select">
+              <option value="sentinel2">Sentinel-2 (Optical)</option>
+              <option value="sentinel1">Sentinel-1 (SAR)</option>
+              <option value="landsat8">Landsat 8</option>
+            </select>
+            <button id="refresh-satellite" class="control-btn small">
+              🔄 Refresh
+            </button>
+            <button id="capture-screenshot" class="control-btn small">
+              📸 Capture
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Map -->
+        <div id="flood-map" class="flood-map"></div>
+
+        <!-- Map Legend -->
+        <div class="map-legend">
+          <h3>Legend</h3>
+          <div class="legend-items">
+            <div class="legend-item">
+              <span class="legend-color" style="background: #3b82f6"></span>
+              <span>Water Bodies</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: #ef4444"></span>
+              <span>Flood Risk (High)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: #f97316"></span>
+              <span>Flood Risk (Medium)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: #eab308"></span>
+              <span>Flood Risk (Low)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color sensor-marker"></span>
+              <span>AGOS Stations</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: AI Analysis -->
+      <section class="ai-panel">
+        <div class="panel-header">
+          <h2>🤖 AI Flood Prediction</h2>
+          <div class="ai-status-indicator">
+            <span class="ai-model-status" id="ai-model-status">
+              Initializing...
+            </span>
+          </div>
+        </div>
+
+        <!-- Current Analysis Card -->
+        <div class="analysis-card current-analysis">
+          <div class="card-header">
+            <h3>📊 Current Analysis</h3>
+            <span class="analysis-timestamp" id="analysis-timestamp">--</span>
+          </div>
+          <div class="analysis-content">
+            <div class="prediction-gauge">
+              <div class="gauge-container">
+                <div class="gauge-fill" id="flood-risk-gauge"></div>
+                <div class="gauge-center">
+                  <span class="gauge-value" id="flood-risk-value">0%</span>
+                  <span class="gauge-label">Flood Risk</span>
+                </div>
+              </div>
+            </div>
+            <div class="confidence-metrics">
+              <div class="metric">
+                <span class="metric-label">AI Confidence:</span>
+                <span class="metric-value" id="ai-confidence">--</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Sensor Validation:</span>
+                <span class="metric-value" id="sensor-validation">--</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Weather Factor:</span>
+                <span class="metric-value" id="weather-factor">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screenshot Analysis -->
+        <div class="analysis-card screenshot-analysis">
+          <div class="card-header">
+            <h3>📷 Screenshot Analysis</h3>
+            <button id="analyze-screenshot" class="analyze-btn" disabled>
+              <span class="btn-icon">🔍</span>
+              <span class="analyze-label" style="color: #0f172a">
+                Analyze Image
+              </span>
+            </button>
+          </div>
+          <div class="screenshot-container" id="screenshot-container">
+            <div class="screenshot-placeholder">
+              <span class="placeholder-icon">📸</span>
+              <p>Capture satellite view to analyze</p>
+            </div>
+          </div>
+          <div class="analysis-results hidden" id="analysis-results">
+            <div class="result-item">
+              <span class="result-label">Detected Features:</span>
+              <div class="detected-features" id="detected-features"></div>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Flood Extent:</span>
+              <span class="result-value" id="flood-extent">-- km²</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">Risk Assessment:</span>
+              <span class="result-value" id="risk-assessment">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hybrid Prediction Model -->
+        <div class="analysis-card hybrid-model">
+          <div class="card-header">
+            <h3>🔗 Hybrid Model Integration</h3>
+            <div class="model-sync-status">
+              <span class="sync-indicator" id="sync-indicator">🔄</span>
+              <span id="sync-status">Syncing...</span>
+            </div>
+          </div>
+          <div class="hybrid-content">
+            <div class="data-sources">
+              <div class="source-item">
+                <div class="source-header">
+                  <span class="source-icon">🛰️</span>
+                  <span class="source-name">Satellite Data</span>
+                  <span class="source-weight" id="satellite-weight">75%</span>
+                </div>
+                <div class="source-details">
+                  <span>Resolution: 10m</span>
+                  <span>Coverage: 100%</span>
+                </div>
+              </div>
+              <div class="source-item">
+                <div class="source-header">
+                  <span class="source-icon">📡</span>
+                  <span class="source-name">Ground Sensors</span>
+                  <span class="source-weight" id="sensor-weight">25%</span>
+                </div>
+                <div class="source-details">
+                  <span>
+                    Level:
+                    <span id="ground-level">-- cm</span>
+                  </span>
+                  <span>
+                    Flow:
+                    <span id="ground-flow">-- m/s</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="prediction-timeline">
+              <h4>📈 24-Hour Prediction</h4>
+              <div class="timeline-chart" id="prediction-timeline">
+                <canvas width="300" height="150"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="action-btn primary" id="generate-report">
+            <span class="btn-icon">📋</span>
+            Generate Report
+          </button>
+          <button class="action-btn" id="export-prediction">
+            <span class="btn-icon">📤</span>
+            Export Prediction
+          </button>
+          <button class="action-btn emergency" id="emergency-alert">
+            <span class="btn-icon">🚨</span>
+            Send Alert
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Report Generation Modal -->
+    <div id="report-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📋 DOST-PAGASA Flood Report</h2>
+          <button class="modal-close" id="close-report-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="report-form">
+            <div class="form-group">
+              <label>Report Type:</label>
+              <select id="report-type">
+                <option value="routine">Routine Monitoring</option>
+                <option value="alert">Flood Alert</option>
+                <option value="emergency">Emergency Response</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Affected Areas:</label>
+              <textarea
+                id="affected-areas"
+                placeholder="List affected barangays/municipalities..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label>Recommendations:</label>
+              <textarea
+                id="recommendations"
+                placeholder="Emergency response recommendations..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label>Include Data:</label>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" id="include-satellite" checked />
+                  Satellite Analysis
+                </label>
+                <label>
+                  <input type="checkbox" id="include-sensors" checked />
+                  Ground Sensor Data
+                </label>
+                <label>
+                  <input type="checkbox" id="include-predictions" checked />
+                  AI Predictions
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="report-preview" id="report-preview">
+            <h3>Preview</h3>
+            <div class="preview-content">
+              Report will be generated in PDF format...
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn secondary" id="cancel-report">Cancel</button>
+          <button class="btn primary" id="download-report">
+            <span class="btn-icon">📥</span>
+            Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Analyzing satellite data...</p>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/module_2/module2-app.js"></script>
+  </body>
+</html>

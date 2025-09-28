@@ -1,0 +1,353 @@
+<!-- The page which contains the DOM elements(cards, stats, buttons) and single script tag -->
+
+<!-- Links to the stylesheet(CSS) -->
+<!-- Links to the JS script(Javascript) -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Standard HTML5 document declaration -->
+    <meta charset="UTF-8" />
+    <!-- Sets character encoding to UTF-8 for international character support -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Makes the page responsive by setting viewport width to device width -->
+    <title>AGOS - Advanced Ground Observation System</title>
+    <!-- Page title that appears in browser tab -->
+    <link rel="stylesheet" href="/main/main-styles.css" />
+    <!-- Links to the external CSS stylesheet for styling -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <!-- Pre-establishes connection to Google Fonts for faster loading -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Pre-connects to Google Fonts CDN with CORS support -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Imports Inter font family with multiple weights, swap display for better performance -->
+  </head>
+  <body>
+    <!--
+      NOTE FOR EDITORS:
+      - You can freely modify text, layout, and styling in this file.
+      - DO NOT rename or remove the ELEMENT IDs listed below. They are
+        referenced by the JavaScript in `main/main-script.js` and
+        changing them will cause UI updates to stop or throw errors.
+        * current-time
+        * sensors-online
+        * ai-accuracy
+        * uptime
+        * current-water-level
+        * current-flow-rate
+        * alert-status
+        * battery-level
+
+      - DO NOT remove or rename these classes/attributes used by JS:
+        * .module-card  (used for animations and data-module attribute)
+        * .module-btn   (used for click handlers)
+        * data-module attribute on module cards (used to determine module URL)
+
+      - Keep the stylesheet link and the script inclusion at the bottom
+        (they must remain so the page looks correct and the JS runs).
+
+      Safe edits: change copy, add/remove non-critical markup, tweak styles
+      or add new elements (if you add elements that JS should update, add
+      the appropriate ID and update the JS accordingly).
+    -->
+
+    <!-- Background Animation Container -->
+    <div class="bg-animation">
+      <!-- Creates animated floating water drops for visual appeal -->
+      <div class="water-drop"></div>
+      <div class="water-drop"></div>
+      <div class="water-drop"></div>
+      <div class="water-drop"></div>
+      <div class="water-drop"></div>
+      <div class="water-drop"></div>
+    </div>
+
+    <!-- Main Header Section -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <!-- <div class="logo-icon">🌊</div> -->
+          <h1 class="main-title">AGOS</h1>
+          <!-- <p class="main-subtitle">Advanced Ground Observation System</p> -->
+          <div class="tagline">
+            Real-time Flood Monitoring & Emergency Response
+          </div>
+        </div>
+        <div class="system-info">
+          <!-- <div class="user-info">
+            <span class="user-icon">👤</span>
+            <span class="user-name">cri-kee-zel</span>
+          </div> -->
+          <div class="timestamp">
+            <span class="time-icon">🕐</span>
+            <span class="current-time" id="current-time">
+              2025-08-18 13:06:47 UTC
+            </span>
+          </div>
+          <!-- <div class="status-indicator">
+            <span class="status-dot online"></span>
+            <span class="status-text">System Online</span>
+          </div> -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Content -->
+    <main class="main-dashboard">
+      <div class="container">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+          <div class="welcome-content">
+            <h2 class="welcome-title">Welcome to AGOS Control Center</h2>
+            <p class="welcome-description">
+              Comprehensive flood monitoring and emergency response system
+              designed for Puerto Princesa Flood Prone Areas. Access real-time
+              data, AI-powered predictions?, historical analytics, and emergency
+              communication tools.
+            </p>
+            <div class="system-stats">
+              <div class="stat-item">
+                <span class="stat-icon">📊</span>
+                <span class="stat-value" id="sensors-online">3</span>
+                <span class="stat-label">Sensors Online</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">🤖</span>
+                <span class="stat-value" id="ai-accuracy">87.2%</span>
+                <span class="stat-label">AI Accuracy</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">⏱️</span>
+                <span class="stat-value" id="uptime">99.9%</span>
+                <span class="stat-label">System Uptime</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Module Cards Section -->
+        <section class="modules-section">
+          <div class="modules-grid">
+            <!-- Module 1: Real-time Dashboard -->
+            <div class="module-card" data-module="dashboard">
+              <div class="card-header">
+                <div class="module-icon dashboard-icon">📊</div>
+                <div class="module-status">
+                  <span class="status-indicator active"></span>
+                  <span class="status-text">Active</span>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="module-title">Real-time Dashboard</h3>
+                <p class="module-description">
+                  Live sensor monitoring with water level tracking, flow rates,
+                  and environmental data visualization in real-time.
+                </p>
+                <div class="module-features">
+                  <span class="feature-tag">Live Data</span>
+                  <span class="feature-tag">5s Updates</span>
+                  <span class="feature-tag">Mobile Ready</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button
+                  class="module-btn primary"
+                  onclick="navigateToModule('/dashboard')"
+                >
+                  <span class="btn-icon">🚀</span>
+                  <span class="btn-text">Launch Dashboard</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Module 2: AI-Enhanced Mapping -->
+            <div class="module-card" data-module="mapping">
+              <div class="card-header">
+                <div class="module-icon mapping-icon">🛰️</div>
+                <div class="module-status">
+                  <span class="status-indicator active"></span>
+                  <span class="status-text">Active</span>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="module-title">AI-Enhanced Mapping</h3>
+                <p class="module-description">
+                  Satellite imagery analysis with Microsoft AI4G-flood
+                  integration. Generate flood predictions and Agos Sensor's
+                  reports.
+                </p>
+                <div class="module-features">
+                  <span class="feature-tag">AI Analysis</span>
+                  <span class="feature-tag">Satellite Data</span>
+                  <span class="feature-tag">PDF Reports</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button
+                  class="module-btn secondary"
+                  onclick="navigateToModule('/mapping')"
+                >
+                  <span class="btn-icon">🛰️</span>
+                  <span class="btn-text">Open Mapping</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Module 3: Historical Analytics -->
+            <div class="module-card" data-module="analytics">
+              <div class="card-header">
+                <div class="module-icon analytics-icon">📈</div>
+                <div class="module-status">
+                  <span class="status-indicator active"></span>
+                  <span class="status-text">Active</span>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="module-title">Historical Analytics</h3>
+                <p class="module-description">
+                  Advanced time series analysis, trend predictions, and
+                  correlation studies for long-term flood pattern insights.
+                </p>
+                <div class="module-features">
+                  <span class="feature-tag">Time Series</span>
+                  <span class="feature-tag">Predictions</span>
+                  <span class="feature-tag">Correlations</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button
+                  class="module-btn accent"
+                  onclick="navigateToModule('/analytics')"
+                >
+                  <span class="btn-icon">📊</span>
+                  <span class="btn-text">View Analytics</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Module 4: Emergency Response -->
+            <div class="module-card emergency-card" data-module="emergency">
+              <div class="card-header">
+                <div class="module-icon emergency-icon">🚨</div>
+                <div class="module-status">
+                  <span class="status-indicator emergency"></span>
+                  <span class="status-text">Restricted</span>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="module-title">Emergency Response</h3>
+                <p class="module-description">
+                  Mass SMS alert system with contact management. Secure access
+                  required for emergency broadcasts.
+                </p>
+                <div class="module-features">
+                  <span class="feature-tag emergency-tag">SMS Alerts</span>
+                  <span class="feature-tag emergency-tag">Mass Broadcast</span>
+                  <span class="feature-tag emergency-tag">Secure Access</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button
+                  class="module-btn emergency"
+                  onclick="navigateToModule('/emergency')"
+                >
+                  <span class="btn-icon">🔐</span>
+                  <span class="btn-text">Access Emergency</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Status Overview Section -->
+        <section class="status-overview">
+          <div class="overview-content">
+            <h3 class="overview-title">🔍 System Overview</h3>
+            <p class="overview-subtitle">Live Updates</p>
+
+            <div class="status-grid">
+              <div class="status-item water-level">
+                <div class="status-icon">💧</div>
+                <div class="status-info">
+                  <span class="status-value" id="current-water-level">
+                    47.8 cm
+                  </span>
+                  <span class="status-label">Water Level</span>
+                  <span class="status-trend up">↗ +2.1%</span>
+                </div>
+              </div>
+              <div class="status-item flow-rate">
+                <div class="status-icon">🌊</div>
+                <div class="status-info">
+                  <span class="status-value" id="current-flow-rate">
+                    1.24 m/s
+                  </span>
+                  <span class="status-label">Flow Rate</span>
+                  <span class="status-trend down">↘ -1.3%</span>
+                </div>
+              </div>
+              <div class="status-item alert-status">
+                <div class="status-icon">⚠️</div>
+                <div class="status-info">
+                  <span class="status-value" id="alert-status">NORMAL</span>
+                  <span class="status-label">Alert Status</span>
+                  <span class="status-trend stable">● Stable</span>
+                </div>
+              </div>
+              <div class="status-item battery-level">
+                <div class="status-icon">🔋</div>
+                <div class="status-info">
+                  <span class="status-value" id="battery-level">85%</span>
+                  <span class="status-label">Battery Level</span>
+                  <span class="status-trend stable">● Good</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer Section -->
+        <section class="footer-section">
+          <div class="footer-content">
+            <div class="system-info-detailed">
+              <h4>🛠️ System Information</h4>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Version:</span>
+                  <span class="info-value">AGOS v2.1.0</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Station ID:</span>
+                  <span class="info-value">AGOS-PH-001</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Location:</span>
+                  <span class="info-value">
+                    Puerto Princesa City, Philippines
+                  </span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Last Maintenance:</span>
+                  <span class="info-value">2025-08-15 14:30 UTC</span>
+                </div>
+              </div>
+            </div>
+            <div class="credits">
+              <p>
+                Developed by
+                <strong>cri-kee-zel & JC</strong>
+              </p>
+              <p class="copyright">© 2025 AGOS Project. All rights reserved.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- JavaScript file inclusion -->
+    <script src="/main/main-script.js"></script>
+  </body>
+</html>

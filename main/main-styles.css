@@ -1,0 +1,1077 @@
+/* edit here if you want changes in layout, theme and animations which affects appearance only  */
+/*
+  IMPORTANT: Safe-edit guidance
+
+  - You may freely change colors, spacing, animations, and layout rules.
+    These are "safe" edits and won't break JavaScript behavior.
+
+  - DO NOT rename or remove any of the following ELEMENT IDs in the HTML
+    (they are used by `main/main-script.js` to update UI values):
+      current-time
+      sensors-online
+      ai-accuracy
+      uptime
+      current-water-level
+      current-flow-rate
+      alert-status
+      battery-level
+
+  - DO NOT rename or remove these CSS classes/attributes that the JS
+    expects to exist in the DOM (they are used for animations, handlers,
+    and module identification):
+      .module-card      (cards representing each module)
+      .module-btn       (buttons inside cards — click handlers rely on this)
+      data-module       (attribute on .module-card elements used to infer URLs)
+
+  - Safe edits include: changing CSS variables (colors, spacing), adding
+    new utility classes, modifying animations, adjusting responsiveness.
+
+  - If you add new elements that should be updated by JS, give them one
+    of the IDs above or update `main/main-script.js` to use the new ID.
+
+  This comment is purely informational and will not affect runtime.
+*/
+
+/* AGOS Main Gateway Styles */
+/* CSS file for styling the main gateway page */
+
+/* Reset and Variables */
+/* Universal selector to reset default browser styles */
+* {
+  margin: 0; /* Remove default margins */
+  padding: 0; /* Remove default padding */
+  box-sizing: border-box; /* Include padding and border in element's total width/height */
+}
+
+/* CSS Custom Properties (Variables) for consistent theming */
+:root {
+  /* AGOS Color Palette - consistent with modules (light theme) */
+  --primary-color: #3b82f6; /* Blue - main brand color (unchanged) */
+  --secondary-color: #06b6d4; /* Cyan - secondary accent */
+  --accent-color: #8b5cf6; /* Purple - tertiary accent */
+  --success-color: #22c55e; /* Green - success/normal states */
+  --warning-color: #f59e0b; /* Yellow - warning states */
+  --danger-color: #ef4444; /* Red - danger/alert states */
+  --emergency-color: #dc2626; /* Dark red - emergency states */
+
+  /* Background colors for light theme */
+  --bg-primary: #eef7ff; /* Page background (very light) */
+  --bg-secondary: #e7ecf1; /* Slightly warmer off-white for large panels */
+  --bg-tertiary: #ffffff; /* Card / content background */
+  --bg-card: #ffffff; /* Card surfaces */
+
+  /* Text colors for contrast on light backgrounds */
+  --text-primary: #0f172a; /* Primary text - very dark blue */
+  --text-secondary: #475569; /* Secondary text - slate gray */
+  --text-muted: #6b7280; /* Muted text */
+
+  /* Borders & Shadows for light theme */
+  --border-color: #e6eef6; /* Light border for separation */
+  --shadow-lg: 0 10px 30px rgba(2, 6, 23, 0.06); /* Soft shadow */
+  --shadow-xl: 0 20px 40px rgba(2, 6, 23, 0.08); /* Larger soft shadow */
+
+  /* Typography settings */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; /* Font stack */
+
+  /* Spacing scale for consistent layout */
+  --spacing-xs: 0.5rem; /* 8px */
+  --spacing-sm: 1rem; /* 16px */
+  --spacing-md: 1.5rem; /* 24px */
+  --spacing-lg: 2rem; /* 32px */
+  --spacing-xl: 3rem; /* 48px */
+
+  /* Border radius for rounded corners */
+  --radius-sm: 0.5rem; /* 8px */
+  --radius-md: 1rem; /* 16px */
+  --radius-lg: 1.5rem; /* 24px */
+  --radius-xl: 2rem; /* 32px */
+
+  /* Transition timing for animations */
+  --transition: all 0.3s ease; /* Standard transition */
+}
+
+/* Base Styles */
+/* Main body styling */
+body {
+  font-family: var(--font-family); /* Apply custom font */
+  background: linear-gradient(
+    135deg,
+    var(--bg-primary) 0%,
+    var(--bg-secondary) 100%
+  ); /* Gradient background */
+  color: var(--text-primary); /* Text color */
+  line-height: 1.6; /* Line spacing for readability */
+  min-height: 100vh; /* Minimum full viewport height */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  position: relative; /* For absolute positioned children */
+}
+
+/* Container for responsive layout */
+.container {
+  max-width: 1400px; /* Maximum width for large screens */
+  margin: 0 auto; /* Center horizontally */
+  padding: 0 var(--spacing-md); /* Horizontal padding */
+}
+
+/* Background Animation */
+/* Fixed positioned container for floating animation elements */
+.bg-animation {
+  position: fixed; /* Fixed to viewport */
+  top: 0; /* Align to top */
+  left: 0; /* Align to left */
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  pointer-events: none; /* Don't interfere with user interactions */
+  z-index: 0; /* Behind main content */
+  overflow: hidden; /* Hide elements outside bounds */
+}
+
+/* Individual water drop animation elements */
+.water-drop {
+  position: absolute; /* Position individually */
+  width: 8px; /* Drop width */
+  height: 8px; /* Drop height */
+  background: radial-gradient(
+    circle,
+    var(--primary-color) 0%,
+    transparent 70%
+  ); /* Gradient drop effect */
+  border-radius: 50%; /* Make circular */
+  opacity: 0.3; /* Semi-transparent */
+  animation: waterDrop 15s infinite linear; /* Apply falling animation */
+}
+
+/* Position each drop at different horizontal positions with staggered delays */
+.water-drop:nth-child(1) {
+  left: 10%;
+  animation-delay: 0s;
+} /* First drop */
+.water-drop:nth-child(2) {
+  left: 30%;
+  animation-delay: -3s;
+} /* Second drop */
+.water-drop:nth-child(3) {
+  left: 50%;
+  animation-delay: -6s;
+} /* Third drop */
+.water-drop:nth-child(4) {
+  left: 70%;
+  animation-delay: -9s;
+} /* Fourth drop */
+.water-drop:nth-child(5) {
+  left: 20%;
+  animation-delay: -12s;
+} /* Fifth drop */
+.water-drop:nth-child(6) {
+  left: 80%;
+  animation-delay: -15s;
+} /* Sixth drop */
+
+/* Keyframe animation for water drops falling */
+@keyframes waterDrop {
+  0% {
+    transform: translateY(-100px); /* Start above viewport */
+    opacity: 0; /* Fade in */
+  }
+  10% {
+    opacity: 0.3; /* Become visible */
+  }
+  90% {
+    opacity: 0.3; /* Stay visible */
+  }
+  100% {
+    transform: translateY(100vh); /* Fall below viewport */
+    opacity: 0; /* Fade out */
+  }
+}
+
+/* Header */
+/* Main header section styling */
+.main-header {
+  position: relative; /* For z-index stacking */
+  z-index: 1; /* Above background animation */
+  /* User-requested header sizing: padding 20px and min-height 20px */
+  padding: 20px 0 !important; /* explicit value to override other rules */
+  min-height: 20px !important; /* user wants compact min-height */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(241, 245, 249, 0.9)
+  ); /* Light semi-transparent gradient for light theme */
+  backdrop-filter: blur(10px); /* Blur background behind */
+  border-bottom: 1px solid var(--border-color); /* Bottom border */
+}
+
+/* Header content flex container */
+.header-content {
+  display: flex; /* Flexbox layout */
+  justify-content: space-between; /* Space items apart */
+  align-items: center; /* Center vertically */
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  gap: var(--spacing-lg); /* Space between items */
+}
+
+/* Logo section styling */
+.logo-section {
+  text-align: center; /* Center text */
+  flex: 1; /* Take available space */
+}
+
+/* Animated logo icon */
+.logo-icon {
+  font-size: 3rem; /* larger logo for moderate header */
+  margin-bottom: var(--spacing-sm);
+  display: block;
+  animation: float 3s ease-in-out infinite; /* Floating animation */
+}
+
+/* Floating animation for logo */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  } /* Start and end position */
+  50% {
+    transform: translateY(-10px);
+  } /* Float up */
+}
+
+/* Main title styling */
+.main-title {
+  font-size: clamp(2rem, 6vw, 3rem); /* Responsive but reduced */
+  font-weight: 700; /* Bold weight */
+  color: var(--primary-color); /* Primary brand color */
+  margin-bottom: var(--spacing-xs); /* Small margin below */
+  text-shadow: 0 3px 12px rgba(59, 130, 246, 0.25); /* Slightly smaller glow */
+  letter-spacing: -0.02em; /* Tighter letter spacing */
+}
+
+/* Subtitle styling */
+.main-subtitle {
+  font-size: clamp(1.2rem, 3vw, 1.8rem); /* Responsive subtitle size */
+  color: var(--text-secondary); /* Secondary text color */
+  margin-bottom: var(--spacing-sm); /* Margin below */
+  font-weight: 600; /* Semi-bold */
+}
+
+/* Hide tagline in aggressive compact mode to minimize header height */
+.tagline {
+  display: block;
+}
+
+/* Tweak the system-info items to be more compact */
+.system-info {
+  display: flex; /* Flex layout */
+  flex-direction: column; /* Stack vertically */
+  gap: var(--spacing-sm); /* Space between items */
+  align-items: flex-end; /* Align to right */
+}
+
+.user-info,
+.timestamp,
+.status-indicator {
+  padding: var(--spacing-xs) var(--spacing-sm); /* Restore original padding */
+  font-size: 0.9rem;
+}
+
+/* Make the displayed timestamp more compact */
+.timestamp .current-time {
+  font-size: 0.65rem;
+  padding-left: 0.3rem;
+}
+
+/* Timestamp container — subtle border and elevation for light theme */
+.timestamp {
+  border: 1px solid var(--border-color); /* Light border that matches cards */
+  background: rgba(
+    2,
+    6,
+    23,
+    0.03
+  ); /* Very subtle tint to separate from background */
+  border-radius: calc(var(--radius-sm));
+  padding: 0.15rem 0.5rem; /* Small inner padding */
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.04); /* Subtle elevation */
+}
+
+/* Tagline styling */
+.tagline {
+  font-size: 1rem; /* Standard font size */
+  color: var(--text-muted); /* Muted text color */
+  font-weight: 500; /* Medium weight */
+}
+
+/* System information container */
+.system-info {
+  display: flex; /* Flex layout */
+  flex-direction: column; /* Stack vertically */
+  gap: var(--spacing-sm); /* Space between items */
+  align-items: flex-end; /* Align to right */
+}
+
+/* Individual info items styling */
+.user-info,
+.timestamp,
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(2, 6, 23, 0.04); /* subtle tint on light bg */
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(2, 6, 23, 0.06);
+  font-size: 0.9rem;
+}
+
+/* Icon sizing for user and time */
+.user-icon,
+.time-icon {
+  font-size: 1.1rem; /* Slightly larger icons */
+}
+
+/* User name highlighting */
+.user-name {
+  font-weight: 600; /* Semi-bold */
+  color: var(--primary-color); /* Brand color */
+}
+
+/* Timestamp styling */
+.current-time {
+  font-family: "Courier New", monospace; /* Monospace font for time */
+  color: var(--text-secondary); /* Secondary color */
+}
+
+/* Status dot indicator */
+.status-dot {
+  width: 8px; /* Dot width */
+  height: 8px; /* Dot height */
+  border-radius: 50%; /* Make circular */
+  animation: pulse 2s infinite; /* Pulsing animation */
+}
+
+/* Online status color */
+.status-dot.online {
+  background: var(--success-color); /* Green for online */
+}
+
+/* Pulsing animation for status dot */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  } /* Full opacity */
+  50% {
+    opacity: 0.5;
+  } /* Half opacity */
+}
+
+/* Main Dashboard */
+/* Main content area */
+.main-dashboard {
+  position: relative; /* For z-index stacking */
+  z-index: 1; /* Above background */
+  padding: 20px 0 !important; /* Reduced vertical padding (min 20px) */
+}
+
+/* Welcome Section */
+/* Welcome panel spacing */
+.welcome-section {
+  margin-bottom: 20px; /* Reduced bottom margin for compact spacing */
+}
+
+/* Welcome content box */
+.welcome-content {
+  background: var(--bg-tertiary); /* Dark background */
+  border-radius: var(--radius-md); /* Slightly smaller rounded corners */
+  padding: 20px; /* Compact padding (minimum 20px) */
+  text-align: center; /* Center text */
+  border: 1px solid var(--border-color); /* Border */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); /* Lighter drop shadow */
+}
+
+/* Welcome title */
+.welcome-title {
+  font-size: 1.8rem; /* Reduced title size for compact layout */
+  color: var(--text-primary); /* Primary text color */
+  margin-bottom: var(--spacing-sm); /* Smaller margin */
+  font-weight: 700; /* Bold */
+}
+
+/* Welcome description */
+.welcome-description {
+  font-size: 0.98rem; /* Slightly reduced text */
+  color: var(--text-secondary); /* Secondary color */
+  margin-bottom: var(--spacing-md); /* Moderate bottom margin */
+  max-width: 720px; /* Slightly narrower for compact layout */
+  margin-left: auto; /* Center horizontally */
+  margin-right: auto; /* Center horizontally */
+  line-height: 1.6; /* Comfortable line height */
+}
+
+/* System statistics grid */
+.system-stats {
+  display: grid; /* Grid layout */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(180px, 1fr)
+  ); /* Responsive columns (slightly smaller min) */
+  gap: var(--spacing-md); /* Reduced gap between items */
+  margin-top: var(--spacing-lg); /* Reduced top margin */
+}
+
+/* Individual stat item */
+.stat-item {
+  display: flex; /* Flex layout */
+  flex-direction: column; /* Stack vertically */
+  align-items: center; /* Center horizontally */
+  gap: var(--spacing-xs); /* Small gaps */
+  padding: 20px; /* Compact padding (min 20px) */
+  background: var(--bg-secondary); /* Background color */
+  border-radius: calc(var(--radius-md) - 0.25rem); /* Slightly tighter radius */
+  border: 1px solid var(--border-color); /* Border */
+  transition: var(--transition); /* Smooth transitions */
+}
+
+/* Hover effect for stat items */
+.stat-item:hover {
+  transform: translateY(-2px); /* Lift up slightly */
+  box-shadow: var(--shadow-lg); /* Add shadow */
+}
+
+/* Stat icon sizing */
+.stat-icon {
+  font-size: 1.6rem; /* Slightly smaller icon for compact layout */
+}
+
+/* Stat value styling */
+.stat-value {
+  font-size: 1.4rem; /* Reduced number size */
+  font-weight: 700; /* Bold */
+  color: var(--primary-color); /* Brand color */
+}
+
+/* Stat label styling */
+.stat-label {
+  font-size: 0.9rem; /* Smaller label text */
+  color: var(--text-muted); /* Muted color */
+  text-transform: uppercase; /* All caps */
+  letter-spacing: 0.5px; /* Letter spacing */
+}
+
+/* Modules Section */
+/* Modules section spacing */
+.modules-section {
+  margin-bottom: var(--spacing-xl); /* Bottom margin */
+}
+
+/* Modules grid layout */
+.modules-grid {
+  display: grid; /* Grid layout */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(350px, 1fr)
+  ); /* Responsive grid */
+  gap: var(--spacing-lg); /* Gap between cards */
+}
+
+/* Module card base styling */
+.module-card {
+  background: var(--bg-tertiary); /* Card background */
+  border-radius: var(--radius-lg); /* Rounded corners */
+  border: 1px solid var(--border-color); /* Border */
+  overflow: hidden; /* Hide overflow */
+  transition: var(--transition); /* Smooth transitions */
+  position: relative; /* For absolute children */
+  cursor: pointer; /* Indicate clickable */
+}
+
+/* Hover effect for module cards */
+.module-card:hover {
+  transform: translateY(-5px); /* Lift up */
+  box-shadow: var(--shadow-xl); /* Large shadow */
+}
+
+/* Special styling for emergency card */
+.module-card.emergency-card {
+  border-color: var(--emergency-color); /* Red border */
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.2); /* Red glow */
+}
+
+/* Card header styling */
+.card-header {
+  display: flex; /* Flex layout */
+  justify-content: space-between; /* Space apart */
+  align-items: center; /* Center vertically */
+  padding: var(--spacing-md); /* Padding */
+  background: linear-gradient(
+    135deg,
+    var(--bg-secondary),
+    var(--bg-tertiary)
+  ); /* Gradient */
+  border-bottom: 1px solid var(--border-color); /* Bottom border */
+}
+
+/* Module icon base styling */
+.module-icon {
+  font-size: 2.5rem; /* Large icon */
+  padding: var(--spacing-sm); /* Padding */
+  border-radius: var(--radius-md); /* Rounded */
+  display: flex; /* Flex for centering */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+}
+
+/* Dashboard icon gradient */
+.dashboard-icon {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  ); /* Blue gradient */
+}
+
+/* Mapping icon gradient */
+.mapping-icon {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color),
+    var(--accent-color)
+  ); /* Cyan to purple */
+}
+
+/* Analytics icon gradient */
+.analytics-icon {
+  background: linear-gradient(
+    135deg,
+    var(--accent-color),
+    var(--success-color)
+  ); /* Purple to green */
+}
+
+/* Emergency icon gradient with animation */
+.emergency-icon {
+  background: linear-gradient(
+    135deg,
+    var(--danger-color),
+    var(--emergency-color)
+  ); /* Red gradient */
+  animation: emergencyPulse 2s infinite; /* Pulsing animation */
+}
+
+/* Emergency pulsing effect */
+@keyframes emergencyPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  } /* No shadow */
+  50% {
+    box-shadow: 0 0 0 15px rgba(220, 38, 38, 0);
+  } /* Large shadow that fades */
+}
+
+/* Module status container */
+.module-status {
+  display: flex; /* Flex layout */
+  flex-direction: column; /* Stack vertically */
+  align-items: center; /* Center items */
+  gap: var(--spacing-xs); /* Small gap */
+}
+
+/* Status indicator dot */
+.status-indicator {
+  /* Keep container behavior for elements like the header info block.
+     For small circular indicators (module dots) we target span.status-indicator below.
+     This ruleset provides shared container defaults but does not force a fixed size. */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* Active status color */
+.status-indicator.active {
+  background: var(--success-color); /* Green for active */
+}
+
+/* Emergency status color */
+.status-indicator.emergency {
+  background: var(--emergency-color); /* Red for emergency/restricted */
+}
+
+/* Status text styling */
+.status-text {
+  font-size: 0.8rem; /* Small text */
+  color: var(--text-muted); /* Muted color */
+  text-transform: uppercase; /* All caps */
+  font-weight: 600; /* Semi-bold */
+  display: inline-block; /* Keep inline flow next to dot */
+  vertical-align: middle; /* Align with small dot */
+  margin-left: calc(var(--spacing-xs)); /* Small gap after dot */
+}
+
+/* Specific styling for span indicators (the small circular dots used in module headers) */
+span.status-indicator {
+  width: 12px; /* Indicator width */
+  height: 12px; /* Indicator height */
+  border-radius: 50%; /* Make circular */
+  display: inline-block;
+  animation: pulse 2s infinite; /* Pulsing animation */
+}
+
+/* Card content area */
+.card-content {
+  padding: var(--spacing-lg); /* Large padding */
+}
+
+/* Module title styling */
+.module-title {
+  font-size: 1.5rem; /* Large title */
+  color: var(--text-primary); /* Primary text color */
+  margin-bottom: var(--spacing-sm); /* Bottom margin */
+  font-weight: 600; /* Semi-bold */
+}
+
+/* Module description */
+.module-description {
+  color: var(--text-secondary); /* Secondary color */
+  margin-bottom: var(--spacing-md); /* Bottom margin */
+  line-height: 1.6; /* Line height for readability */
+}
+
+/* Module features container */
+.module-features {
+  display: flex; /* Flex layout */
+  gap: var(--spacing-xs); /* Small gaps */
+  flex-wrap: wrap; /* Allow wrapping */
+}
+
+/* Individual feature tag */
+.feature-tag {
+  padding: var(--spacing-xs) var(--spacing-sm); /* Padding */
+  background: var(--bg-secondary); /* Background */
+  color: var(--text-secondary); /* Text color */
+  border-radius: var(--radius-sm); /* Rounded corners */
+  font-size: 0.8rem; /* Small text */
+  font-weight: 500; /* Medium weight */
+  border: 1px solid var(--border-color); /* Border */
+}
+
+/* Emergency feature tag styling */
+.emergency-tag {
+  background: rgba(220, 38, 38, 0.1); /* Red tinted background */
+  color: var(--emergency-color); /* Red text */
+  border-color: var(--emergency-color); /* Red border */
+}
+
+/* Card footer */
+.card-footer {
+  padding: var(--spacing-lg); /* Padding */
+  padding-top: 0; /* No top padding */
+}
+
+/* Module button base styling */
+.module-btn {
+  width: 100%; /* Full width */
+  display: flex; /* Flex layout */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  gap: var(--spacing-sm); /* Gap between icon and text */
+  padding: var(--spacing-md) var(--spacing-lg); /* Padding */
+  border: none; /* No border */
+  border-radius: var(--radius-md); /* Rounded corners */
+  cursor: pointer; /* Pointer cursor */
+  font-weight: 600; /* Semi-bold */
+  font-size: 1rem; /* Standard size */
+  transition: var(--transition); /* Smooth transitions */
+  text-transform: uppercase; /* All caps */
+  letter-spacing: 0.5px; /* Letter spacing */
+}
+
+/* Primary button (Dashboard) */
+.module-btn.primary {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  ); /* Blue gradient */
+  color: white; /* White text */
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); /* Blue shadow */
+}
+
+/* Secondary button (Mapping) */
+.module-btn.secondary {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color),
+    var(--accent-color)
+  ); /* Cyan to purple */
+  color: white; /* White text */
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3); /* Cyan shadow */
+}
+
+/* Tertiary button (Analytics) */
+.module-btn.tertiary {
+  background: linear-gradient(
+    135deg,
+    var(--accent-color),
+    var(--success-color)
+  ); /* Purple to green */
+  color: white; /* White text */
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); /* Purple shadow */
+}
+
+/* Emergency button */
+.module-btn.emergency {
+  background: linear-gradient(
+    135deg,
+    var(--danger-color),
+    var(--emergency-color)
+  ); /* Red gradient */
+  color: white; /* White text */
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); /* Red shadow */
+}
+
+/* Button hover effects */
+.module-btn:hover {
+  transform: translateY(-2px); /* Lift up */
+  box-shadow: 0 8px 25px rgba(2, 6, 23, 0.08); /* Softer shadow for light theme */
+}
+
+/* Button icon sizing */
+.btn-icon {
+  font-size: 1.2rem; /* Slightly larger icon */
+}
+
+/* Status Section */
+/* Status section spacing */
+.status-section {
+  margin-bottom: var(--spacing-xl); /* Bottom margin */
+}
+
+/* Status panel container */
+.status-panel {
+  background: var(--bg-tertiary); /* Background */
+  border-radius: var(--radius-lg); /* Rounded corners */
+  border: 1px solid var(--border-color); /* Border */
+  overflow: hidden; /* Hide overflow */
+  box-shadow: var(--shadow-lg); /* Shadow */
+}
+
+/* Panel header */
+.panel-header {
+  display: flex; /* Flex layout */
+  justify-content: space-between; /* Space apart */
+  align-items: center; /* Center vertically */
+  padding: var(--spacing-lg); /* Padding */
+  background: var(--bg-secondary); /* Background */
+  border-bottom: 1px solid var(--border-color); /* Bottom border */
+}
+
+/* Panel header title */
+.panel-header h3 {
+  font-size: 1.3rem; /* Large text */
+  color: var(--text-primary); /* Primary color */
+  margin: 0; /* No margin */
+}
+
+/* Refresh indicator */
+.refresh-indicator {
+  display: flex; /* Flex layout */
+  align-items: center; /* Center vertically */
+  gap: var(--spacing-xs); /* Small gap */
+  font-size: 0.9rem; /* Smaller text */
+  color: var(--text-muted); /* Muted color */
+}
+
+/* Refresh dot animation */
+.refresh-dot {
+  width: 8px; /* Dot width */
+  height: 8px; /* Dot height */
+  background: var(--success-color); /* Green color */
+  border-radius: 50%; /* Circular */
+  animation: pulse 1s infinite; /* Fast pulse */
+}
+
+/* Status grid layout */
+.status-grid {
+  display: grid; /* Grid layout */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(200px, 1fr)
+  ); /* Responsive columns */
+  gap: 1px; /* Small gap for borders */
+  background: var(--border-color); /* Background shows as borders */
+}
+
+/* Individual status item */
+.status-item {
+  display: flex; /* Flex layout */
+  align-items: center; /* Center vertically */
+  gap: var(--spacing-md); /* Medium gap */
+  padding: var(--spacing-lg); /* Large padding */
+  background: var(--bg-tertiary); /* Background */
+  transition: var(--transition); /* Smooth transitions */
+}
+
+/* Status item hover effect */
+.status-item:hover {
+  background: var(--bg-secondary); /* Darker on hover */
+}
+
+/* Status icon */
+.status-icon {
+  font-size: 2rem; /* Large icon */
+  opacity: 0.8; /* Slightly transparent */
+}
+
+/* Status info container */
+.status-info {
+  flex: 1; /* Take available space */
+  display: flex; /* Flex layout */
+  flex-direction: column; /* Stack vertically */
+  gap: var(--spacing-xs); /* Small gaps */
+}
+
+/* Status value display */
+.status-value {
+  font-size: 1.4rem; /* Large value */
+  font-weight: 700; /* Bold */
+  color: var(--text-primary); /* Primary color */
+}
+
+/* Make the water level value slightly smaller than other status values */
+.status-item.water-level .status-value,
+.status-item.flow-rate .status-value,
+#current-water-level,
+#current-flow-rate {
+  font-size: 1rem; /* reduced for compact display */
+}
+
+/* Status label */
+.status-label {
+  font-size: 0.8rem; /* Small label */
+  color: var(--text-muted); /* Muted color */
+  text-transform: uppercase; /* All caps */
+  letter-spacing: 0.5px; /* Letter spacing */
+}
+
+/* Status trend indicators */
+.status-trend {
+  font-size: 0.8rem; /* Small text */
+  font-weight: 600; /* Semi-bold */
+}
+
+/* Trending up (positive) */
+.status-trend.up {
+  color: var(--success-color); /* Green for positive */
+}
+
+/* Trending down (negative) */
+.status-trend.down {
+  color: var(--danger-color); /* Red for negative */
+}
+
+/* Stable trend */
+.status-trend.stable {
+  color: var(--text-muted); /* Muted for stable */
+}
+
+/* Footer Section */
+/* Footer section styling */
+.footer-section {
+  background: var(--bg-secondary); /* Background */
+  border-radius: var(--radius-lg); /* Rounded corners */
+  border: 1px solid var(--border-color); /* Border */
+  padding: var(--spacing-xl); /* Large padding */
+  box-shadow: var(--shadow-lg); /* Shadow */
+}
+
+/* Footer content layout */
+.footer-content {
+  display: grid; /* Grid layout */
+  grid-template-columns: 2fr 1fr; /* 2:1 ratio */
+  gap: var(--spacing-xl); /* Large gap */
+  align-items: start; /* Align to top */
+}
+
+/* System info title */
+.system-info-detailed h4 {
+  color: var(--text-primary); /* Primary color */
+  margin-bottom: var(--spacing-md); /* Bottom margin */
+  font-size: 1.2rem; /* Large text */
+}
+
+/* Info grid layout */
+.info-grid {
+  display: grid; /* Grid layout */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive */
+  gap: var(--spacing-sm); /* Small gap */
+}
+
+/* Individual info item */
+.info-item {
+  display: flex; /* Flex layout */
+  justify-content: space-between; /* Space apart */
+  align-items: center; /* Center vertically */
+  padding: var(--spacing-sm); /* Small padding */
+  background: var(--bg-tertiary); /* Background */
+  border-radius: var(--radius-sm); /* Small radius */
+  border: 1px solid var(--border-color); /* Border */
+}
+
+/* Info label styling */
+.info-label {
+  color: var(--text-muted); /* Muted color */
+  font-weight: 500; /* Medium weight */
+}
+
+/* Info value styling */
+.info-value {
+  color: var(--text-primary); /* Primary color */
+  font-weight: 600; /* Semi-bold */
+  font-family: "Courier New", monospace; /* Monospace font */
+}
+
+/* Credits section */
+.credits {
+  text-align: right; /* Right align */
+  display: flex; /* Flex layout */
+  flex-direction: column; /* Stack vertically */
+  gap: var(--spacing-sm); /* Small gap */
+}
+
+/* Credits paragraphs */
+.credits p {
+  color: var(--text-secondary); /* Secondary color */
+  font-size: 0.9rem; /* Smaller text */
+  line-height: 1.5; /* Line height */
+}
+
+/* Copyright styling */
+.copyright {
+  color: var(--text-muted); /* Muted color */
+  font-size: 0.8rem !important; /* Smaller text (important for override) */
+}
+
+/* Responsive Design */
+/* Tablet and smaller desktop screens */
+@media (max-width: 1024px) {
+  .header-content {
+    flex-direction: column; /* Stack vertically */
+    text-align: center; /* Center text */
+  }
+
+  .system-info {
+    align-items: center; /* Center items */
+  }
+
+  .modules-grid {
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(300px, 1fr)
+    ); /* Smaller min width */
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr; /* Single column */
+    text-align: center; /* Center text */
+  }
+
+  .credits {
+    text-align: center; /* Center credits */
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 768px) {
+  :root {
+    --spacing-xl: 2rem; /* Reduce extra large spacing */
+    --spacing-lg: 1.5rem; /* Reduce large spacing */
+  }
+
+  .container {
+    padding: 0 var(--spacing-sm); /* Reduce container padding */
+  }
+
+  .welcome-title {
+    font-size: 2rem; /* Smaller welcome title */
+  }
+
+  .modules-grid {
+    grid-template-columns: 1fr; /* Single column for modules */
+  }
+
+  .system-stats {
+    grid-template-columns: 1fr; /* Single column for stats */
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr; /* Single column for status */
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr; /* Single column for info */
+  }
+
+  .status-item {
+    flex-direction: column; /* Stack status items vertically */
+    text-align: center; /* Center text */
+    gap: var(--spacing-sm); /* Medium gap */
+  }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+  .main-title {
+    font-size: 2.5rem; /* Smaller main title */
+  }
+
+  .main-subtitle {
+    font-size: 1.2rem; /* Smaller subtitle */
+  }
+
+  .module-card {
+    min-width: unset; /* Remove min width constraint */
+  }
+
+  .welcome-content {
+    padding: var(--spacing-lg); /* Reduce welcome padding */
+  }
+}
+
+/* Accessibility */
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important; /* Nearly instant animations */
+    animation-iteration-count: 1 !important; /* Single iteration only */
+    transition-duration: 0.01ms !important; /* Nearly instant transitions */
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .module-card,
+  .status-panel,
+  .welcome-content,
+  .footer-section {
+    border: 2px solid var(--text-primary); /* Thicker, higher contrast borders */
+  }
+}
+
+/* Print styles */
+@media print {
+  .bg-animation {
+    display: none; /* Hide animations when printing */
+  }
+
+  .module-btn {
+    display: none; /* Hide buttons when printing */
+  }
+
+  body {
+    background: white; /* White background for print */
+    color: black; /* Black text for print */
+  }
+}

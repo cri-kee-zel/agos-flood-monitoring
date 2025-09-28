@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- HTML5 document type and language declaration -->
+    <meta charset="UTF-8" />
+    <!-- Responsive design viewport for mobile compatibility -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Page title displayed in browser tab -->
+    <title>AGOS - Advanced Ground Observation System</title>
+    <!-- Link to main stylesheet for UI styling -->
+    <link rel="stylesheet" href="/module_1/styles.css" />
+    <!-- Google Fonts preconnect for performance optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Inter font family for modern, readable typography -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!--
+      NOTE FOR EDITORS:
+      - You can change layout, copy, and styles freely in this file.
+      - DO NOT rename or remove the ELEMENT IDs listed below. They are
+        referenced by the JavaScript in `module_1/app.js` and changing
+        them will stop UI updates or cause runtime errors.
+        * water-level-value
+        * water-level-status
+        * water-flow-value
+        * water-flow-status
+        * water-fill
+        * water-surface
+        * battery-level
+        * last-update
+        * connection-status
+        * level-sensor-health
+        * flow-sensor-health
+        * upstream-turbidity
+        * downstream-turbidity
+        * flow-velocity
+        * debris-status
+        * turbidity-diff
+        * emergency-banner
+        * emergency-level
+        * human-height
+        * car-height
+        * human-ref
+        * car-ref
+        * alert-threshold
+        * emergency-threshold
+        * simulate-btn
+        * reset-btn
+        * export-btn
+        * ws-status
+        * flow-particles
+
+      - DO NOT remove or rename these classes/attributes if you want
+        built-in behavior to continue working:
+        * .reference-object (positioned visual refs updated by JS)
+        * .ref-input (height inputs for reference objects)
+        * .threshold-input (inputs controlling alert thresholds)
+        * .control-btn (control button styles/behaviour)
+        * .flow-arrow (flow animation arrows)
+
+      Safe edits: change text, rearrange panels, add new markup or styles.
+      If you add elements that should be updated by JavaScript, give them
+      an id and update `module_1/app.js` accordingly.
+    -->
+
+    <!-- Emergency Status Banner - Hidden by default, shows during flood alerts -->
+    <!-- This banner appears at the top when water levels exceed emergency thresholds -->
+    <div id="emergency-banner" class="emergency-banner hidden">
+      <div class="emergency-content">
+        <!-- Warning emoji for immediate visual alert -->
+        <span class="emergency-icon">⚠️</span>
+        <!-- Main alert text -->
+        <span class="emergency-text">FLOOD ALERT ACTIVE</span>
+        <!-- Dynamic content showing alert level (updated by JavaScript) -->
+        <span class="emergency-level" id="emergency-level">CRITICAL</span>
+      </div>
+    </div>
+
+    <!-- Main Header Section - Contains system branding and status indicators -->
+    <header class="main-header">
+      <div class="header-content">
+        <!-- Left side: System logo and description -->
+        <div class="logo-section">
+          <!-- Water wave emoji for visual branding -->
+          <h1>📊 AGOS</h1>
+          <!-- Full system name for clarity -->
+          <p>Real-Time Monitoring Dashboard</p>
+        </div>
+        <div class="module-nav">
+          <button class="nav-btn" onclick="window.location.href='index.html'">
+            📊 Dashboard
+          </button>
+          <button class="nav-btn" onclick="window.location.href='module2.html'">
+            🛰️ AI Mapping
+          </button>
+          <button class="nav-btn active">📈 Analytics</button>
+          <button class="nav-btn" onclick="alert('Module 4 coming soon!')">
+            🚨 Emergency
+          </button>
+        </div>
+
+        <!-- Right side: Real-time system status indicators -->
+        <div class="system-status" id="system-status">
+          <!-- WebSocket connection status (red=offline, green=online) -->
+          <div class="status-item">
+            <span class="status-icon" id="connection-status">🔴</span>
+            <span>Connection</span>
+          </div>
+          <!-- Solar battery charge level from Arduino voltage divider -->
+          <div class="status-item">
+            <span class="status-icon" id="battery-status">🔋</span>
+            <!-- Percentage updated by JavaScript from Arduino ADC reading -->
+            <span id="battery-level">---%</span>
+          </div>
+          <!-- Time since last sensor data update -->
+          <div class="status-item">
+            <span class="status-icon">⏰</span>
+            <!-- Shows "5s ago", "2m ago", etc. -->
+            <span id="last-update">Never</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Layout - Two-panel design for water level and flow monitoring -->
+    <main class="dashboard">
+      <!-- LEFT PANEL: Water Level Monitoring System -->
+      <!-- This panel displays data from the Omron E3X-NA11 optical encoder -->
+      <section class="panel water-level-panel">
+        <!-- Panel header with sensor identification and health status -->
+        <div class="panel-header">
+          <h2>💧 Water Level Monitor</h2>
+          <div class="sensor-health">
+            <!-- Green circle = healthy, Red circle = sensor fault -->
+            <!-- This status comes from Arduino monitoring the sensor output -->
+            <span class="health-indicator" id="level-sensor-health">🟢</span>
+            <span>Fiber Optic Encoder</span>
+            <!-- Hardware: Omron E3X-NA11 + E32-LT11 fiber -->
+          </div>
+        </div>
+
+        <!-- Large numeric display of current water level -->
+        <div class="level-display">
+          <div class="level-value">
+            <!-- Real-time water level from Arduino optical encoder pulse counting -->
+            <!-- Each pulse = 7.85mm based on 5cm pulley diameter and 20 slots -->
+            <span class="value" id="water-level-value">0.00</span>
+            <span class="unit">cm</span>
+            <!-- Centimeters for easy local understanding -->
+          </div>
+          <!-- Status text changes color based on threshold levels -->
+          <!-- NORMAL (green) < 80cm, WATCH (yellow) < 100cm, ALERT (orange) < 150cm, EMERGENCY (red) ≥150cm -->
+          <div class="level-status" id="water-level-status">NORMAL</div>
+        </div>
+
+        <!-- Interactive water level visualization container -->
+        <div class="water-container">
+          <!-- Animated water level visualization with realistic effects -->
+          <div class="water-level-visual">
+            <!-- Blue water fill that rises/falls with sensor readings -->
+            <!-- Height controlled by JavaScript: percentage = (waterLevel / MAX_LEVEL) * 100% -->
+            <div class="water-fill" id="water-fill"></div>
+
+            <!-- Animated water surface with CSS wave effects -->
+            <div class="water-surface" id="water-surface">
+              <!-- Three overlapping sine wave animations for realistic water motion -->
+              <div class="wave wave1"></div>
+              <!-- Primary wave - 4s cycle -->
+              <div class="wave wave2"></div>
+              <!-- Secondary wave - 3s cycle -->
+              <div class="wave wave3"></div>
+              <!-- Tertiary wave - 5s cycle -->
+            </div>
+            <!-- Visual placeholders for reference objects (controlled by JS) -->
+            <div class="human-visual hidden" id="human-visual">🚶</div>
+
+            <!-- Measurement scale with threshold markings -->
+            <div class="measurement-scale">
+              <div class="scale-mark" data-level="0">0cm</div>
+              <!-- Ground level -->
+              <div class="scale-mark" data-level="50">50cm</div>
+              <!-- Ankle deep -->
+              <div class="scale-mark" data-level="100">100cm</div>
+              <!-- ALERT threshold -->
+              <div class="scale-mark" data-level="150">150cm</div>
+              <!-- EMERGENCY threshold -->
+              <div class="scale-mark" data-level="200">200cm</div>
+              <!-- Extreme flooding -->
+              <div class="scale-mark" data-level="250">250cm</div>
+              <!-- Maximum normal range -->
+              <div class="scale-mark" data-level="300">300cm</div>
+              <!-- Sensor maximum -->
+            </div>
+          </div>
+        </div>
+
+        <!-- User-configurable threshold controls -->
+        <!-- These values trigger different alert levels and emergency responses -->
+        <div class="threshold-controls">
+          <!-- Moved reference objects: human and car (now aligned horizontally) -->
+          <div class="reference-controls" aria-hidden="false">
+            <div class="reference-object human" id="human-ref">
+              <div class="human-icon">🚶</div>
+              <!-- Toggle to show human illustration on the water visualization -->
+              <input
+                type="checkbox"
+                id="human-toggle"
+                class="ref-toggle"
+                aria-label="Show human on visualization"
+                title="Show human on visualization"
+              />
+              <span class="ref-label">Human</span>
+              <input
+                type="number"
+                id="human-height"
+                value="170"
+                min="150"
+                max="200"
+                class="ref-input"
+              />
+              <span class="ref-unit">cm</span>
+            </div>
+
+            <!-- <div class="reference-object car" id="car-ref">
+              <div class="car-icon">🚗</div>
+              <span class="ref-label">Vehicle</span>
+              <input
+                type="number"
+                id="car-height"
+                value="150"
+                min="120"
+                max="180"
+                class="ref-input"
+              />
+              <span class="ref-unit">cm</span>
+            </div> -->
+          </div>
+
+          <div class="threshold-item">
+            <label>Alert Level:</label>
+            <!-- Yellow alert threshold - developer-only setting. Not editable in the UI. -->
+            <!-- To change this value, edit the source code (developer) and update public copy. -->
+            <input
+              type="number"
+              id="alert-threshold"
+              value="100"
+              min="50"
+              max="200"
+              class="threshold-input"
+              readonly
+              aria-readonly="true"
+              title="Developer-only setting: edit in source code"
+            />
+            <span>cm</span>
+          </div>
+          <div class="threshold-item">
+            <label>Emergency Level:</label>
+            <!-- Red alert threshold - developer-only setting. Not editable in the UI. -->
+            <!-- To change this value, edit the source code (developer) and update public copy. -->
+            <input
+              type="number"
+              id="emergency-threshold"
+              value="150"
+              min="100"
+              max="250"
+              class="threshold-input"
+              readonly
+              aria-readonly="true"
+              title="Developer-only setting: edit in source code"
+            />
+            <span>cm</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Water Flow Panel (Right) -->
+      <section class="panel water-flow-panel">
+        <div class="panel-header">
+          <h2>🌊 Water Flow Monitor</h2>
+          <div class="sensor-health">
+            <span class="health-indicator" id="flow-sensor-health">🟢</span>
+            <span>POF Sensors</span>
+          </div>
+        </div>
+
+        <div class="flow-display">
+          <div class="flow-value">
+            <span class="value" id="water-flow-value">0.00</span>
+            <span class="unit">m/s</span>
+          </div>
+          <div class="flow-status" id="water-flow-status">NORMAL</div>
+        </div>
+
+        <!-- Flow Visualization -->
+        <div class="flow-container">
+          <div class="flow-direction">
+            <span class="direction-label">UPSTREAM</span>
+            <div class="arrow-flow">
+              <div class="flow-arrow" id="flow-arrow-1">→</div>
+              <div class="flow-arrow" id="flow-arrow-2">→</div>
+              <div class="flow-arrow" id="flow-arrow-3">→</div>
+            </div>
+            <span class="direction-label">DOWNSTREAM</span>
+          </div>
+
+          <div class="flow-pipe">
+            <div class="pipe-section upstream">
+              <div class="sensor-indicator">
+                <span class="sensor-label">POF1</span>
+                <span class="sensor-value" id="upstream-turbidity">0.0</span>
+              </div>
+            </div>
+            <div class="pipe-section middle">
+              <div class="flow-particles" id="flow-particles"></div>
+            </div>
+            <div class="pipe-section downstream">
+              <div class="sensor-indicator">
+                <span class="sensor-label">POF2</span>
+                <span class="sensor-value" id="downstream-turbidity">0.0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flow Analytics -->
+          <div class="flow-analytics">
+            <div class="analytics-item">
+              <span class="analytics-label">Velocity:</span>
+              <span class="analytics-value" id="flow-velocity">0.00 m/s</span>
+            </div>
+            <div class="analytics-item">
+              <span class="analytics-label">Debris Detection:</span>
+              <span class="analytics-value" id="debris-status">CLEAR</span>
+            </div>
+            <div class="analytics-item">
+              <span class="analytics-label">Differential:</span>
+              <span class="analytics-value" id="turbidity-diff">0.0%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <button id="simulate-btn" class="control-btn primary">
+        🔄 Start Simulation
+      </button>
+      <button id="reset-btn" class="control-btn">↻ Reset System</button>
+      <button id="export-btn" class="control-btn">📊 Export Data</button>
+      <div class="connection-status-detailed">
+        <span>WebSocket:</span>
+        <span id="ws-status">Disconnected</span>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/module_1/app.js"></script>
+  </body>
+</html>

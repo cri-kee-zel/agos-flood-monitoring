@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AGOS Module 3 - Historical Analytics & Trends</title>
+    <link rel="stylesheet" href="/module_1/styles.css" />
+    <link rel="stylesheet" href="/module_3/module3-styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/1.30.1/date_fns.min.js"></script>
+  </head>
+  <body>
+    <!--
+      NOTE FOR EDITORS (Module 3 - Historical Analytics & Trends):
+      - You can edit layout, copy and styles in this file freely.
+      - DO NOT rename or remove the ELEMENT IDs listed below. They are
+        referenced by `module_3/module3-app.js` and changing them will
+        stop UI updates or cause runtime warnings/errors in the browser.
+        * data-status
+        * analysis-status
+        * data-range
+        * current-level
+        * current-flow
+        * level-trend
+        * flow-trend
+        * level-peak
+        * level-low
+        * flow-peak
+        * flow-avg
+        * alert-count
+        * last-alert
+        * alert-duration
+        * prediction-accuracy
+        * active-models
+        * model-confidence
+        * water-level-chart
+        * flow-rate-chart
+        * seasonal-chart
+        * correlation-matrix
+        * event-timeline
+        * season-selector
+        * model-selector
+        * export-csv
+        * export-json
+        * export-report
+        * research-modal
+        * close-research-modal
+        * start-date
+        * end-date
+        * apply-custom-range
+        * loading-overlay
+        * loading-text
+
+      - DO NOT remove or rename these classes/attributes used by JS:
+        * .time-btn  (time range buttons)
+        * .chart-control-btn  (chart controls)
+        * .filter-btn (event filters)
+        * .time-range-buttons (layout of time buttons)
+
+      Safe edits: change copy, rearrange panels, add new markup or styles.
+      If you add elements that should be updated by JavaScript, give them
+      an id and update `module3-app.js` accordingly.
+    -->
+    <!-- Emergency Status Banner -->
+    <div id="emergency-banner" class="emergency-banner hidden">
+      <div class="emergency-content">
+        <span class="emergency-icon">⚠️</span>
+        <span class="emergency-text">FLOOD ALERT ACTIVE</span>
+        <span class="emergency-level" id="emergency-level">CRITICAL</span>
+      </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <h1>📈 AGOS ANALYTICS</h1>
+          <p>Historical Data Analysis & Flood Pattern Recognition</p>
+        </div>
+        <div class="module-nav">
+          <button class="nav-btn" onclick="window.location.href='index.html'">
+            📊 Dashboard
+          </button>
+          <button class="nav-btn" onclick="window.location.href='module2.html'">
+            🛰️ AI Mapping
+          </button>
+          <button class="nav-btn active">📈 Analytics</button>
+          <button class="nav-btn" onclick="alert('Module 4 coming soon!')">
+            🚨 Emergency
+          </button>
+        </div>
+
+        <div class="system-status">
+          <div class="status-item">
+            <span class="status-icon" id="data-status">🟢</span>
+            <span>Data Pipeline</span>
+          </div>
+          <div class="status-item">
+            <span class="status-icon" id="analysis-status">🟢</span>
+            <span>Analysis Engine</span>
+          </div>
+          <div class="status-item">
+            <span class="status-icon">📅</span>
+            <span id="data-range">30 Days</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Analytics Dashboard -->
+    <main class="analytics-dashboard">
+      <!-- Time Range Selector -->
+      <section class="time-controls">
+        <div class="time-range-buttons">
+          <button class="time-btn" data-range="24h">24 Hours</button>
+          <button class="time-btn" data-range="7d">7 Days</button>
+          <button class="time-btn active" data-range="30d">30 Days</button>
+          <button class="time-btn" data-range="90d">90 Days</button>
+          <button class="time-btn" data-range="1y">1 Year</button>
+          <button class="time-btn" data-range="custom">Custom</button>
+        </div>
+        <div class="custom-date-picker hidden" id="custom-date-picker">
+          <input type="datetime-local" id="start-date" class="date-input" />
+          <span>to</span>
+          <input type="datetime-local" id="end-date" class="date-input" />
+          <button id="apply-custom-range" class="apply-btn">Apply</button>
+        </div>
+      </section>
+
+      <!-- Key Metrics Overview -->
+      <section class="metrics-overview">
+        <div class="metric-card">
+          <div class="metric-header">
+            <h3>📊 Current Water Level</h3>
+            <span class="metric-trend" id="level-trend">↗ +5.2%</span>
+          </div>
+          <div class="metric-value">
+            <span class="value" id="current-level">47.8</span>
+            <span class="unit">cm</span>
+          </div>
+          <div class="metric-details">
+            <span class="detail-item">
+              24h Peak:
+              <strong id="level-peak">52.1 cm</strong>
+            </span>
+            <span class="detail-item">
+              24h Low:
+              <strong id="level-low">41.3 cm</strong>
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-header">
+            <h3>🌊 Flow Velocity</h3>
+            <span class="metric-trend" id="flow-trend">↘ -2.1%</span>
+          </div>
+          <div class="metric-value">
+            <span class="value" id="current-flow">1.24</span>
+            <span class="unit">m/s</span>
+          </div>
+          <div class="metric-details">
+            <span class="detail-item">
+              24h Peak:
+              <strong id="flow-peak">1.87 m/s</strong>
+            </span>
+            <span class="detail-item">
+              Average:
+              <strong id="flow-avg">1.15 m/s</strong>
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-header">
+            <h3>⚠️ Alert Episodes</h3>
+            <span class="metric-trend" id="alert-trend">↘ -15%</span>
+          </div>
+          <div class="metric-value">
+            <span class="value" id="alert-count">3</span>
+            <span class="unit">alerts</span>
+          </div>
+          <div class="metric-details">
+            <span class="detail-item">
+              Last Alert:
+              <strong id="last-alert">2 days ago</strong>
+            </span>
+            <span class="detail-item">
+              Duration:
+              <strong id="alert-duration">45 min</strong>
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-header">
+            <h3>🎯 Prediction Accuracy</h3>
+            <span class="metric-trend" id="accuracy-trend">↗ +3.4%</span>
+          </div>
+          <div class="metric-value">
+            <span class="value" id="prediction-accuracy">87.2</span>
+            <span class="unit">%</span>
+          </div>
+          <div class="metric-details">
+            <span class="detail-item">
+              Models:
+              <strong id="active-models">5 active</strong>
+            </span>
+            <span class="detail-item">
+              Confidence:
+              <strong id="model-confidence">High</strong>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Analytics Grid -->
+      <div class="analytics-grid">
+        <!-- Left Column: Time Series Charts -->
+        <div class="left-column">
+          <!-- Water Level Trends -->
+          <div class="chart-panel">
+            <div class="panel-header">
+              <h3>💧 Water Level Trends</h3>
+              <div class="chart-controls">
+                <button
+                  class="chart-control-btn active"
+                  data-chart="level"
+                  data-view="line"
+                >
+                  📈 Line
+                </button>
+                <button
+                  class="chart-control-btn"
+                  data-chart="level"
+                  data-view="area"
+                >
+                  📊 Area
+                </button>
+                <button
+                  class="chart-control-btn"
+                  data-chart="level"
+                  data-view="combined"
+                >
+                  🔗 Combined
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="water-level-chart"></canvas>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-color" style="background: #3b82f6"></span>
+                <span>Water Level</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #ef4444"></span>
+                <span>Emergency Threshold</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #f97316"></span>
+                <span>Alert Threshold</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flow Rate Analysis -->
+          <div class="chart-panel">
+            <div class="panel-header">
+              <h3>🌊 Flow Rate Analysis</h3>
+              <div class="chart-controls">
+                <button
+                  class="chart-control-btn active"
+                  data-chart="flow"
+                  data-view="line"
+                >
+                  📈 Velocity
+                </button>
+                <button
+                  class="chart-control-btn"
+                  data-chart="flow"
+                  data-view="turbidity"
+                >
+                  🌫️ Turbidity
+                </button>
+                <button
+                  class="chart-control-btn"
+                  data-chart="flow"
+                  data-view="debris"
+                >
+                  🪵 Debris
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="flow-rate-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- Correlation Matrix -->
+          <div class="chart-panel">
+            <div class="panel-header">
+              <h3>🔗 Environmental Correlations</h3>
+              <div class="correlation-info">
+                <span
+                  class="info-icon"
+                  title="Correlation strength between different parameters"
+                >
+                  ℹ️
+                </span>
+              </div>
+            </div>
+            <div class="correlation-container">
+              <div class="correlation-matrix" id="correlation-matrix">
+                <!-- Dynamic correlation matrix will be generated here -->
+              </div>
+              <div class="correlation-scale">
+                <span>-1.0</span>
+                <div class="scale-gradient"></div>
+                <span>+1.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Advanced Analytics -->
+        <div class="right-column">
+          <!-- Seasonal Patterns -->
+          <div class="analysis-panel">
+            <div class="panel-header">
+              <h3>📅 Seasonal Pattern Analysis</h3>
+              <select class="season-selector" id="season-selector">
+                <option value="monsoon">Monsoon (Jun-Nov)</option>
+                <option value="dry">Dry Season (Dec-May)</option>
+                <option value="all">Full Year</option>
+              </select>
+            </div>
+            <div class="seasonal-content">
+              <div class="season-chart-container">
+                <canvas id="seasonal-chart"></canvas>
+              </div>
+              <div class="seasonal-insights">
+                <h4>🔍 Key Insights</h4>
+                <div class="insight-list" id="seasonal-insights">
+                  <div class="insight-item">
+                    <span class="insight-icon">📈</span>
+                    <span>Peak flood risk occurs in August-September</span>
+                  </div>
+                  <div class="insight-item">
+                    <span class="insight-icon">⏰</span>
+                    <span>Average event duration: 3.2 hours</span>
+                  </div>
+                  <div class="insight-item">
+                    <span class="insight-icon">🌧️</span>
+                    <span>Rainfall correlation: 0.78</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Analysis -->
+          <div class="analysis-panel">
+            <div class="panel-header">
+              <h3>🚨 Flood Event Timeline</h3>
+              <div class="event-filters">
+                <button class="filter-btn active" data-severity="all">
+                  All
+                </button>
+                <button class="filter-btn" data-severity="alert">Alert</button>
+                <button class="filter-btn" data-severity="emergency">
+                  Emergency
+                </button>
+              </div>
+            </div>
+            <div class="event-timeline" id="event-timeline">
+              <!-- Timeline events will be populated here -->
+            </div>
+          </div>
+
+          <!-- Predictive Model Performance -->
+          <div class="analysis-panel">
+            <div class="panel-header">
+              <h3>🤖 Model Performance</h3>
+              <div class="model-selector">
+                <select id="model-selector">
+                  <option value="hybrid">Hybrid AI+Sensor</option>
+                  <option value="ai-only">AI Only</option>
+                  <option value="sensor-only">Sensor Only</option>
+                  <option value="ensemble">Ensemble</option>
+                </select>
+              </div>
+            </div>
+            <div class="model-metrics">
+              <div class="metric-row">
+                <span class="metric-label">Accuracy:</span>
+                <div class="metric-bar">
+                  <div
+                    class="bar-fill"
+                    style="width: 87%"
+                    data-value="87"
+                  ></div>
+                  <span class="bar-value">87%</span>
+                </div>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Precision:</span>
+                <div class="metric-bar">
+                  <div
+                    class="bar-fill"
+                    style="width: 91%"
+                    data-value="91"
+                  ></div>
+                  <span class="bar-value">91%</span>
+                </div>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Recall:</span>
+                <div class="metric-bar">
+                  <div
+                    class="bar-fill"
+                    style="width: 84%"
+                    data-value="84"
+                  ></div>
+                  <span class="bar-value">84%</span>
+                </div>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">F1-Score:</span>
+                <div class="metric-bar">
+                  <div
+                    class="bar-fill"
+                    style="width: 87%"
+                    data-value="87"
+                  ></div>
+                  <span class="bar-value">87%</span>
+                </div>
+              </div>
+            </div>
+            <div class="confusion-matrix">
+              <h4>Confusion Matrix (Last 30 Days)</h4>
+              <div class="matrix-grid" id="confusion-matrix">
+                <!-- Matrix will be generated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Export and Actions -->
+      <section class="export-actions">
+        <div class="export-panel">
+          <h3>📤 Data Export & Research</h3>
+          <div class="export-options">
+            <button class="export-btn" id="export-csv">
+              <span class="btn-icon">📊</span>
+              Export CSV
+            </button>
+            <button class="export-btn" id="export-json">
+              <span class="btn-icon">📋</span>
+              Export JSON
+            </button>
+            <button class="export-btn" id="export-report">
+              <span class="btn-icon">📑</span>
+              Generate Report
+            </button>
+            <button class="export-btn research" id="research-collab">
+              <span class="btn-icon">🎓</span>
+              Research Portal
+            </button>
+          </div>
+          <div class="export-settings">
+            <div class="setting-group">
+              <label>Data Resolution:</label>
+              <select id="data-resolution">
+                <option value="raw">Raw (5-second intervals)</option>
+                <option value="1min" selected>1 Minute</option>
+                <option value="5min">5 Minutes</option>
+                <option value="15min">15 Minutes</option>
+                <option value="1hour">1 Hour</option>
+              </select>
+            </div>
+            <div class="setting-group">
+              <label>Include:</label>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" id="include-predictions" checked />
+                  Predictions
+                </label>
+                <label>
+                  <input type="checkbox" id="include-weather" checked />
+                  Weather Data
+                </label>
+                <label>
+                  <input type="checkbox" id="include-events" checked />
+                  Event Annotations
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Research Collaboration Modal -->
+    <div id="research-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🎓 Research Collaboration Portal</h2>
+          <!-- <button class="modal-close" id="close-research-modal">&times;</button> -->
+        </div>
+        <div class="modal-body">
+          <div class="research-content">
+            <div class="partner-institutions">
+              <h3>🏛️ Partner Institutions</h3>
+              <div class="institution-list">
+                <div class="institution-card">
+                  <div class="institution-logo">🏫</div>
+                  <div class="institution-info">
+                    <h4>DOST/PPC Water District/NDRRMC/San Manuel Office</h4>
+                    <p>
+                      Philippine Atmospheric, Geophysical & Astronomical
+                      Services etc...
+                    </p>
+                    <span class="collaboration-status active">
+                      Active Collaboration
+                    </span>
+                  </div>
+                </div>
+                <div class="institution-card">
+                  <div class="institution-logo">🎓</div>
+                  <div class="institution-info">
+                    <h4>HTU/NDRRMC</h4>
+                    <p>Holy Trinity University</p>
+                    <span class="collaboration-status active">
+                      Data Sharing
+                    </span>
+                  </div>
+                </div>
+                <div class="institution-card">
+                  <div class="institution-logo">🔬</div>
+                  <div class="institution-info">
+                    <h4>DOST/Water District/NDDRMC</h4>
+                    <p>Validation and Laboratory Testing</p>
+                    <span class="collaboration-status pending">
+                      Pending Approval
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- <div class="research-projects">
+              <h3>📊 Ongoing Research Projects</h3>
+              <div class="project-list">
+                <div class="project-card">
+                  <h4>Flood Pattern Analysis in Metro Manila</h4>
+                  <p>
+                    Multi-year study on urban flood patterns and AI prediction
+                    accuracy
+                  </p>
+                  <div class="project-meta">
+                    <span>Lead: Dr. Maria Santos</span>
+                    <span>Status: Data Collection</span>
+                    <span>Timeline: 2024-2026</span>
+                  </div>
+                </div>
+                <div class="project-card">
+                  <h4>Climate Change Impact on River Systems</h4>
+                  <p>
+                    Long-term analysis of changing flood patterns due to climate
+                    change
+                  </p>
+                  <div class="project-meta">
+                    <span>Lead: Prof. Juan Dela Cruz</span>
+                    <span>Status: Analysis Phase</span>
+                    <span>Timeline: 2023-2025</span>
+                  </div>
+                </div>
+              </div>
+            </div> -->
+
+            <div class="data-requests">
+              <h3>📋 Data Access Requests</h3>
+              <div class="request-form">
+                <div class="form-group">
+                  <label>Institution:</label>
+                  <input type="text" placeholder="Your institution name" />
+                </div>
+                <div class="form-group">
+                  <label>Research Purpose:</label>
+                  <textarea
+                    placeholder="Brief description of your research project..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Data Requirements:</label>
+                  <div class="checkbox-group">
+                    <label>
+                      <input type="checkbox" />
+                      Historical water levels
+                    </label>
+                    <label>
+                      <input type="checkbox" />
+                      Flow rate measurements
+                    </label>
+                    <label>
+                      <input type="checkbox" />
+                      AI predictions
+                    </label>
+                    <label>
+                      <input type="checkbox" />
+                      Event classifications
+                    </label>
+                  </div>
+                </div>
+                <button class="submit-request-btn">Submit Request</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p class="loading-text" id="loading-text">
+          Processing analytics data...
+        </p>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/module_3/module3-app.js"></script>
+  </body>
+</html>

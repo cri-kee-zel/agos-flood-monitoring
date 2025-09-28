@@ -1,0 +1,66 @@
+📌type in terminal/powershell
+
+npm start
+
+ - npm start runs the script defined in package.json (node server.js).
+
+📌type in terminal/powershell
+
+npm run dev
+
+ -uses nodemon (dev dependency) to restart on file changes.
+
+
+📌Open the website
+In a browser go to: http://localhost:3000
+Or, if you changed the PORT in .env, replace 3000 with that port.
+Quick health-check (PowerShell) After starting, test the health endpoint:
+
+📌type in terminal/powershell
+
+Invoke-WebRequest http://localhost:3000/api/health -UseBasicParsing | Select-Object StatusCode, Content
+
+
+ - A healthy app should return an HTTP 200 and a short JSON/text response from / api/health.
+
+
+📌Troubleshooting tips
+
+Port in use: change PORT in .env, or run this in PowerShell to set temporarily and start:
+
+📌type in terminal/powershell
+
+$env:PORT = "4000"
+npm start
+
+
+📌Conclusion:
+
+npm install
+
+then
+
+npm start
+
+
+📌if there is an error
+
+netstat -a -n -o | findstr :3000
+
+tasklist /FI "PID eq <PID>"
+
+Stop-Process -Id <PID> -Force
+
+npm start
+
+📌then verify if the server is up...
+
+Invoke-WebRequest http://localhost:3000/api/health -UseBasicParsing | Select-Object StatusCode, Content
+
+
+📌if there is still an error, change the port
+
+$env:PORT=4000; npm start
+
+npx kill-port 3000; npm start
+

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Simple human silhouette SVG (public-domain style) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="32" cy="12" r="8" fill="#f8fafc" />
+    <path d="M16 58c0-8.837 7.163-16 16-16s16 7.163 16 16" fill="#f8fafc" />
+    <path d="M32 24c-6 0-10 4-10 10v4h20v-4c0-6-4-10-10-10z" fill="#f8fafc" />
+  </g>
+</svg>

@@ -1,0 +1,53 @@
+{
+  "name": "agos-flood-monitoring",
+  "version": "1.0.0",
+  "description": "Advanced Ground Observation System - IoT Flood Monitoring for Philippine Rivers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "prod": "NODE_ENV=production node server.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop agos-server",
+    "pm2:restart": "pm2 restart agos-server",
+    "pm2:logs": "pm2 logs agos-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "iot",
+    "flood-monitoring",
+    "arduino",
+    "websocket",
+    "real-time"
+  ],
+  "author": "AGOS Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.13.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1",
+    "nodemailer": "^6.9.4",
+    "sqlite3": "^5.1.6",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pm2": "^5.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/agos-flood-monitoring.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/agos-flood-monitoring/issues"
+  },
+  "homepage": "https://github.com/yourusername/agos-flood-monitoring#readme"
+}

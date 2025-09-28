@@ -1,0 +1,187 @@
+================================================================================
+100mm ENCODER DISK FABRICATION GUIDE - PRINT VERSION
+================================================================================
+Generated: 2025-08-22 06:33:30
+================================================================================
+
+QUICK REFERENCE SUMMARY
+----------------------------------------
+• Disk Diameter: 100mm
+• Number of Slots: 40
+• Slot Width: 3mm
+• Resolution: 3.927mm per slot
+• Material: 2mm stainless steel
+• Estimated Time: 4-6 hours
+
+TABLE OF CONTENTS
+----------------------------------------
+1. Specifications & Calculations
+2. Tools & Materials Required
+3. Step-by-Step Instructions
+4. Quality Control Checklist
+5. Troubleshooting Guide
+6. Slot Position Reference Table
+
+================================================================================
+1. SPECIFICATIONS & CALCULATIONS
+================================================================================
+
+DISK SPECIFICATIONS:
+  Diameter: 100mm (10.0cm)
+  Total Slots: 40
+  Slot Width: 3mm
+  Slot Length: 15mm
+  Slot Position: 70mm to 85mm radius
+  Center Hole: 8mm diameter
+  Material: 2mm stainless steel
+
+ANGLE CALCULATIONS:
+  Degrees per slot: 9.0°
+  Slot spacing: 9.0° center-to-center
+
+RESOLUTION CALCULATION:
+  Pulley diameter: 50mm
+  Pulley circumference: 15.71cm
+  Resolution: 3.927mm per slot
+
+================================================================================
+2. TOOLS & MATERIALS REQUIRED
+================================================================================
+
+CUTTING TOOLS:
+  • Dremel rotary tool with variable speed
+  • Cutting wheels (1-1.5mm thickness) - 15 pieces
+  • Straight edge guide/fence
+  • Clamps (4-6 pieces)
+
+MEASURING TOOLS:
+  • Compass (for 100mm circles)
+  • Protractor (360° marked)
+  • Steel ruler (300mm minimum)
+  • Center punch
+  • Sharp scribe
+
+SAFETY EQUIPMENT:
+  • Safety glasses (mandatory)
+  • Dust mask
+  • Work gloves
+  • First aid kit nearby
+
+MATERIALS:
+  • 2mm stainless steel disk, 100mm diameter
+  • Cutting oil or WD-40 (100ml)
+  • Sandpaper: 320 and 400 grit
+  • Metal primer (50ml)
+  • Matte black paint (100ml)
+  • Clean rags
+
+================================================================================
+3. STEP-BY-STEP INSTRUCTIONS
+================================================================================
+
+STEP 1: TEMPLATE PREPARATION (30 minutes)
+--------------------------------------------------
+1.1 Draw 100mm circle on paper using compass
+1.2 Mark exact center point
+1.3 Divide circle into 40 equal segments (9.0° each)
+1.4 Mark radial lines from center to edge
+1.5 Mark slot boundaries at 70mm and 85mm radius
+1.6 Draw slot outlines: 3mm wide centered on radials
+
+STEP 2: DISK PREPARATION (20 minutes)
+--------------------------------------------------
+2.1 Center punch the disk center precisely
+2.2 Drill 8mm center hole (use cutting oil)
+2.3 Mount disk on temporary arbor
+2.4 Transfer template markings to steel disk
+2.5 Double-check all measurements before cutting
+
+STEP 3: CUTTING SEQUENCE (2-3 hours)
+--------------------------------------------------
+IMPORTANT: Follow this order to prevent warping!
+Phase 1: Cut slots at 0°, 90°, 180°, 270°
+Phase 2: Cut slots at 45°, 135°, 225°, 315°
+Phase 3: Cut remaining slots systematically
+Phase 4: Final cleanup and deburring
+
+CUTTING TECHNIQUE:
+• Set up straight edge guide for each slot
+• Make light scoring passes first (don't cut through)
+• Gradually deepen cuts over 3-4 passes
+• Cut from inner radius outward
+• Take 5-minute breaks every 10 slots
+• Use cutting oil to reduce heat
+
+STEP 4: FINISHING (45 minutes)
+--------------------------------------------------
+4.1 Remove all burrs with fine file
+4.2 Light sanding with 320 grit paper
+4.3 Clean with degreaser
+4.4 Apply primer if painting
+4.5 Paint alternate segments matte black
+4.6 Final inspection and touch-up
+
+================================================================================
+4. QUALITY CONTROL CHECKLIST
+================================================================================
+
+DIMENSIONAL CHECKS:
+  [ ] Overall diameter: 100mm ± 0.5mm
+  [ ] Center hole: 8mm ± 0.1mm
+  [ ] All 40 slots present
+  [ ] Slot width: 3mm ± 0.2mm
+  [ ] Slot length: 15mm ± 0.5mm
+  [ ] Slot spacing: 9.0° ± 0.5°
+
+FUNCTIONAL CHECKS:
+  [ ] Disk runs true (wobble < 0.1mm)
+  [ ] Opaque segments block light completely
+  [ ] Clear segments allow light passage
+  [ ] No burrs on edges
+  [ ] Paint adherence good
+  [ ] Center hole fits shaft properly
+
+================================================================================
+5. TROUBLESHOOTING GUIDE
+================================================================================
+
+PROBLEM: Cutting wheel breaks frequently
+SOLUTION: Reduce cutting speed, use more cutting oil
+
+PROBLEM: Disk gets too hot during cutting
+SOLUTION: Take more frequent breaks, use cutting oil
+
+PROBLEM: Slots not uniform width
+SOLUTION: Use consistent feed rate, check guide setup
+
+PROBLEM: Disk warps during cutting
+SOLUTION: Follow recommended cutting sequence
+
+PROBLEM: Paint doesn't adhere well
+SOLUTION: Better surface preparation, use metal primer
+
+================================================================================
+6. SLOT POSITION REFERENCE TABLE
+================================================================================
+
+Slot#  Angle    Slot#  Angle    Slot#  Angle    Slot#  Angle
+----------------------------------------------------------------
+ 1:     0.0°   2:     9.0°   3:    18.0°   4:    27.0°  
+ 5:    36.0°   6:    45.0°   7:    54.0°   8:    63.0°  
+ 9:    72.0°  10:    81.0°  11:    90.0°  12:    99.0°  
+13:   108.0°  14:   117.0°  15:   126.0°  16:   135.0°  
+17:   144.0°  18:   153.0°  19:   162.0°  20:   171.0°  
+21:   180.0°  22:   189.0°  23:   198.0°  24:   207.0°  
+25:   216.0°  26:   225.0°  27:   234.0°  28:   243.0°  
+29:   252.0°  30:   261.0°  31:   270.0°  32:   279.0°  
+33:   288.0°  34:   297.0°  35:   306.0°  36:   315.0°  
+37:   324.0°  38:   333.0°  39:   342.0°  40:   351.0°  
+
+NOTES:
+• Angles measured from 0° reference (top of disk)
+• Cut slots in the sequence shown in Step 3
+• Mark completed slots to track progress
+
+================================================================================
+END OF FABRICATION GUIDE
+================================================================================

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AGOS Module 4 - Emergency Response Control</title>
+    <link rel="stylesheet" href="/module_1/styles.css" />
+    <link rel="stylesheet" href="/module_4/module4-styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!--
+      NOTE FOR EDITORS (Module 4 - Emergency Response Control):
+      - You can edit layout, copy and styles in this file freely.
+      - DO NOT rename or remove the ELEMENT IDs listed below. They are
+        referenced by `module_4/module4-app.js` and changing them will
+        break functionality or cause missing-data warnings.
+        * auth-modal
+        * auth-login
+        * auth-cancel
+        * auth-institution
+        * auth-operator
+        * auth-password
+        * operator-info
+        * operator-name
+        * operator-institution
+        * logout-btn
+        * add-contact-modal
+        * broadcast-confirmation-modal
+        * loading-overlay
+        * loading-text
+        * loading-progress
+        * emergency-banner
+        * emergency-level
+
+      - DO NOT remove or rename these classes/attributes used by JS:
+        * .emergency-dashboard (dashboard container shown/hidden by JS)
+        * .modal (used for modal display)
+
+      Safe edits: change copy, rearrange panels, tweak styles or add new
+      elements. If you add elements that should be updated by JavaScript,
+      give them an id and update `module4-app.js` accordingly.
+    -->
+    <!-- Security Authentication Modal -->
+    <div id="auth-modal" class="modal auth-modal">
+      <div class="modal-content auth-content">
+        <div class="auth-header">
+          <h2>🔐 AGOS Emergency Access</h2>
+          <p>Restricted Area - Authorization Required</p>
+        </div>
+        <div class="auth-body">
+          <div class="auth-form">
+            <div class="form-group">
+              <label>🏛️ Institution:</label>
+              <select id="auth-institution">
+                <option value="">Select Institution</option>
+                <option value="agos-admin">AGOS Administrator</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>👤 Operator ID:</label>
+              <input
+                type="text"
+                id="auth-operator"
+                placeholder="Enter your operator ID"
+              />
+            </div>
+            <div class="form-group">
+              <label>🔑 Emergency Access Code:</label>
+              <input
+                type="password"
+                id="auth-password"
+                placeholder="Enter access code"
+              />
+            </div>
+            <div class="auth-warning">
+              ⚠️ This system controls critical flood alert communications.
+              Unauthorized access is strictly prohibited and monitored.
+            </div>
+          </div>
+        </div>
+        <div class="auth-footer">
+          <button class="btn secondary" id="auth-cancel">Cancel</button>
+          <button class="btn primary" id="auth-login">
+            <!-- <span class="btn-icon">🚪</span> -->
+            Access System
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <h1>🚨 AGOS EMERGENCY</h1>
+          <p>Emergency Response & SMS Alert Control</p>
+        </div>
+        <div class="module-nav">
+          <button class="nav-btn" onclick="window.location.href='/'">
+            📊 Dashboard
+          </button>
+          <!-- <button class="nav-btn" onclick="window.location.href='/dashboard'">
+            🛰️ Real-time
+          </button> -->
+          <button class="nav-btn" onclick="window.location.href='/mapping'">
+            🛰️ AI Mapping
+          </button>
+          <button class="nav-btn" onclick="window.location.href='/analytics'">
+            📈 Analytics
+          </button>
+          <button class="nav-btn active">🚨 Emergency</button>
+        </div>
+        <div class="operator-info" id="operator-info">
+          <div class="operator-details">
+            <span class="operator-name" id="operator-name">
+              Emergency Operator
+            </span>
+            <span class="operator-institution" id="operator-institution">
+              DOST-PAGASA
+            </span>
+          </div>
+          <button class="logout-btn" id="logout-btn">🚪 Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Emergency Control Dashboard -->
+    <main class="emergency-dashboard">
+      <!-- Quick Alert Panel -->
+      <section class="quick-alert-panel">
+        <div class="panel-header emergency-header">
+          <h2>⚡ Quick Emergency Alerts</h2>
+          <div class="system-status">
+            <div class="status-item">
+              <span class="status-icon" id="gsm-status">🟢</span>
+              <span>
+                GSM Signal:
+                <span id="signal-strength">Strong</span>
+              </span>
+            </div>
+            <div class="status-item">
+              <span class="status-icon" id="sms-status">🟢</span>
+              <span>
+                SMS Service:
+                <span id="sms-service-status">Ready</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-alerts">
+          <div class="alert-type-card critical" data-alert="flash-flood">
+            <div class="alert-icon">🌊</div>
+            <h3>Flash Flood Alert</h3>
+            <p>Immediate evacuation required</p>
+            <button class="quick-alert-btn critical">
+              <span>🚨 SEND NOW</span>
+            </button>
+          </div>
+
+          <div class="alert-type-card warning" data-alert="flood-watch">
+            <div class="alert-icon">⚠️</div>
+            <h3>Flood Watch</h3>
+            <p>Prepare for possible flooding</p>
+            <button class="quick-alert-btn warning">
+              <span>📢 SEND ALERT</span>
+            </button>
+          </div>
+
+          <div class="alert-type-card info" data-alert="weather-update">
+            <div class="alert-icon">🌧️</div>
+            <h3>Weather Update</h3>
+            <p>Advisory and preparedness info</p>
+            <button class="quick-alert-btn info">
+              <span>📰 SEND UPDATE</span>
+            </button>
+          </div>
+
+          <div class="alert-type-card all-clear" data-alert="all-clear">
+            <div class="alert-icon">✅</div>
+            <h3>All Clear</h3>
+            <p>Threat has passed, normal activity</p>
+            <button class="quick-alert-btn all-clear">
+              <span>✅ SEND CLEAR</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Add Contact Modal -->
+    <div id="add-contact-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>➕ Add New Contact</h2>
+          <button class="modal-close" id="close-add-contact">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="contact-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>👤 Full Name:</label>
+                <input
+                  type="text"
+                  id="new-contact-name"
+                  placeholder="Enter full name"
+                />
+              </div>
+              <div class="form-group">
+                <label>📱 Mobile Number:</label>
+                <input
+                  type="tel"
+                  id="new-contact-phone"
+                  placeholder="+63 917 123 4567"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>🏢 Position/Role:</label>
+                <input
+                  type="text"
+                  id="new-contact-position"
+                  placeholder="e.g., Barangay Captain"
+                />
+              </div>
+              <div class="form-group">
+                <label>🏛️ Organization:</label>
+                <input
+                  type="text"
+                  id="new-contact-organization"
+                  placeholder="e.g., Barangay Hall"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>📍 Location/Area:</label>
+                <input
+                  type="text"
+                  id="new-contact-location"
+                  placeholder="e.g., Barangay San Juan"
+                />
+              </div>
+              <div class="form-group">
+                <label>📞 Alternate Number:</label>
+                <input
+                  type="tel"
+                  id="new-contact-alternate"
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>🏷️ Group Assignment:</label>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" name="groups" value="officials" />
+                  Local Officials
+                </label>
+                <label>
+                  <input type="checkbox" name="groups" value="residents" />
+                  Residents
+                </label>
+                <label>
+                  <input type="checkbox" name="groups" value="emergency" />
+                  Emergency Services
+                </label>
+                <label>
+                  <input type="checkbox" name="groups" value="media" />
+                  Media Contacts
+                </label>
+                <label>
+                  <input type="checkbox" name="groups" value="volunteers" />
+                  Volunteers
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>📝 Notes:</label>
+              <textarea
+                id="new-contact-notes"
+                placeholder="Additional information..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn secondary" id="cancel-add-contact">Cancel</button>
+          <button class="btn primary" id="save-new-contact">
+            <span class="btn-icon">💾</span>
+            Save Contact
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Broadcast Confirmation Modal -->
+    <div id="broadcast-confirmation-modal" class="modal hidden">
+      <div class="modal-content confirmation-modal">
+        <div class="modal-header emergency-header">
+          <h2>🚨 Confirm Emergency Broadcast</h2>
+        </div>
+        <div class="modal-body">
+          <div class="confirmation-content">
+            <div class="warning-box">
+              ⚠️
+              <strong>WARNING:</strong>
+              You are about to send an emergency broadcast to
+              <span id="confirm-recipient-count">218</span>
+              recipients. This action cannot be undone and will trigger
+              immediate alerts.
+            </div>
+
+            <div class="broadcast-summary">
+              <h4>📋 Broadcast Summary</h4>
+              <div class="summary-item">
+                <span class="label">Message Preview:</span>
+                <div
+                  class="message-preview-box"
+                  id="confirm-message-preview"
+                ></div>
+              </div>
+              <div class="summary-item">
+                <span class="label">Priority Level:</span>
+                <span class="value" id="confirm-priority">CRITICAL</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Recipients:</span>
+                <span class="value" id="confirm-recipients">
+                  All Groups Selected
+                </span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Operator:</span>
+                <span class="value" id="confirm-operator">
+                  Emergency Control
+                </span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Timestamp:</span>
+                <span class="value" id="confirm-timestamp">
+                  2025-08-18 05:38:12
+                </span>
+              </div>
+            </div>
+
+            <div class="final-confirmation">
+              <label class="confirmation-checkbox">
+                <input type="checkbox" id="final-confirmation" />
+                <span class="checkmark"></span>
+                <strong>
+                  I confirm this emergency broadcast is necessary and authorized
+                </strong>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn secondary" id="cancel-broadcast">Cancel</button>
+          <button class="btn critical" id="confirm-broadcast" disabled>
+            <span class="btn-icon">🚨</span>
+            SEND EMERGENCY BROADCAST
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p class="loading-text" id="loading-text">
+          Processing emergency broadcast...
+        </p>
+        <div class="loading-progress" id="loading-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" id="loading-progress-fill"></div>
+          </div>
+          <span class="progress-text" id="loading-progress-text">
+            Initializing...
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emergency Status Banner (moved to bottom to avoid layout conflicts) -->
+    <div id="emergency-banner" class="emergency-banner hidden">
+      <div class="emergency-content">
+        <span class="emergency-icon">🚨</span>
+        <span class="emergency-text">EMERGENCY BROADCAST ACTIVE</span>
+        <span class="emergency-level" id="emergency-level">SENDING ALERTS</span>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/module_4/module4-app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,844 @@
+/* AGOS Module 1 - Advanced Ground Observation System Stylesheet */
+/*
+ * This CSS provides a modern, responsive interface for flood monitoring
+ * Designed specifically for Philippine emergency response requirements
+ * Color-coded alert system matches international flood warning standards
+ */
+
+/*
+  NOTE FOR EDITORS:
+  - You're free to change colors, spacing, animations, and layout here.
+  - Avoid renaming or removing CSS classes/IDs that the JavaScript expects:
+    * #water-fill, #water-surface, #water-level-value, #water-level-status
+    * #water-flow-value, #water-flow-status, #battery-level, #last-update
+    * #connection-status, #level-sensor-health, #flow-sensor-health
+    * #upstream-turbidity, #downstream-turbidity, #flow-velocity
+    * #debris-status, #turbidity-diff, .reference-object, .ref-input
+    * .threshold-input, .control-btn, .flow-particles, .flow-arrow
+
+  - Safe changes: visual theme (variables in :root), panel spacing, font sizes
+    and non-critical helper classes. If you change a selector used by JS,
+    update `module_1/app.js` to query the new selector.
+*/
+/* Navigation */
+.module-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-btn {
+  padding: 0.5rem 1rem;
+  background: var(--secondary-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.nav-btn:hover {
+  background: var(--panel-bg);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.nav-btn.active {
+  background: var(--water-color);
+  color: white;
+  border-color: var(--water-color);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* CSS Reset - Ensures consistent rendering across all browsers */
+* {
+  margin: 0; /* Remove default margins */
+  padding: 0; /* Remove default padding */
+  box-sizing: border-box; /* Include padding/border in element width calculations */
+}
+
+/* CSS Custom Properties (Variables) - Centralized color and style management */
+:root {
+  /* Emergency Alert Color System */
+  --normal-color: #22c55e; /* Green - Safe conditions */
+  --watch-color: #eab308; /* Yellow - Monitor */
+  --alert-color: #f97316; /* Orange - Action */
+  --emergency-color: #ef4444; /* Red - Immediate danger */
+  --critical-color: #dc2626; /* Dark red - Extreme emergency */
+
+  /* Main Theme Colors - Light theme */
+  --bg-primary: #eef7ff; /* Page background (very light) */
+  --bg-secondary: #e7ecf1;
+  --bg-tertiary: #ffffff;
+  --bg-card: #ffffff;
+  --primary-bg: var(--bg-primary);
+  --secondary-bg: var(--bg-secondary);
+  --panel-bg: var(--bg-card);
+  --text-primary: #0f172a;
+  --text-secondary: #475569; /* Secondary text */
+  --border-color: #e6eef6; /* Light border */
+
+  /* Water Visualization Colors - keep blue palette */
+  --water-color: #3b82f6;
+  --water-surface: #60a5fa;
+  --water-dark: #1e40af;
+
+  /* Typography Settings */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Body Styles - Sets the overall page appearance */
+body {
+  font-family: var(--font-family); /* Modern, readable font */
+  /* Gradient background from dark to lighter dark blue */
+  background: linear-gradient(
+    135deg,
+    var(--primary-bg) 0%,
+    var(--secondary-bg) 100%
+  );
+  color: var(--text-primary); /* White text on dark background */
+  min-height: 100vh; /* Full viewport height minimum */
+  line-height: 1.6; /* Comfortable text spacing */
+}
+
+/* Emergency Banner - Critical alert display at top of page */
+.emergency-banner {
+  /* Red gradient background for maximum visibility */
+  background: linear-gradient(
+    90deg,
+    var(--emergency-color),
+    var(--critical-color)
+  );
+  color: white; /* White text for contrast */
+  padding: 1rem; /* Comfortable spacing */
+  text-align: center; /* Center-aligned text */
+  position: fixed; /* Stays at top when scrolling */
+  top: 0;
+  left: 0;
+  right: 0; /* Full width at very top */
+  z-index: 1000; /* Above all other content */
+  /* Red drop shadow for additional prominence */
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+  animation: pulse 2s infinite; /* Pulsing animation to draw attention */
+}
+
+/* Hidden state for emergency banner */
+.emergency-banner.hidden {
+  display: none; /* Completely hidden when no emergency */
+}
+
+/* Emergency banner content layout */
+.emergency-content {
+  display: flex; /* Flexbox for horizontal layout */
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  gap: 1rem; /* Space between elements */
+  font-weight: 700; /* Bold text for urgency */
+  font-size: 1.1rem; /* Slightly larger text */
+}
+
+/* Emergency warning icon animation */
+.emergency-icon {
+  font-size: 1.5rem; /* Larger warning emoji */
+  animation: bounce 1s infinite; /* Bouncing animation for attention */
+}
+
+/* CSS Animations for emergency banner */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  } /* Fully visible */
+  50% {
+    opacity: 0.8;
+  } /* Slightly transparent */
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  } /* Normal position */
+  40% {
+    transform: translateY(-5px);
+  } /* Small bounce up */
+  60% {
+    transform: translateY(-3px);
+  } /* Smaller bounce */
+}
+
+/* Header */
+.main-header {
+  background: var(--secondary-bg);
+  padding: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  margin-top: 0;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.logo-section h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--water-color);
+  margin-bottom: 0.25rem;
+}
+
+.logo-section p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.system-status {
+  display: flex;
+  gap: 2rem;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-icon {
+  font-size: 1.2rem;
+}
+
+/* Dashboard Layout */
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  /* Add 100px extra padding at the bottom per user request */
+  padding-bottom: calc(2rem + 100px);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.panel-header h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sensor-health {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.health-indicator {
+  font-size: 1rem;
+}
+
+/* Water Level Display */
+.level-display,
+.flow-display {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.level-value,
+.flow-value {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--normal-color);
+  transition: color 0.3s ease;
+}
+
+.unit {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.level-status,
+.flow-status {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  background: var(--normal-color);
+  color: white;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+/* Water Visualization */
+.water-container {
+  position: relative;
+  height: 400px;
+  margin-bottom: 1.5rem;
+  /* Remove extra side padding so the visual can expand to full width */
+  padding-right: 0;
+}
+
+/* Reference controls moved into the threshold area - horizontal layout */
+.reference-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.reference-object {
+  /* No longer absolutely positioned when moved to threshold-controls */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.human {
+  /* Placeholder custom property to keep selector present for JS without adding visual styles */
+  --ref-kept: 1;
+}
+
+.car {
+  /* Placeholder custom property to keep selector present for JS without adding visual styles */
+  --ref-kept: 1;
+}
+
+.human-icon,
+.car-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.ref-input {
+  width: 50px;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+.water-level-visual {
+  position: absolute;
+  /* Expand the visual to fully fill the container (no side gaps) */
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  box-sizing: border-box; /* ensure border is included in sizing so gaps appear equal */
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(59, 130, 246, 0.1) 100%
+  );
+}
+
+.water-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: linear-gradient(
+    to top,
+    var(--water-dark) 0%,
+    var(--water-color) 50%,
+    var(--water-surface) 100%
+  );
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.water-surface {
+  position: absolute;
+  bottom: 0%;
+  left: 0;
+  right: 0;
+  height: 20px;
+  overflow: hidden;
+  transition: bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(2,6,23,0.04) 25%,
+    rgba(2,6,23,0.06) 50%,
+    rgba(2,6,23,0.04) 75%,
+    transparent 100%
+  );
+  animation: wave 3s infinite linear;
+}
+
+.wave2 {
+  animation-duration: 4s;
+  animation-delay: -1s;
+  opacity: 0.7;
+}
+
+.wave3 {
+  animation-duration: 5s;
+  animation-delay: -2s;
+  opacity: 0.5;
+}
+
+@keyframes wave {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.measurement-scale {
+  position: absolute;
+  /* shift the whole scale to the right by 20px for better alignment */
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  pointer-events: none;
+}
+
+.scale-mark {
+  position: absolute;
+  left: 0;
+  font-size: 0.8rem;
+.scale-mark {
+  position: absolute;
+  left: 0;
+  font-size: 0.8rem;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(2,6,23,0.04) 25%,
+    rgba(2,6,23,0.06) 50%,
+    rgba(2,6,23,0.04) 75%,
+    transparent 100%
+  );
+}
+.scale-mark:nth-child(2) {
+  bottom: 16.67%;
+}
+.scale-mark:nth-child(3) {
+  bottom: 33.33%;
+}
+.scale-mark:nth-child(4) {
+  bottom: 50%;
+}
+.scale-mark:nth-child(5) {
+  bottom: 66.67%;
+}
+.scale-mark:nth-child(6) {
+  bottom: 83.33%;
+}
+.scale-mark:nth-child(7) {
+  bottom: 100%;
+}
+
+/* Threshold Controls */
+.threshold-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.threshold-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 140px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.threshold-input {
+  width: 70px;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* Reference controls container inside threshold area */
+.reference-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+    padding: 8px 12px; /* extra inner space for tick marks or icons */
+    background: rgba(2,6,23,0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(2,6,23,0.04);
+}
+
+.reference-object .ref-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.reference-object .ref-unit {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Human visual placed inside the water visualization */
+.human-visual {
+  position: absolute;
+  left: 12px; /* small inset from the left edge of the visual */
+  transform: translateY(0%);
+  font-size: 1.6rem;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.human-visual.hidden {
+  display: none;
+}
+
+.ref-toggle {
+  width: 18px;
+  height: 18px;
+}
+
+/* Flow Visualization */
+.flow-container {
+  height: 400px;
+}
+
+.flow-direction {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.arrow-flow {
+  display: flex;
+  gap: 1rem;
+}
+
+.flow-arrow {
+  font-size: 1.5rem;
+  color: var(--water-color);
+  animation: flow-pulse 2s infinite ease-in-out;
+}
+
+.flow-arrow:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.flow-arrow:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes flow-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.flow-pipe {
+  display: flex;
+  height: 100px;
+  background: var(--secondary-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 50px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.pipe-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.upstream {
+  background: linear-gradient(90deg, var(--panel-bg), var(--secondary-bg));
+}
+
+.downstream {
+  background: linear-gradient(90deg, var(--secondary-bg), var(--panel-bg));
+}
+
+.middle {
+  background: var(--secondary-bg);
+  overflow: hidden;
+}
+
+.sensor-indicator {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.sensor-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.sensor-value {
+  display: block;
+  font-weight: 700;
+  color: var(--water-color);
+}
+
+.flow-particles {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.flow-analytics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.analytics-item {
+  text-align: center;
+  padding: 1rem;
+  background: var(--secondary-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.analytics-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.analytics-value {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Control Panel */
+.control-panel {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: var(--panel-bg);
+  padding: 1rem 1.5rem;
+  border-radius: 2rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+}
+
+.control-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.control-btn.primary {
+  background: var(--water-color);
+  color: white;
+}
+
+.control-btn.primary:hover {
+  background: var(--water-dark);
+  transform: translateY(-2px);
+}
+
+.control-btn:not(.primary) {
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.control-btn:not(.primary):hover {
+  background: var(--border-color);
+  transform: translateY(-2px);
+}
+
+.connection-status-detailed {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding-left: 1rem;
+  border-left: 1px solid var(--border-color);
+}
+
+/* Status Classes */
+.status-normal {
+  color: var(--normal-color);
+  background: var(--normal-color);
+}
+.status-watch {
+  color: var(--watch-color);
+  background: var(--watch-color);
+}
+.status-alert {
+  color: var(--alert-color);
+  background: var(--alert-color);
+}
+.status-emergency {
+  color: var(--emergency-color);
+  background: var(--emergency-color);
+}
+.status-critical {
+  color: var(--critical-color);
+  background: var(--critical-color);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .system-status {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .panel {
+    padding: 1rem;
+  }
+
+  .water-container,
+  .flow-container {
+    height: 300px;
+  }
+
+  .value {
+    font-size: 2.5rem;
+  }
+
+  .control-panel {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+  }
+
+  .threshold-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .flow-analytics {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+/* Touch-friendly enhancements for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .control-btn {
+    min-height: 44px;
+    min-width: 120px;
+  }
+
+  .threshold-input,
+  .ref-input {
+    min-height: 40px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* High contrast mode for outdoor visibility */
+@media (prefers-contrast: high) {
+  :root {
+    --primary-bg: #000000;
+    --secondary-bg: #1a1a1a;
+    --panel-bg: #2a2a2a;
+    --text-primary: #ffffff;
+    --border-color: #666666;
+  }
+}
