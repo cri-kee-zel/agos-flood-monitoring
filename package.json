@@ -44,10 +44,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/agos-flood-monitoring.git"
+    "url": "https://github.com/cri-kee-zel/agos-flood-monitoring.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/agos-flood-monitoring/issues"
+    "url": "https://github.com/cri-kee-zel/agos-flood-monitoring/issues"
   },
-  "homepage": "https://github.com/yourusername/agos-flood-monitoring#readme"
+  "homepage": "https://github.com/cri-kee-zel/agos-flood-monitoring#readme"
 }
