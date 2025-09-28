@@ -30,7 +30,8 @@ app.use(
         ],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "https:", "http:"],
-        connectSrc: ["'self'", "ws:", "wss:"],
+        connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
+        upgradeInsecureRequests: null, // Explicitly disable this for HTTP deployment
       },
     },
   })
