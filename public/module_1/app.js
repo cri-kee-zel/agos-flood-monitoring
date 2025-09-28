@@ -1121,7 +1121,3 @@ class AGOSSystem {
     console.log("✅ AGOS system cleanup completed");
   }
 }
-
-// WiFi credentials - Update with your network details
-const char* ssid = "YOUR_WIFI_NAME";
-const char* password = "YOUR_WIFI_PASSWORD";

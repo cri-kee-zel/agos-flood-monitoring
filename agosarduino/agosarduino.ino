@@ -10,9 +10,6 @@
 // WiFi credentials - CHANGE THESE
 const char* ssid = "PLDTHOMEFIBRcalcifer";
 const char* password = "PLDTsWeetneZuko-12";
-// For local testing, use your computer's local IP address:
-// const char* serverURL = "http://192.168.1.XXX:3000/api/arduino-data";
-// For production server:
 const char* serverURL = "http://178.128.83.244:3000/api/arduino-data";
 
 // Pin definitions for Ultrasonic Sensor 1
@@ -126,23 +123,14 @@ void sendDataToServer(float dist1, float dist2) {
 
   String payload;
   serializeJson(doc, payload);
-  
-  Serial.print("Sending to: ");
-  Serial.println(serverURL);
-  Serial.print("Payload: ");
-  Serial.println(payload);
 
   int httpCode = http.POST(payload);
   if (httpCode > 0) {
     Serial.print("HTTP Response: ");
     Serial.println(httpCode);
-    if (httpCode == 200) {
-      Serial.println("✅ Data sent successfully!");
-    }
   } else {
     Serial.print("HTTP Error: ");
     Serial.println(httpCode);
-    Serial.println("❌ Check if server is running and reachable");
   }
 
   // R4HttpClient doesn't have end() method - connection closes automatically
