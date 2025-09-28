@@ -68,30 +68,29 @@
   margin-bottom: 1rem;
 }
 
-:root {
-  --normal-color: #22c55e;
-  --watch-color: #eab308;
-  --alert-color: #f97316;
-  --emergency-color: #ef4444;
-  --critical-color: #dc2626;
+.time-btn {
+  padding: 0.75rem 1.25rem;
+  background: var(--secondary-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
 
-  /* Light theme */
-  --bg-primary: #eef7ff;
-  --bg-secondary: #e7ecf1;
-  --bg-tertiary: #ffffff;
-  --bg-card: #ffffff;
-  --primary-bg: var(--bg-primary);
-  --secondary-bg: var(--bg-secondary);
-  --panel-bg: var(--bg-card);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border-color: #e6eef6;
+.time-btn:hover {
+  background: var(--panel-bg);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
 
-  --water-color: #3b82f6;
-  --water-surface: #60a5fa;
-  --water-dark: #1e40af;
-
-  --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+.time-btn.active {
+  background: var(--water-color);
+  color: white;
+  border-color: var(--water-color);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .custom-date-picker {
@@ -146,7 +145,7 @@
 
 .metric-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(2, 6, 23, 0.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .metric-header {
@@ -911,7 +910,7 @@
 /* Dark mode enhancements */
 @media (prefers-color-scheme: dark) {
   .correlation-cell {
-    box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.04);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
 
   .metric-card:hover {

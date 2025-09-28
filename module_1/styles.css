@@ -61,29 +61,25 @@
 
 /* CSS Custom Properties (Variables) - Centralized color and style management */
 :root {
-  /* Emergency Alert Color System */
-  --normal-color: #22c55e; /* Green - Safe conditions */
-  --watch-color: #eab308; /* Yellow - Monitor */
-  --alert-color: #f97316; /* Orange - Action */
-  --emergency-color: #ef4444; /* Red - Immediate danger */
-  --critical-color: #dc2626; /* Dark red - Extreme emergency */
+  /* Emergency Alert Color System - Based on international flood warning standards */
+  --normal-color: #22c55e; /* Green - Safe conditions, no action needed */
+  --watch-color: #eab308; /* Yellow - Monitor closely, be prepared */
+  --alert-color: #f97316; /* Orange - Take action, prepare for flooding */
+  --emergency-color: #ef4444; /* Red - Immediate danger, evacuate now */
+  --critical-color: #dc2626; /* Dark red - Extreme emergency conditions */
 
-  /* Main Theme Colors - Light theme */
-  --bg-primary: #eef7ff; /* Page background (very light) */
-  --bg-secondary: #e7ecf1;
-  --bg-tertiary: #ffffff;
-  --bg-card: #ffffff;
-  --primary-bg: var(--bg-primary);
-  --secondary-bg: var(--bg-secondary);
-  --panel-bg: var(--bg-card);
-  --text-primary: #0f172a;
-  --text-secondary: #475569; /* Secondary text */
-  --border-color: #e6eef6; /* Light border */
+  /* Main Theme Colors - Dark theme optimized for 24/7 monitoring */
+  --primary-bg: #0f172a; /* Very dark blue - Main background */
+  --secondary-bg: #1e293b; /* Dark blue-gray - Header and containers */
+  --panel-bg: #334155; /* Medium blue-gray - Content panels */
+  --text-primary: #f8fafc; /* Near white - Main text color */
+  --text-secondary: #cbd5e1; /* Light gray - Secondary text */
+  --border-color: #475569; /* Medium gray - Borders and dividers */
 
-  /* Water Visualization Colors - keep blue palette */
-  --water-color: #3b82f6;
-  --water-surface: #60a5fa;
-  --water-dark: #1e40af;
+  /* Water Visualization Colors - Blue palette for water representation */
+  --water-color: #3b82f6; /* Primary blue - Water fill color */
+  --water-surface: #60a5fa; /* Light blue - Water surface effects */
+  --water-dark: #1e40af; /* Dark blue - Water depth/shadows */
 
   /* Typography Settings */
   --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -236,7 +232,7 @@ body {
   border-radius: 1rem;
   padding: 1.5rem;
   border: 1px solid var(--border-color);
-  box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .panel-header {
@@ -414,9 +410,9 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(2,6,23,0.04) 25%,
-    rgba(2,6,23,0.06) 50%,
-    rgba(2,6,23,0.04) 75%,
+    rgba(255, 255, 255, 0.3) 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.3) 75%,
     transparent 100%
   );
   animation: wave 3s infinite linear;
@@ -457,18 +453,13 @@ body {
   position: absolute;
   left: 0;
   font-size: 0.8rem;
-.scale-mark {
-  position: absolute;
-  left: 0;
-  font-size: 0.8rem;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(2,6,23,0.04) 25%,
-    rgba(2,6,23,0.06) 50%,
-    rgba(2,6,23,0.04) 75%,
-    transparent 100%
-  );
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.scale-mark:nth-child(1) {
+  bottom: 0%;
 }
 .scale-mark:nth-child(2) {
   bottom: 16.67%;
@@ -520,10 +511,10 @@ body {
   display: flex;
   gap: 0.75rem;
   align-items: center;
-    padding: 8px 12px; /* extra inner space for tick marks or icons */
-    background: rgba(2,6,23,0.02);
-    border-radius: 8px;
-    border: 1px solid rgba(2,6,23,0.04);
+  padding: 8px 12px; /* extra inner space for tick marks or icons */
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .reference-object .ref-label {
@@ -698,7 +689,7 @@ body {
   padding: 1rem 1.5rem;
   border-radius: 2rem;
   border: 1px solid var(--border-color);
-  box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .control-btn {

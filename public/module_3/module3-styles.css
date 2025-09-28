@@ -1,28 +1,25 @@
 /* Module 3 Specific Styles - Historical Analytics & Trends */
-:root {
-  --normal-color: #22c55e;
-  --watch-color: #eab308;
-  --alert-color: #f97316;
-  --emergency-color: #ef4444;
-  --critical-color: #dc2626;
 
-  --bg-primary: #eef7ff;
-  --bg-secondary: #e7ecf1;
-  --bg-tertiary: #ffffff;
-  --bg-card: #ffffff;
-  --primary-bg: #eef7ff;
-  --secondary-bg: #e7ecf1;
-  --panel-bg: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border-color: #e6eef6;
+/*
+    NOTE FOR EDITORS:
+    - You can safely change layout, colors and spacing in this file.
+    - DO NOT remove or rename the CSS classes or IDs listed below because
+        the JavaScript (`module3-app.js`) expects these selectors to exist.
+        * #loading-overlay, #loading-text
+        * .time-btn, .time-range-buttons
+        * .chart-control-btn
+        * .filter-btn
+        * .metric-card, .metric-value, .metric-trend
+        * .chart-panel, .chart-container, canvas (chart canvases use ids)
+        * .analytics-grid, .left-column, .right-column
+        * .analysis-panel, .event-timeline, .correlation-matrix
 
-  --water-color: #3b82f6;
-  --water-surface: #60a5fa;
-  --water-dark: #1e40af;
+    Safe edits: modify spacing, colors, font sizes, or add new utility
+    classes. If you create new elements that should be updated by JS, give
+    them an id and update `module3-app.js` accordingly.
+*/
 
-  --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-}
+/* Navigation */
 .module-nav {
   display: flex;
   gap: 0.5rem;
@@ -148,7 +145,7 @@
 
 .metric-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(2, 6, 23, 0.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .metric-header {
@@ -913,7 +910,7 @@
 /* Dark mode enhancements */
 @media (prefers-color-scheme: dark) {
   .correlation-cell {
-    box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.04);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
 
   .metric-card:hover {

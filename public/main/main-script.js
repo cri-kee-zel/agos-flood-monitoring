@@ -157,17 +157,17 @@ class AGOSMainGateway {
                 left: 0;                         /* Align to left */
                 width: 100%;                     /* Full width */
                 height: 100%;                    /* Full height */
-                background: rgba(248,250,252,0.95); /* Light semi-transparent background */
+                background: rgba(15, 23, 42, 0.9); /* Semi-transparent dark background */
                 display: flex;                   /* Flexbox for centering */
                 align-items: center;             /* Center vertically */
                 justify-content: center;         /* Center horizontally */
                 z-index: 9999;                   /* High z-index to appear above everything */
                 backdrop-filter: blur(10px);     /* Blur effect behind overlay */
             ">
-        <div style="
-          text-align: center;          /* Center the content */
-          color: var(--text-primary); /* Dark text for light overlay */
-        ">
+                <div style="
+                    text-align: center;          /* Center the content */
+                    color: white;                /* White text */
+                ">
                     <div style="
                         font-size: 3rem;            /* Large emoji */
                         margin-bottom: 1rem;        /* Space below */

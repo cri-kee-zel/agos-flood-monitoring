@@ -45,42 +45,49 @@
 
 /* CSS Custom Properties (Variables) for consistent theming */
 :root {
-  /* AGOS Color Palette - light theme */
-  --primary-color: #3b82f6;
-  --secondary-color: #06b6d4;
-  --accent-color: #8b5cf6;
-  --success-color: #22c55e;
-  --warning-color: #f59e0b;
-  --danger-color: #ef4444;
-  --emergency-color: #dc2626;
+  /* AGOS Color Palette - Consistent with modules */
+  --primary-color: #3b82f6; /* Blue - main brand color */
+  --secondary-color: #06b6d4; /* Cyan - secondary accent */
+  --accent-color: #8b5cf6; /* Purple - tertiary accent */
+  --success-color: #22c55e; /* Green - success/normal states */
+  --warning-color: #f59e0b; /* Yellow - warning states */
+  --danger-color: #ef4444; /* Red - danger/alert states */
+  --emergency-color: #dc2626; /* Dark red - emergency states */
 
-  --bg-primary: #eef7ff; /* Page background (very light) */
-  --bg-secondary: #e7ecf1; /* Slightly warmer off-white for large panels */
-  --bg-tertiary: #ffffff; /* Card / content background */
-  --bg-card: #ffffff; /* Card surfaces */
+  /* Background colors for dark theme */
+  --bg-primary: #0f172a; /* Darkest background */
+  --bg-secondary: #1e293b; /* Medium dark background */
+  --bg-tertiary: #334155; /* Lighter dark background */
+  --bg-card: #475569; /* Card backgrounds */
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #6b7280;
+  /* Text colors for contrast on dark backgrounds */
+  --text-primary: #f8fafc; /* Primary text - near white */
+  --text-secondary: #cbd5e1; /* Secondary text - light gray */
+  --text-muted: #94a3b8; /* Muted text - darker gray */
 
-  --border-color: #e6eef6;
-  --shadow-lg: 0 10px 30px rgba(2, 6, 23, 0.06);
-  --shadow-xl: 0 20px 40px rgba(2, 6, 23, 0.08);
+  /* Borders & Shadows for depth and separation */
+  --border-color: #64748b; /* Border color - medium gray */
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.3); /* Large shadow */
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.4); /* Extra large shadow */
 
-  --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Typography settings */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; /* Font stack */
 
-  --spacing-xs: 0.5rem;
-  --spacing-sm: 1rem;
-  --spacing-md: 1.5rem;
-  --spacing-lg: 2rem;
-  --spacing-xl: 3rem;
+  /* Spacing scale for consistent layout */
+  --spacing-xs: 0.5rem; /* 8px */
+  --spacing-sm: 1rem; /* 16px */
+  --spacing-md: 1.5rem; /* 24px */
+  --spacing-lg: 2rem; /* 32px */
+  --spacing-xl: 3rem; /* 48px */
 
-  --radius-sm: 0.5rem;
-  --radius-md: 1rem;
-  --radius-lg: 1.5rem;
-  --radius-xl: 2rem;
+  /* Border radius for rounded corners */
+  --radius-sm: 0.5rem; /* 8px */
+  --radius-md: 1rem; /* 16px */
+  --radius-lg: 1.5rem; /* 24px */
+  --radius-xl: 2rem; /* 32px */
 
-  --transition: all 0.3s ease;
+  /* Transition timing for animations */
+  --transition: all 0.3s ease; /* Standard transition */
 }
 
 /* Base Styles */
@@ -188,9 +195,9 @@ body {
   min-height: 20px !important; /* user wants compact min-height */
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.9),
-    rgba(241, 245, 249, 0.9)
-  ); /* Light semi-transparent gradient for light theme */
+    rgba(15, 23, 42, 0.9),
+    rgba(30, 41, 59, 0.9)
+  ); /* Semi-transparent gradient */
   backdrop-filter: blur(10px); /* Blur background behind */
   border-bottom: 1px solid var(--border-color); /* Bottom border */
 }
@@ -289,17 +296,18 @@ body {
 }
 
 /* Individual info items styling */
-user-info,
-timestamp,
-status-indicator {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: rgba(2, 6, 23, 0.04);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(2, 6, 23, 0.06);
-  font-size: 0.9rem;
+.user-info,
+.timestamp,
+.status-indicator {
+  display: flex; /* Flex layout */
+  align-items: center; /* Center vertically */
+  gap: var(--spacing-xs); /* Small gap */
+  padding: var(--spacing-xs) var(--spacing-sm); /* Padding inside */
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+  border-radius: var(--radius-md); /* Rounded corners */
+  backdrop-filter: blur(10px); /* Blur effect */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+  font-size: 0.9rem; /* Slightly smaller text */
 }
 
 /* Icon sizing for user and time */
@@ -712,7 +720,7 @@ span.status-indicator {
 /* Button hover effects */
 .module-btn:hover {
   transform: translateY(-2px); /* Lift up */
-  box-shadow: 0 8px 25px rgba(2, 6, 23, 0.08); /* Softer shadow for light theme */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
 }
 
 /* Button icon sizing */
