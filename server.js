@@ -98,18 +98,69 @@ app.get("/emergency", (req, res) => {
   res.sendFile(path.join(__dirname, "module_4", "module4.html"));
 });
 
+// Global variable to store latest Arduino data
+let latestArduinoData = {
+  waterLevel: 0,
+  distance2: 0,
+  timestamp: new Date().toISOString(),
+  connected: false,
+};
+
+// API endpoint to receive Arduino data
+app.post("/api/arduino-data", (req, res) => {
+  const { distance1, distance2, timestamp } = req.body;
+
+  // Store Arduino data (distance1 becomes waterLevel for frontend)
+  latestArduinoData = {
+    waterLevel: parseFloat(distance1) || 0,
+    distance2: parseFloat(distance2) || 0,
+    timestamp: new Date().toISOString(),
+    connected: true,
+  };
+
+  console.log(
+    `📡 Arduino data received: distance1=${distance1}cm, distance2=${distance2}cm`
+  );
+
+  // Broadcast to all WebSocket clients
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type: "sensor-data",
+          data: {
+            timestamp: latestArduinoData.timestamp,
+            waterLevel: latestArduinoData.waterLevel,
+            flowRate: Math.random() * 5 + 1, // Still simulated
+            batteryLevel: 90,
+            signalStrength: -45,
+          },
+        })
+      );
+    }
+  });
+
+  res.json({ status: "success" });
+});
+
 // API endpoint for sensor data
 app.get("/api/sensor-data", (req, res) => {
-  // Simulate sensor data - replace with actual Arduino integration
+  // Use real Arduino data if available, otherwise simulate
+  const dataAge = Date.now() - new Date(latestArduinoData.timestamp).getTime();
+  const useRealData = latestArduinoData.connected && dataAge < 30000; // Use if less than 30s old
+
   const sensorData = {
     timestamp: new Date().toISOString(),
-    waterLevel: Math.random() * 100 + 50,
+    waterLevel: useRealData
+      ? latestArduinoData.waterLevel
+      : Math.random() * 100 + 50,
     flowRate: Math.random() * 5 + 1,
     rainfall: Math.random() * 20,
     temperature: Math.random() * 10 + 25,
     humidity: Math.random() * 30 + 60,
     batteryLevel: Math.random() * 20 + 80,
     signalStrength: Math.floor(Math.random() * 31),
+    arduinoConnected: useRealData,
   };
 
   res.json(sensorData);

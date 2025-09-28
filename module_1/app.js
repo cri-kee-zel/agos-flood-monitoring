@@ -221,18 +221,43 @@ class AGOSSystem {
     try {
       console.log("🔌 Initializing WebSocket connection...");
 
-      // In production, this would connect to actual backend
-      // For now, we'll simulate the connection
-      this.socket = {
-        connected: false,
-        emit: (event, data) => console.log(`📡 Emit: ${event}`, data),
-        on: (event, callback) => console.log(`👂 Listening for: ${event}`),
+      // Create real WebSocket connection
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      this.socket = new WebSocket(wsUrl);
+
+      this.socket.onopen = () => {
+        console.log("✅ WebSocket connected");
+        this.handleSocketConnect();
       };
 
-      // Simulate connection after delay
-      setTimeout(() => {
-        this.handleSocketConnect();
-      }, 1000);
+      this.socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === "sensor-data") {
+          // Update state with real Arduino data
+          this.state.waterLevel = parseFloat(message.data.waterLevel) || 0;
+          this.state.flowRate = parseFloat(message.data.flowRate) || 0;
+          this.state.batteryLevel =
+            parseFloat(message.data.batteryLevel) || 100;
+          this.state.lastUpdate = new Date(message.data.timestamp);
+
+          console.log(`🤖 Arduino water level: ${this.state.waterLevel}cm`);
+
+          // Update the visualization
+          this.updateAllDisplays();
+        }
+      };
+
+      this.socket.onclose = () => {
+        console.log("⚠️ WebSocket disconnected");
+        this.handleSocketDisconnect();
+      };
+
+      this.socket.onerror = (error) => {
+        console.error("❌ WebSocket error:", error);
+        this.handleSocketError(error);
+      };
     } catch (error) {
       console.error("❌ WebSocket initialization failed:", error);
       this.handleSocketError(error);
