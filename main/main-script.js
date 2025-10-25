@@ -74,6 +74,7 @@ class AGOSMainGateway {
     this.updateSystemStats(); // Display system statistics
     this.updateStatusOverview(); // Show current sensor readings
     this.setupAnimations(); // Initialize card animations
+    this.setupNavigationHandlers(); // Setup enhanced navigation
     this.startRealTimeUpdates(); // Begin periodic updates
 
     console.log("✅ AGOS Main Gateway Ready");
@@ -119,35 +120,47 @@ class AGOSMainGateway {
   }
 
   /**
-   * Navigate to specific module
+   * Navigate to specific module with smooth loading
    * @param {string} moduleUrl - The URL/filename of the module to navigate to
    */
   navigateToModule(moduleUrl) {
     console.log(`🚀 Navigating to: ${moduleUrl}`);
+
+    // Check if we already have a loading overlay to prevent duplicates
+    if (document.querySelector(".agos-loading-overlay")) {
+      console.log("⚠️ Loading overlay already exists, skipping navigation");
+      return;
+    }
+
     console.log("🔧 Creating loading overlay...");
 
     // Create and show loading overlay for better user experience
     const loadingOverlay = this.createLoadingOverlay();
     document.body.appendChild(loadingOverlay);
 
-    console.log("🔧 Loading overlay added, waiting 800ms...");
+    console.log("🔧 Loading overlay added, waiting 600ms...");
 
-    // Wait 800ms before navigation to show loading animation
+    // Reduced wait time for smoother experience
     setTimeout(() => {
       console.log(`🔧 Navigating now to: ${moduleUrl}`);
+
+      // Store current page info for back navigation
+      sessionStorage.setItem("agos-previous-page", window.location.href);
+      sessionStorage.setItem("agos-navigation-time", Date.now().toString());
+
       window.location.href = moduleUrl; // Navigate to the requested module
-    }, 800);
+    }, 600);
   }
 
   /**
    * Create loading overlay for navigation
    * @returns {HTMLElement} - The loading overlay element
-   * Note: this function appends CSS for the spinner animation to the document head.
-   * The caller is responsible for removing the overlay if navigation is cancelled.
+   * Enhanced with smooth animations and better UX
    */
   createLoadingOverlay() {
     // Create new div element for the overlay
     const overlay = document.createElement("div");
+    overlay.className = "agos-loading-overlay";
 
     // Set the HTML content of the overlay with inline styles
     overlay.innerHTML = `
@@ -157,38 +170,87 @@ class AGOSMainGateway {
                 left: 0;                         /* Align to left */
                 width: 100%;                     /* Full width */
                 height: 100%;                    /* Full height */
-                background: rgba(15, 23, 42, 0.9); /* Semi-transparent dark background */
+                background: rgba(15, 23, 42, 0.95); /* Semi-transparent dark background */
                 display: flex;                   /* Flexbox for centering */
                 align-items: center;             /* Center vertically */
                 justify-content: center;         /* Center horizontally */
                 z-index: 9999;                   /* High z-index to appear above everything */
-                backdrop-filter: blur(10px);     /* Blur effect behind overlay */
+                backdrop-filter: blur(12px);     /* Enhanced blur effect */
+                opacity: 0;                      /* Start invisible for fade in */
+                animation: fadeInOverlay 0.3s ease-out forwards; /* Smooth fade in */
             ">
                 <div style="
                     text-align: center;          /* Center the content */
                     color: white;                /* White text */
+                    transform: translateY(20px); /* Start slightly below */
+                    animation: slideInContent 0.4s ease-out 0.1s forwards; /* Slide in content */
                 ">
                     <div style="
-                        font-size: 3rem;            /* Large emoji */
-                        margin-bottom: 1rem;        /* Space below */
-                        animation: spin 1s linear infinite; /* Spinning animation */
+                        font-size: 3.5rem;          /* Larger emoji */
+                        margin-bottom: 1.5rem;      /* More space below */
+                        animation: spin 1.2s linear infinite; /* Slower spinning animation */
+                        filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.5)); /* Glow effect */
                     ">🌊</div>
-                    <p style="font-size: 1.2rem; opacity: 0.9;">Loading module...</p>
+                    <p style="
+                        font-size: 1.3rem;
+                        opacity: 0.95;
+                        margin: 0;
+                        font-weight: 500;
+                        letter-spacing: 0.5px;
+                    ">Loading page...</p>
+                    <div style="
+                        width: 200px;
+                        height: 3px;
+                        background: rgba(255, 255, 255, 0.2);
+                        border-radius: 2px;
+                        margin: 1.5rem auto 0;
+                        overflow: hidden;
+                    ">
+                        <div style="
+                            width: 40%;
+                            height: 100%;
+                            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+                            border-radius: 2px;
+                            animation: loadingProgress 1.5s ease-in-out infinite;
+                        "></div>
+                    </div>
                 </div>
             </div>
         `;
 
-    // Create CSS style element for the spin animation
-    const style = document.createElement("style");
-    style.textContent = `
-            @keyframes spin {
-                from { transform: rotate(0deg); }   /* Start at 0 degrees */
-                to { transform: rotate(360deg); }   /* End at 360 degrees */
-            }
-        `;
-    document.head.appendChild(style); // Add styles to document head
+    // Create enhanced CSS animations if not already added
+    if (!document.getElementById("agos-loading-styles")) {
+      const style = document.createElement("style");
+      style.id = "agos-loading-styles";
+      style.textContent = `
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                @keyframes fadeInOverlay {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideInContent {
+                    from {
+                        transform: translateY(30px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes loadingProgress {
+                    0% { transform: translateX(-100%); }
+                    50% { transform: translateX(0%); }
+                    100% { transform: translateX(200%); }
+                }
+            `;
+      document.head.appendChild(style);
+    }
 
-    return overlay; // Return the created overlay element
+    return overlay;
   }
 
   /**
@@ -198,9 +260,12 @@ class AGOSMainGateway {
   updateTimestamp() {
     // Get current time and update the timestamp display (safe)
     const now = new Date(); // Get current date and time
-    // Format as YYYY-MM-DD HH:MM:SS UTC
-    const utcString = now.toISOString().slice(0, 19).replace("T", " ") + " UTC";
-    this.safeSetText("current-time", utcString);
+    // Convert to Philippine Time (UTC+8)
+    const phtTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    // Format as YYYY-MM-DD HH:MM:SS PHT
+    const phtString =
+      phtTime.toISOString().slice(0, 19).replace("T", " ") + " PHT";
+    this.safeSetText("current-time", phtString);
   }
 
   /**
@@ -338,6 +403,94 @@ class AGOSMainGateway {
         }
       });
     });
+  }
+
+  /**
+   * Setup enhanced navigation handlers
+   * Handles browser back button and page visibility changes
+   */
+  setupNavigationHandlers() {
+    console.log("🔧 Setting up navigation handlers...");
+
+    // Handle browser back/forward navigation
+    window.addEventListener("popstate", (event) => {
+      console.log("🔙 Browser back button detected");
+
+      // Remove any existing loading overlay smoothly
+      this.removeLoadingOverlay();
+
+      // Check if we're returning from a navigation
+      const previousPage = sessionStorage.getItem("agos-previous-page");
+      if (previousPage) {
+        console.log("🔄 Returning from navigation, showing smooth transition");
+
+        // Show a brief loading for smooth transition
+        const overlay = this.createLoadingOverlay();
+        document.body.appendChild(overlay);
+
+        // Quick fade out for smooth back navigation
+        setTimeout(() => {
+          this.removeLoadingOverlay();
+        }, 400);
+
+        // Clear the stored navigation info
+        sessionStorage.removeItem("agos-previous-page");
+        sessionStorage.removeItem("agos-navigation-time");
+      }
+    });
+
+    // Handle page visibility changes (when user returns to tab)
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        console.log("👀 Page became visible");
+        // Remove any lingering loading overlays
+        this.removeLoadingOverlay();
+      }
+    });
+
+    // Handle page load/unload for cleanup
+    window.addEventListener("beforeunload", () => {
+      this.removeLoadingOverlay();
+    });
+
+    // Handle page focus/blur
+    window.addEventListener("focus", () => {
+      console.log("🎯 Window focused");
+      this.removeLoadingOverlay();
+    });
+  }
+
+  /**
+   * Remove loading overlay with smooth fade out
+   */
+  removeLoadingOverlay() {
+    const overlay = document.querySelector(".agos-loading-overlay");
+    if (overlay) {
+      console.log("🗑️ Removing loading overlay");
+
+      // Fade out smoothly
+      overlay.style.animation = "fadeOutOverlay 0.3s ease-out forwards";
+
+      // Add fade out keyframes if not already added
+      if (!document.getElementById("agos-fadeout-styles")) {
+        const style = document.createElement("style");
+        style.id = "agos-fadeout-styles";
+        style.textContent = `
+          @keyframes fadeOutOverlay {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Remove from DOM after animation
+      setTimeout(() => {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      }, 300);
+    }
   }
 
   /**

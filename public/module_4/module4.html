@@ -162,6 +162,9 @@
             <button class="quick-alert-btn critical">
               <span>🚨 SEND NOW</span>
             </button>
+            <button class="customize-msg-btn" id="customize-flash-flood-btn">
+              ✏️ Customize Message
+            </button>
           </div>
 
           <div class="alert-type-card warning" data-alert="flood-watch">
@@ -170,6 +173,9 @@
             <p>Prepare for possible flooding</p>
             <button class="quick-alert-btn warning">
               <span>📢 SEND ALERT</span>
+            </button>
+            <button class="customize-msg-btn" id="customize-flood-watch-btn">
+              ✏️ Customize Message
             </button>
           </div>
 
@@ -180,6 +186,9 @@
             <button class="quick-alert-btn info">
               <span>📰 SEND UPDATE</span>
             </button>
+            <button class="customize-msg-btn" id="customize-weather-update-btn">
+              ✏️ Customize Message
+            </button>
           </div>
 
           <div class="alert-type-card all-clear" data-alert="all-clear">
@@ -189,6 +198,139 @@
             <button class="quick-alert-btn all-clear">
               <span>✅ SEND CLEAR</span>
             </button>
+            <button class="customize-msg-btn" id="customize-all-clear-btn">
+              ✏️ Customize Message
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SMS Recipients Management Panel -->
+      <section class="recipients-panel">
+        <div class="panel-header">
+          <h2>📱 SMS Recipients Management</h2>
+          <div class="recipients-summary">
+            <span class="recipient-count-badge">
+              <span id="recipient-count">0</span>
+              recipients configured
+            </span>
+          </div>
+        </div>
+
+        <div class="recipients-controls">
+          <div class="add-recipient-form">
+            <input
+              type="tel"
+              id="phone-number-input"
+              placeholder="Enter phone number (+639171234567)"
+              class="phone-input"
+            />
+            <button id="add-recipient-btn" class="add-btn">
+              <span>➕ Add Recipient</span>
+            </button>
+          </div>
+
+          <div class="format-help">
+            <small>
+              📋 Use international format: +[country code][number] (e.g.,
+              +639171234567)
+            </small>
+          </div>
+        </div>
+
+        <div class="recipients-list-container">
+          <h3>📋 Current Recipients:</h3>
+          <div id="recipients-list" class="recipients-list">
+            <div class="no-recipients">No SMS recipients configured</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arduino Data Monitor Panel -->
+      <section class="arduino-monitor-panel">
+        <div class="panel-header">
+          <h2>📡 Arduino Data Monitor</h2>
+          <div class="status-badge-container">
+            <div
+              class="status-badge status-disconnected"
+              id="arduino-status-badge"
+            >
+              <span class="status-dot"></span>
+              <span id="arduino-status-text">Connecting...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="arduino-controls">
+          <button class="btn secondary" id="arduino-clear-btn">
+            <span>🗑️</span>
+            Clear
+          </button>
+          <button class="btn secondary active" id="arduino-autoscroll-btn">
+            <span>⬇️</span>
+            Auto-scroll
+          </button>
+          <!--
+          <button class="btn secondary" onclick="exportArduinoLogs()">
+            <span>💾</span>
+            Export
+          </button>
+          -->
+          <!--
+          <select class="baud-selector" id="arduino-baud-rate">
+            <option value="9600">9600 baud</option>
+            <option value="115200" selected>115200 baud</option>
+            <option value="57600">57600 baud</option>
+            <option value="38400">38400 baud</option>
+          </select>
+          -->
+        </div>
+
+        <div class="arduino-output" id="arduino-output">
+          <div class="log-line">
+            <span class="timestamp">[00:00:00.000]</span>
+            <span class="message info">
+              📡 Arduino Data Monitor - Real-time Arduino → Server Communication
+            </span>
+          </div>
+          <div class="log-line">
+            <span class="timestamp">[00:00:00.001]</span>
+            <span class="message warning">
+              ℹ️ Note: For complete Serial output, use Arduino IDE Serial
+              Monitor at 115200 baud
+            </span>
+          </div>
+          <div class="log-line">
+            <span class="timestamp">[00:00:00.002]</span>
+            <span class="message info">🔌 Connecting to AGOS server...</span>
+          </div>
+        </div>
+
+        <div class="arduino-input-area">
+          <input
+            type="text"
+            class="arduino-input"
+            id="arduino-input"
+            placeholder="Send command to Arduino (e.g., SMS, STATUS, NETWORK)..."
+          />
+          <button class="btn primary" id="arduino-send-btn">
+            <span>📤</span>
+            Send
+          </button>
+        </div>
+
+        <div class="arduino-stats">
+          <div class="stat-item">
+            📊 Lines:
+            <span class="stat-value" id="arduino-line-count">0</span>
+          </div>
+          <div class="stat-item">
+            ⏱️ Uptime:
+            <span class="stat-value" id="arduino-uptime">00:00:00</span>
+          </div>
+          <div class="stat-item">
+            📦 Data Received:
+            <span class="stat-value" id="arduino-data-received">0 KB</span>
           </div>
         </div>
       </section>
@@ -390,6 +532,58 @@
       </div>
     </div>
 
+    <!-- Message Customization Modal -->
+    <div id="message-customization-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="customize-modal-title">✏️ Customize Alert Message</h2>
+          <button class="modal-close" id="close-customize-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="message-customization-form">
+            <div class="form-group">
+              <label>📋 Default Message:</label>
+              <textarea
+                class="default-message-display"
+                id="default-message-display"
+                readonly
+                rows="4"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>✏️ Custom Message (Override):</label>
+              <textarea
+                class="custom-message-input"
+                id="custom-message-input"
+                rows="4"
+                maxlength="160"
+                placeholder="Type your custom message here..."
+              ></textarea>
+              <div class="char-counter-container">
+                <span class="char-counter" id="char-counter">0/160</span>
+              </div>
+              <small class="help-text">
+                ℹ️ Leave blank to use default message. Max 160 characters (SMS limit).
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn secondary" id="reset-message-btn">
+            🔄 Reset to Default
+          </button>
+          <button class="btn secondary" id="cancel-customize-btn">
+            Cancel
+          </button>
+          <button class="btn primary" id="save-custom-message-btn">
+            <span class="btn-icon">💾</span>
+            Save & Close
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Emergency Status Banner (moved to bottom to avoid layout conflicts) -->
     <div id="emergency-banner" class="emergency-banner hidden">
       <div class="emergency-content">
@@ -400,7 +594,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/socket.io/socket.io.js"></script>
     <script src="/module_4/module4-app.js"></script>
   </body>
 </html>

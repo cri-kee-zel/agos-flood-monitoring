@@ -1,0 +1,669 @@
+
+// AGOS Arduino WiFi Integration - Complete Sensor + SMS System
+#include <WiFi.h>
+
+// WiFi Configuration - Update these with your network details
+const char* ssid = "PLDTHOMEFIBRcalcifer";
+const char* password = "PLDTsWeetneZuko-12";
+// const char* ssid = "PLDTHOMEFIBRhowl";
+// const char* password = "PLDTsWeetneZuko-12";
+// const char* ssid = "WeWs";
+// const char* password = "sweetcsweet12";
+// const char* serverAddress = "192.168.1.5";  // Your computer's local IP
+const char* serverAddress = "192.168.1.5";  // Your computer's local IP
+// const char* serverAddress = "10.177.205.238";  // Your computer's local IP connected to Wews
+const int serverPort = 3000;
+
+// WiFi client for HTTP requests
+WiFiClient client;
+
+// SIM800L GSM/GPRS Module Configuration
+// Using Serial1 for SIM800L communication (pins 8=TX, 9=RX)
+#define SIM800L_TX 8    // Connect to SIM800L RX
+#define SIM800L_RX 9    // Connect to SIM800L TX
+#define SIM800L_RST 3   // Reset pin for SIM800L
+
+// SMS Configuration - Multiple Recipients Support
+#define MAX_RECIPIENTS 10  // Maximum number of phone numbers
+String recipients[MAX_RECIPIENTS];  // Array to store phone numbers
+int recipientCount = 0;  // Current number of recipients
+bool gsmInitialized = false;
+String lastSensorData = "";
+
+// Sensor data storage for SMS
+struct SensorDataSMS {
+  float waterLevel;
+  float flowRate;
+  float upstreamTurbidity;
+  float downstreamTurbidity;
+  float batteryLevel;
+  String alertStatus;
+  String timestamp;
+} currentSensorData;
+
+
+// Pin definitions for Ultrasonic Sensor 1
+const int TRIG_PIN_1 = 1;  // Change these pins according to your wiring
+const int ECHO_PIN_1 = 2;
+
+// Pin definitions for Ultrasonic Sensor 2 (Upstream Turbidity)
+const int TRIG_PIN_2 = 4;  // Change these pins according to your wiring
+const int ECHO_PIN_2 = 6;
+
+// Pin definitions for Ultrasonic Sensor 3 (Downstream Turbidity)
+const int TRIG_PIN_3 = 5;  // Change these pins according to your wiring
+const int ECHO_PIN_3 = 7;
+
+//GPRS Module
+const int TXD_PIN = 8;
+const int RXD_PIN = 9;
+const int RST_PIN = 3;
+
+
+// Function to get distance from ultrasonic sensor
+
+// Function to get distance from ultrasonic sensor
+float getDistance(int trigPin, int echoPin) {
+  // Clear the trigger pin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  // Set trigger pin high for 10 microseconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read the echo pin
+  long duration = pulseIn(echoPin, HIGH);
+
+  // Calculate distance in centimeters
+  // Speed of sound = 343 meters/second = 0.0343 cm/microsecond
+  // Distance = (duration * speed of sound) / 2
+  float distance = duration * 0.0343 / 2;
+
+  return distance;
+}
+
+// SIM800L GSM Module Functions
+void initializeSIM800L() {
+  Serial.println("📱 Initializing SIM800L GSM Module...");
+  Serial.println("🔧 Starting SIM800L setup process...");
+
+  // Initialize Serial1 for SIM800L communication
+  Serial.println("🔗 Initializing Serial1 for SIM800L (9600 baud)...");
+  Serial1.begin(9600);
+  delay(1000); // Give serial time to initialize
+
+  // Reset SIM800L module
+  Serial.println("🔄 Resetting SIM800L module...");
+  pinMode(SIM800L_RST, OUTPUT);
+  digitalWrite(SIM800L_RST, LOW);
+  delay(100);
+  digitalWrite(SIM800L_RST, HIGH);
+  Serial.println("⏳ Waiting 3 seconds for SIM800L to boot...");
+  delay(3000); // Wait for module to boot
+
+  // Test AT command
+  Serial.print("📡 Testing GSM module connection... ");
+  Serial.println("Sending AT command...");
+  Serial1.println("AT");
+
+  if (waitForResponse("OK", 5000)) {
+    Serial.println("✅ SIM800L responded!");
+
+    // Check SIM card
+    Serial.print("📋 Checking SIM card... ");
+    Serial1.println("AT+CPIN?");
+    if (waitForResponse("READY", 5000)) {
+      Serial.println("✅ SIM card ready!");
+
+      // Check network registration
+      Serial.print("📶 Checking network registration... ");
+      Serial1.println("AT+CREG?");
+      delay(2000);
+
+      // Set SMS text mode
+      Serial.print("💬 Setting SMS text mode... ");
+      Serial1.println("AT+CMGF=1");
+      if (waitForResponse("OK", 5000)) {
+        Serial.println("✅ SMS mode set!");
+        gsmInitialized = true;
+        Serial.println("🎉 SIM800L fully initialized and ready!");
+      } else {
+        Serial.println("❌ Failed to set SMS mode");
+      }
+    } else {
+      Serial.println("❌ SIM card not ready");
+    }
+  } else {
+    Serial.println("❌ SIM800L not responding");
+  }
+}
+
+bool waitForResponse(String expectedResponse, unsigned long timeout) {
+  String response = "";
+  unsigned long startTime = millis();
+
+  Serial.print("🔍 Waiting for response: ");
+  Serial.print(expectedResponse);
+  Serial.print(" (timeout: ");
+  Serial.print(timeout);
+  Serial.println("ms)");
+
+  while (millis() - startTime < timeout) {
+    if (Serial1.available()) {
+      String chunk = Serial1.readString();
+      response += chunk;
+      Serial.print("📨 Received: ");
+      Serial.println(chunk);
+
+      if (response.indexOf(expectedResponse) >= 0) {
+        Serial.println("✅ Expected response found!");
+        return true;
+      }
+    }
+    delay(100);
+  }
+
+  Serial.print("❌ Timeout! Full response: '");
+  Serial.print(response);
+  Serial.println("'");
+  return false;
+}
+
+void sendSMSAlert(String alertType, SensorDataSMS data) {
+  if (!gsmInitialized) {
+    Serial.println("❌ GSM not initialized - cannot send SMS");
+    return;
+  }
+
+  if (recipientCount == 0) {
+    Serial.println("⚠️ No recipients configured - cannot send SMS");
+    return;
+  }
+
+  Serial.println("📱 Preparing to send SMS alert to multiple recipients...");
+  Serial.print("👥 Recipients count: ");
+  Serial.println(recipientCount);
+
+  // Create alert message based on type
+  String message = createAlertMessage(alertType, data);
+
+  // Send SMS to all recipients
+  int successCount = 0;
+  for (int i = 0; i < recipientCount; i++) {
+    Serial.print("📤 Sending SMS ");
+    Serial.print(i + 1);
+    Serial.print("/");
+    Serial.print(recipientCount);
+    Serial.print(" to ");
+    Serial.print(recipients[i]);
+    Serial.println("...");
+
+    // Set SMS recipient
+    Serial1.print("AT+CMGS=\"");
+    Serial1.print(recipients[i]);
+    Serial1.println("\"");
+
+    delay(1000);
+
+    // Send message content
+    Serial1.print(message);
+    Serial1.write(26); // Send Ctrl+Z to end message
+
+    // Wait for confirmation
+    if (waitForResponse("OK", 30000)) {
+      Serial.print("✅ SMS ");
+      Serial.print(i + 1);
+      Serial.print(" sent successfully to ");
+      Serial.println(recipients[i]);
+      successCount++;
+    } else {
+      Serial.print("❌ Failed to send SMS ");
+      Serial.print(i + 1);
+      Serial.print(" to ");
+      Serial.println(recipients[i]);
+    }
+
+    // Small delay between SMS sends
+    delay(2000);
+  }
+
+  Serial.print("📊 SMS Summary: ");
+  Serial.print(successCount);
+  Serial.print("/");
+  Serial.print(recipientCount);
+  Serial.println(" messages sent successfully");
+
+  if (successCount > 0) {
+    Serial.println("📱 SMS Alert Content:");
+    Serial.println(message);
+  }
+}
+
+String createAlertMessage(String alertType, SensorDataSMS data) {
+  String message = "🌊 AGOS ALERT - ";
+
+  if (alertType == "critical") {
+    message += "FLASH FLOOD WARNING!\n";
+    message += "🚨 IMMEDIATE EVACUATION REQUIRED!\n\n";
+  } else if (alertType == "warning") {
+    message += "FLOOD WATCH\n";
+    message += "⚠️ Prepare for possible flooding\n\n";
+  } else if (alertType == "info") {
+    message += "Weather Update\n";
+    message += "📰 Current conditions report\n\n";
+  } else if (alertType == "all-clear") {
+    message += "ALL CLEAR\n";
+    message += "✅ Threat has passed\n\n";
+  }
+
+  // Add current sensor data
+  message += "📊 CURRENT CONDITIONS:\n";
+  message += "💧 Water Level: " + String(data.waterLevel, 1) + " cm\n";
+  message += "🌊 Flow Rate: " + String(data.flowRate, 2) + " m/s\n";
+  message += "⬆️ Upstream: " + String(data.upstreamTurbidity, 1) + "\n";
+  message += "⬇️ Downstream: " + String(data.downstreamTurbidity, 1) + "\n";
+  message += "🔋 Battery: " + String(data.batteryLevel, 0) + "%\n";
+  message += "⚠️ Status: " + data.alertStatus + "\n";
+  message += "🕒 Time: " + data.timestamp;
+
+  return message;
+}
+
+void checkForSMSCommands() {
+  // Check if there's a pending SMS command from web interface
+  if (client.connect(serverAddress, serverPort)) {
+    // Send GET request to check for SMS commands
+    client.println("GET /api/sms-command HTTP/1.1");
+    client.print("Host: ");
+    client.print(serverAddress);
+    client.print(":");
+    client.println(serverPort);
+    client.println("Connection: close");
+    client.println();
+
+    // Wait for response
+    unsigned long timeout = millis();
+    while (client.available() == 0) {
+      if (millis() - timeout > 3000) {
+        client.stop();
+        return;
+      }
+    }
+
+    // Read response
+    String response = "";
+    bool isBody = false;
+    while (client.available()) {
+      String line = client.readStringUntil('\n');
+      if (line == "\r") {
+        isBody = true;
+        continue;
+      }
+      if (isBody) {
+        response += line;
+      }
+    }
+
+    client.stop();
+
+    // Parse JSON response and execute SMS command
+    if (response.length() > 0) {
+      processSMSCommand(response);
+    }
+  }
+}
+
+void processSMSCommand(String jsonResponse) {
+  Serial.println("📋 Processing SMS command from server...");
+  Serial.println("📄 Response: " + jsonResponse);
+
+  // Parse recipients array from JSON
+  parseRecipients(jsonResponse);
+
+  // Simple JSON parsing for SMS command
+  if (jsonResponse.indexOf("\"command\":\"critical\"") >= 0) {
+    Serial.println("🚨 Received CRITICAL SMS command from web interface");
+    sendSMSAlert("critical", currentSensorData);
+  } else if (jsonResponse.indexOf("\"command\":\"warning\"") >= 0) {
+    Serial.println("⚠️ Received WARNING SMS command from web interface");
+    sendSMSAlert("warning", currentSensorData);
+  } else if (jsonResponse.indexOf("\"command\":\"info\"") >= 0) {
+    Serial.println("📰 Received INFO SMS command from web interface");
+    sendSMSAlert("info", currentSensorData);
+  } else if (jsonResponse.indexOf("\"command\":\"all-clear\"") >= 0) {
+    Serial.println("✅ Received ALL-CLEAR SMS command from web interface");
+    sendSMSAlert("all-clear", currentSensorData);
+  }
+}
+
+// Function to parse recipients from JSON response
+void parseRecipients(String jsonResponse) {
+  // Reset recipient count
+  recipientCount = 0;
+
+  // Find recipients array in JSON
+  int recipientsStart = jsonResponse.indexOf("\"recipients\":[");
+  if (recipientsStart >= 0) {
+    Serial.println("📱 Parsing recipients list...");
+
+    // Find the start of the array
+    int arrayStart = jsonResponse.indexOf("[", recipientsStart);
+    int arrayEnd = jsonResponse.indexOf("]", arrayStart);
+
+    if (arrayStart >= 0 && arrayEnd >= 0) {
+      String recipientsArray = jsonResponse.substring(arrayStart + 1, arrayEnd);
+
+      // Parse individual phone numbers
+      int startPos = 0;
+      while (startPos < recipientsArray.length() && recipientCount < MAX_RECIPIENTS) {
+        int quoteStart = recipientsArray.indexOf("\"", startPos);
+        if (quoteStart >= 0) {
+          int quoteEnd = recipientsArray.indexOf("\"", quoteStart + 1);
+          if (quoteEnd >= 0) {
+            String phoneNumber = recipientsArray.substring(quoteStart + 1, quoteEnd);
+            if (phoneNumber.length() > 0) {
+              recipients[recipientCount] = phoneNumber;
+              recipientCount++;
+              Serial.print("📞 Added recipient ");
+              Serial.print(recipientCount);
+              Serial.print(": ");
+              Serial.println(phoneNumber);
+            }
+            startPos = quoteEnd + 1;
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+  Serial.print("✅ Total recipients loaded: ");
+  Serial.println(recipientCount);
+
+  if (recipientCount == 0) {
+    Serial.println("⚠️ No recipients found in command - SMS alerts will not be sent");
+  }
+}
+
+void setup() {
+  // Initialize Serial communication
+  Serial.begin(115200);
+
+  Serial.println("🚀 AGOS Arduino Starting...");
+  Serial.println("📱 About to initialize SIM800L...");
+
+  // Initialize SIM800L GSM Module
+  initializeSIM800L();
+
+  Serial.println("📡 SIM800L initialization completed");
+  Serial.println("🌐 Starting WiFi initialization...");
+
+  // Initialize Ultrasonic Sensor pins
+  pinMode(TRIG_PIN_1, OUTPUT);
+  pinMode(ECHO_PIN_1, INPUT);
+
+  // Initialize Sensor 2 pins (Upstream Turbidity)
+  pinMode(TRIG_PIN_2, OUTPUT);
+  pinMode(ECHO_PIN_2, INPUT);
+
+  // Initialize Sensor 3 pins (Downstream Turbidity)
+  pinMode(TRIG_PIN_3, OUTPUT);
+  pinMode(ECHO_PIN_3, INPUT);
+
+  // Initialize WiFi connection
+  Serial.print("🌐 Connecting to WiFi: ");
+  Serial.println(ssid);
+  Serial.print("🔗 Server Address: ");
+  Serial.println(serverAddress);
+
+  WiFi.begin(ssid, password);
+
+  // Wait for WiFi connection with timeout
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    delay(1000);
+    Serial.print(".");
+    attempts++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println();
+    Serial.println("✅ WiFi connected successfully!");
+    Serial.print("🔗 IP Address: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("📡 Sending data to: http://");
+    Serial.print(serverAddress);
+    Serial.print(":");
+    Serial.print(serverPort);
+    Serial.println("/api/arduino-data");
+  } else {
+    Serial.println();
+    Serial.println("❌ WiFi connection failed!");
+    Serial.println("🔄 Will continue with sensor readings only...");
+  }
+}
+
+void loop() {
+  // Get distance from all ultrasonic sensors
+  float distance1 = getDistance(TRIG_PIN_1, ECHO_PIN_1);  // Water Level
+  float distance2 = getDistance(TRIG_PIN_2, ECHO_PIN_2);  // Upstream Turbidity (Sensor 2)
+  float distance3 = getDistance(TRIG_PIN_3, ECHO_PIN_3);  // Downstream Turbidity (Sensor 3)
+
+  // Validate all sensor readings
+  bool sensor1Valid = (distance1 > 2.0 && distance1 < 400.0);
+  bool sensor2Valid = (distance2 > 2.0 && distance2 < 400.0);
+  bool sensor3Valid = (distance3 > 2.0 && distance3 < 400.0);
+
+  // Convert distances to normalized turbidity values (0-100 scale)
+  // Assuming closer distance = higher turbidity
+  // Using manual calculation instead of map() function for float values
+  float upstreamTurbidity = 0.0;
+  float downstreamTurbidity = 0.0;
+
+  if (sensor2Valid) {
+    upstreamTurbidity = 100.0 - ((distance2 - 2.0) / (400.0 - 2.0)) * 100.0;
+    upstreamTurbidity = constrain(upstreamTurbidity, 0.0, 100.0);
+  }
+
+  if (sensor3Valid) {
+    downstreamTurbidity = 100.0 - ((distance3 - 2.0) / (400.0 - 2.0)) * 100.0;
+    downstreamTurbidity = constrain(downstreamTurbidity, 0.0, 100.0);
+  }
+
+  // Calculate flow velocity using the same logic as app.js
+  float flowVelocity = 0.0;
+  if (sensor2Valid && sensor3Valid && upstreamTurbidity > 0.1) {
+    // Calculate turbidity difference percentage (same as app.js line 533-536)
+    float turbidityDiff = ((downstreamTurbidity - upstreamTurbidity) / upstreamTurbidity) * 100;
+
+    // Convert turbidity difference to flow velocity (simplified model)
+    // Higher turbidity difference indicates faster flow
+    flowVelocity = abs(turbidityDiff) * 0.02; // Scale factor to convert % to m/s
+
+    // Clamp flow velocity to reasonable range
+    if (flowVelocity > 5.0) flowVelocity = 5.0;
+    if (flowVelocity < 0.0) flowVelocity = 0.0;
+  }
+
+  // Print all sensor readings to Serial Monitor
+  Serial.println("========== AGOS Sensor Readings ==========");
+
+  // Sensor 1 - Water Level
+  if (sensor1Valid) {
+    Serial.print("💧 Water Level (Sensor 1): ");
+    Serial.print(distance1, 1);
+    Serial.println(" cm");
+  } else {
+    Serial.print("❌ Water Level (Sensor 1): Invalid reading - ");
+    Serial.print(distance1);
+    Serial.println(" cm");
+  }
+
+  // Sensor 2 - Upstream Turbidity
+  if (sensor2Valid) {
+    Serial.print("🌊 Upstream Turbidity (Sensor 2): ");
+    Serial.print(distance2, 1);
+    Serial.print(" cm (Normalized: ");
+    Serial.print(upstreamTurbidity, 1);
+    Serial.println(")");
+  } else {
+    Serial.print("❌ Upstream Turbidity (Sensor 2): Invalid reading - ");
+    Serial.print(distance2);
+    Serial.println(" cm");
+  }
+
+  // Sensor 3 - Downstream Turbidity
+  if (sensor3Valid) {
+    Serial.print("🌊 Downstream Turbidity (Sensor 3): ");
+    Serial.print(distance3, 1);
+    Serial.print(" cm (Normalized: ");
+    Serial.print(downstreamTurbidity, 1);
+    Serial.println(")");
+  } else {
+    Serial.print("❌ Downstream Turbidity (Sensor 3): Invalid reading - ");
+    Serial.print(distance3);
+    Serial.println(" cm");
+  }
+
+  // Flow Velocity Calculation Results
+  if (sensor2Valid && sensor3Valid) {
+    float turbidityDiff = ((downstreamTurbidity - upstreamTurbidity) / upstreamTurbidity) * 100;
+    Serial.print("⚡ Flow Velocity: ");
+    Serial.print(flowVelocity, 2);
+    Serial.print(" m/s (Turbidity Diff: ");
+    Serial.print(turbidityDiff, 1);
+    Serial.println("%)");
+  } else {
+    Serial.println("⚠️ Flow Velocity: Cannot calculate (invalid sensors)");
+  }
+
+  // Debug WiFi and sensor status
+  Serial.print("🔍 Debug - WiFi Status: ");
+  Serial.print(WiFi.status());
+  Serial.print(" (WL_CONNECTED=");
+  Serial.print(WL_CONNECTED);
+  Serial.println(")");
+  Serial.print("🔍 Debug - Sensors Valid: S1=");
+  Serial.print(sensor1Valid);
+  Serial.print(", S2=");
+  Serial.print(sensor2Valid);
+  Serial.print(", S3=");
+  Serial.println(sensor3Valid);
+
+  // Store current sensor data for SMS alerts
+  currentSensorData.waterLevel = distance1;
+  currentSensorData.flowRate = flowVelocity;
+  currentSensorData.upstreamTurbidity = upstreamTurbidity;
+  currentSensorData.downstreamTurbidity = downstreamTurbidity;
+  currentSensorData.batteryLevel = 85.0; // You can add real battery reading later
+  currentSensorData.timestamp = String(millis() / 1000) + "s";
+
+  // Determine alert status
+  if (distance1 >= 80.0 || flowVelocity >= 1.2) {
+    currentSensorData.alertStatus = "EMERGENCY";
+  } else if (distance1 >= 60.0 || flowVelocity >= 0.8) {
+    currentSensorData.alertStatus = "ALERT";
+  } else {
+    currentSensorData.alertStatus = "NORMAL";
+  }
+
+  // Check for incoming SMS commands from web interface
+  if (WiFi.status() == WL_CONNECTED) {
+    checkForSMSCommands();
+  }
+
+  // Send data to AGOS server if WiFi is connected and at least one sensor is valid
+  if (WiFi.status() == WL_CONNECTED) {
+    if (sensor1Valid || sensor2Valid || sensor3Valid) {
+      sendDataToServer(distance1, distance2, distance3, upstreamTurbidity, downstreamTurbidity, flowVelocity);
+    } else {
+      Serial.println("⚠️ All sensors invalid - data not sent");
+    }
+  } else {
+    Serial.print("⚠️ WiFi not connected (Status: ");
+    Serial.print(WiFi.status());
+    Serial.println(") - data not sent");
+    // Try to reconnect
+    Serial.println("🔄 Attempting WiFi reconnection...");
+    WiFi.begin(ssid, password);
+  }
+
+  Serial.println("==========================================");
+  delay(5000); // Send data every 5 seconds to match website update rate
+}
+
+// Function to send sensor data to AGOS server
+void sendDataToServer(float distance1, float distance2, float distance3, float upstreamTurbidity, float downstreamTurbidity, float flowVelocity) {
+  Serial.print("📤 Sending data to server... ");
+
+  // Create JSON payload with all sensor data matching web interface elements
+  String jsonPayload = "{";
+
+  // Water Level Data (from Sensor 1) - sent in cm, server converts to inches
+  jsonPayload += "\"waterLevel\":" + String(distance1, 1) + ","; // cm -> converted to inches by server  // Flow Data (calculated from Sensors 2 & 3)
+  jsonPayload += "\"flowRate\":" + String(flowVelocity, 2) + ",";
+  jsonPayload += "\"upstreamTurbidity\":" + String(upstreamTurbidity, 1) + ",";
+  jsonPayload += "\"downstreamTurbidity\":" + String(downstreamTurbidity, 1) + ",";
+
+  // Raw sensor distances for debugging
+  jsonPayload += "\"distance1\":" + String(distance1, 1) + ",";
+  jsonPayload += "\"distance2\":" + String(distance2, 1) + ",";
+  jsonPayload += "\"distance3\":" + String(distance3, 1) + ",";
+
+  // System info
+  jsonPayload += "\"batteryLevel\":85,";  // Placeholder - you can add real battery reading later
+  jsonPayload += "\"timestamp\":\"" + String(millis()) + "\"";
+  jsonPayload += "}";
+
+  // Make HTTP POST request using basic WiFiClient
+  if (client.connect(serverAddress, serverPort)) {
+    // Send HTTP POST request
+    client.println("POST /api/arduino-data HTTP/1.1");
+    client.print("Host: ");
+    client.print(serverAddress);
+    client.print(":");
+    client.println(serverPort);
+    client.println("Content-Type: application/json");
+    client.print("Content-Length: ");
+    client.println(jsonPayload.length());
+    client.println("Connection: close");
+    client.println();
+    client.println(jsonPayload);
+
+    // Debug: Print the JSON payload being sent
+    Serial.println();
+    Serial.println("📦 JSON Payload: " + jsonPayload);
+
+    // Wait for and read response
+    unsigned long timeout = millis();
+    while (client.available() == 0) {
+      if (millis() - timeout > 5000) {
+        Serial.println("❌ Client timeout!");
+        client.stop();
+        return;
+      }
+    }
+
+    // Read response status
+    String response = "";
+    while (client.available()) {
+      response += client.readStringUntil('\r');
+    }
+
+    if (response.indexOf("200 OK") > 0) {
+      Serial.println("✅ Data sent successfully!");
+    } else {
+      Serial.println("❌ Server error");
+      Serial.println("📥 Response: " + response);
+    }
+
+    client.stop();
+  } else {
+    Serial.println("❌ Connection to server failed!");
+  }
+}

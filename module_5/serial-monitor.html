@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arduino Data Monitor - AGOS</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 25px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .status-connected {
+        background: #10b981;
+        color: white;
+      }
+
+      .status-disconnected {
+        background: #ef4444;
+        color: white;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: white;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .controls {
+        padding: 20px 30px;
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-clear {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-clear:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+      }
+
+      .btn-autoscroll {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .btn-autoscroll:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      }
+
+      .btn-autoscroll.active {
+        background: #10b981;
+      }
+
+      .btn-export {
+        background: #8b5cf6;
+        color: white;
+      }
+
+      .btn-export:hover {
+        background: #7c3aed;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+      }
+
+      .baud-selector {
+        padding: 10px 15px;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        background: white;
+        cursor: pointer;
+      }
+
+      .serial-output {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 20px;
+        height: 600px;
+        overflow-y: auto;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .serial-output::-webkit-scrollbar {
+        width: 12px;
+      }
+
+      .serial-output::-webkit-scrollbar-track {
+        background: #0f172a;
+      }
+
+      .serial-output::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 6px;
+      }
+
+      .serial-output::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+      }
+
+      .log-line {
+        margin-bottom: 2px;
+        padding: 2px 0;
+        word-wrap: break-word;
+      }
+
+      .log-line .timestamp {
+        color: #94a3b8;
+        font-size: 12px;
+        margin-right: 10px;
+      }
+
+      .log-line .message {
+        color: #e2e8f0;
+      }
+
+      /* Special highlighting */
+      .log-line:has(.success) .message {
+        color: #10b981;
+        font-weight: 600;
+      }
+
+      .log-line:has(.error) .message {
+        color: #ef4444;
+        font-weight: 600;
+      }
+
+      .log-line:has(.warning) .message {
+        color: #f59e0b;
+        font-weight: 600;
+      }
+
+      .log-line:has(.info) .message {
+        color: #3b82f6;
+      }
+
+      .input-area {
+        padding: 20px 30px;
+        background: #f8fafc;
+        border-top: 2px solid #e2e8f0;
+        display: flex;
+        gap: 10px;
+      }
+
+      .serial-input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: "Consolas", "Monaco", monospace;
+      }
+
+      .serial-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+
+      .btn-send {
+        background: #10b981;
+        color: white;
+        padding: 12px 30px;
+      }
+
+      .btn-send:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      }
+
+      .stats {
+        padding: 15px 30px;
+        background: #f1f5f9;
+        display: flex;
+        gap: 30px;
+        font-size: 13px;
+        color: #475569;
+      }
+
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .stat-value {
+        font-weight: 700;
+        color: #1e293b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>
+          <span>📡</span>
+          Arduino Data Monitor
+        </h1>
+        <div class="status-badge status-disconnected" id="statusBadge">
+          <span class="status-dot"></span>
+          <span id="statusText">Connecting...</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-clear" onclick="clearOutput()">
+          <span>🗑️</span>
+          Clear
+        </button>
+        <button
+          class="btn btn-autoscroll active"
+          id="autoscrollBtn"
+          onclick="toggleAutoscroll()"
+        >
+          <span>⬇️</span>
+          Auto-scroll
+        </button>
+        <button class="btn btn-export" onclick="exportLogs()">
+          <span>💾</span>
+          Export
+        </button>
+        <select class="baud-selector" id="baudRate">
+          <option value="9600">9600 baud</option>
+          <option value="115200" selected>115200 baud</option>
+          <option value="57600">57600 baud</option>
+          <option value="38400">38400 baud</option>
+        </select>
+      </div>
+
+      <div class="serial-output" id="serialOutput">
+        <div class="log-line">
+          <span class="timestamp">[00:00:00.000]</span>
+          <span class="message info">
+            📡 Arduino Data Monitor - Real-time Arduino → Server Communication
+          </span>
+        </div>
+        <div class="log-line">
+          <span class="timestamp">[00:00:00.001]</span>
+          <span class="message warning">
+            ℹ️ Note: For complete Serial output, use Arduino IDE Serial Monitor
+            at 115200 baud
+          </span>
+        </div>
+        <div class="log-line">
+          <span class="timestamp">[00:00:00.002]</span>
+          <span class="message info">🔌 Connecting to AGOS server...</span>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <input
+          type="text"
+          class="serial-input"
+          id="serialInput"
+          placeholder="Send command to Arduino (e.g., SMS, STATUS, NETWORK)..."
+          onkeypress="handleKeyPress(event)"
+        />
+        <button class="btn btn-send" onclick="sendCommand()">
+          <span>📤</span>
+          Send
+        </button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-item">
+          📊 Lines:
+          <span class="stat-value" id="lineCount">0</span>
+        </div>
+        <div class="stat-item">
+          ⏱️ Uptime:
+          <span class="stat-value" id="uptime">00:00:00</span>
+        </div>
+        <div class="stat-item">
+          📦 Data Received:
+          <span class="stat-value" id="dataReceived">0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let autoscroll = true;
+      let lineCount = 0;
+      let dataReceived = 0;
+      let startTime = Date.now();
+      let ws = null;
+
+      // WebSocket connection
+      function connectWebSocket() {
+        addLogLine(
+          "⚠️ Arduino Serial Monitor requires physical USB connection",
+          "warning"
+        );
+        addLogLine("📊 Showing Arduino → Server data instead...", "info");
+        addLogLine(
+          "💡 For full serial output, use Arduino IDE Serial Monitor (115200 baud)",
+          "info"
+        );
+        addLogLine("", "info");
+
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${protocol}//${window.location.host}`;
+
+        try {
+          ws = new WebSocket(wsUrl);
+
+          ws.onopen = () => {
+            updateStatus(true);
+            addLogLine(
+              "✅ Connected to AGOS server - Listening for Arduino data",
+              "success"
+            );
+          };
+
+          ws.onclose = () => {
+            updateStatus(false);
+            addLogLine("❌ Disconnected from server. Reconnecting...", "error");
+            setTimeout(connectWebSocket, 3000);
+          };
+
+          ws.onerror = (error) => {
+            addLogLine("⚠️ WebSocket connection failed", "error");
+          };
+
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.type === "sensor-data") {
+                handleSensorData(data.data);
+              } else if (data.type === "serial-output") {
+                addLogLine(data.message, detectMessageType(data.message));
+              }
+            } catch (e) {
+              // Ignore parsing errors
+            }
+          };
+        } catch (error) {
+          addLogLine("❌ Failed to create WebSocket connection", "error");
+          updateStatus(false);
+        }
+      }
+
+      function updateStatus(connected) {
+        const badge = document.getElementById("statusBadge");
+        const text = document.getElementById("statusText");
+
+        if (connected) {
+          badge.className = "status-badge status-connected";
+          text.textContent = "Connected";
+        } else {
+          badge.className = "status-badge status-disconnected";
+          text.textContent = "Disconnected";
+        }
+      }
+
+      function handleSensorData(data) {
+        const smsStatus = data.smsReady ? "✅" : "❌";
+        const networkStatus = data.networkRegistered ? "✅" : "❌";
+
+        const msg = `📊 Arduino Update | Water: ${data.waterLevel}" | Sensor1: ${data.sensor1} | Sensor2: ${data.sensor2} | Sensor3: ${data.sensor3} | SMS: ${smsStatus} | Network: ${networkStatus}`;
+        addLogLine(msg, "info");
+      }
+
+      function detectMessageType(message) {
+        if (message.includes("✅") || message.includes("SUCCESS"))
+          return "success";
+        if (
+          message.includes("❌") ||
+          message.includes("ERROR") ||
+          message.includes("FAILED")
+        )
+          return "error";
+        if (message.includes("⚠️") || message.includes("WARNING"))
+          return "warning";
+        return "info";
+      }
+
+      function addLogLine(message, type = "info") {
+        const output = document.getElementById("serialOutput");
+        const line = document.createElement("div");
+        line.className = "log-line";
+
+        const timestamp =
+          new Date().toTimeString().split(" ")[0] +
+          "." +
+          String(Date.now()).slice(-3);
+
+        line.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span>
+                <span class="message ${type}">${escapeHtml(message)}</span>
+            `;
+
+        output.appendChild(line);
+        lineCount++;
+        dataReceived += message.length;
+
+        updateStats();
+
+        if (autoscroll) {
+          output.scrollTop = output.scrollHeight;
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function clearOutput() {
+        const output = document.getElementById("serialOutput");
+        output.innerHTML = "";
+        lineCount = 0;
+        dataReceived = 0;
+        updateStats();
+        addLogLine("🗑️ Output cleared", "info");
+      }
+
+      function toggleAutoscroll() {
+        autoscroll = !autoscroll;
+        const btn = document.getElementById("autoscrollBtn");
+
+        if (autoscroll) {
+          btn.classList.add("active");
+          btn.innerHTML = "<span>⬇️</span> Auto-scroll";
+        } else {
+          btn.classList.remove("active");
+          btn.innerHTML = "<span>⏸️</span> Paused";
+        }
+      }
+
+      function exportLogs() {
+        const output = document.getElementById("serialOutput");
+        const text = output.innerText;
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `arduino-log-${new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace(/:/g, "-")}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        addLogLine("💾 Logs exported successfully", "success");
+      }
+
+      function sendCommand() {
+        const input = document.getElementById("serialInput");
+        const command = input.value.trim();
+
+        if (!command) return;
+
+        addLogLine(`📤 Sending: ${command}`, "info");
+
+        // Send command via HTTP since Arduino polls /api/sms-command
+        fetch("/api/arduino-command", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command: command }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            addLogLine(`✅ Command queued: ${command}`, "success");
+          })
+          .catch((err) => {
+            addLogLine(`❌ Failed to send command: ${err.message}`, "error");
+          });
+
+        input.value = "";
+      }
+
+      function handleKeyPress(event) {
+        if (event.key === "Enter") {
+          sendCommand();
+        }
+      }
+
+      function updateStats() {
+        document.getElementById("lineCount").textContent = lineCount;
+        document.getElementById("dataReceived").textContent =
+          (dataReceived / 1024).toFixed(2) + " KB";
+      }
+
+      function updateUptime() {
+        const elapsed = Date.now() - startTime;
+        const hours = Math.floor(elapsed / 3600000);
+        const minutes = Math.floor((elapsed % 3600000) / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+
+        document.getElementById("uptime").textContent = `${String(
+          hours
+        ).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+          seconds
+        ).padStart(2, "0")}`;
+      }
+
+      // Initialize
+      connectWebSocket();
+      setInterval(updateUptime, 1000);
+
+      // Simulate Arduino serial data from server logs
+      setInterval(() => {
+        fetch("/api/arduino-status")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.lastMessage) {
+              // Display would come through WebSocket in real implementation
+            }
+          })
+          .catch(() => {});
+      }, 5000);
+    </script>
+  </body>
+</html>

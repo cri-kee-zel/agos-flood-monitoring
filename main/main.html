@@ -84,7 +84,7 @@
           <div class="timestamp">
             <span class="time-icon">🕐</span>
             <span class="current-time" id="current-time">
-              2025-08-18 13:06:47 UTC
+              2025-08-18 13:06:47 PHT
             </span>
           </div>
           <!-- <div class="status-indicator">
@@ -100,7 +100,7 @@
       <div class="container">
         <!-- Welcome Section -->
         <section class="welcome-section">
-          <div class="welcome-content">
+          <!-- <div class="welcome-content">
             <h2 class="welcome-title">Welcome to AGOS Control Center</h2>
             <p class="welcome-description">
               Comprehensive flood monitoring and emergency response system
@@ -117,7 +117,7 @@
               <div class="stat-item">
                 <span class="stat-icon">🤖</span>
                 <span class="stat-value" id="ai-accuracy">87.2%</span>
-                <span class="stat-label">AI Accuracy</span>
+                <span class="stat-label">Device Accuracy</span>
               </div>
               <div class="stat-item">
                 <span class="stat-icon">⏱️</span>
@@ -125,7 +125,7 @@
                 <span class="stat-label">System Uptime</span>
               </div>
             </div>
-          </div>
+          </div> -->
         </section>
 
         <!-- Module Cards Section -->
@@ -143,13 +143,13 @@
               <div class="card-content">
                 <h3 class="module-title">Real-time Dashboard</h3>
                 <p class="module-description">
-                  Live sensor monitoring with water level tracking, flow rates,
-                  and environmental data visualization in real-time.
+                  Live sensor monitoring with water level tracking and flow
+                  rates data visualization.
                 </p>
                 <div class="module-features">
                   <span class="feature-tag">Live Data</span>
                   <span class="feature-tag">5s Updates</span>
-                  <span class="feature-tag">Mobile Ready</span>
+                  <!-- <span class="feature-tag">Mobile Ready</span> -->
                 </div>
               </div>
               <div class="card-footer">
@@ -173,16 +173,14 @@
                 </div>
               </div>
               <div class="card-content">
-                <h3 class="module-title">AI-Enhanced Mapping</h3>
+                <h3 class="module-title">Flood Mapping</h3>
                 <p class="module-description">
-                  Satellite imagery analysis with Microsoft AI4G-flood
-                  integration. Generate flood predictions and Agos Sensor's
-                  reports.
+                  Satellite imagery with Microsoft AI4G-flood integration.
                 </p>
                 <div class="module-features">
-                  <span class="feature-tag">AI Analysis</span>
-                  <span class="feature-tag">Satellite Data</span>
-                  <span class="feature-tag">PDF Reports</span>
+                  <!-- <span class="feature-tag">AI Analysis</span> -->
+                  <span class="feature-tag">Satellite Data Map</span>
+                  <!-- <span class="feature-tag">PDF Reports</span> -->
                 </div>
               </div>
               <div class="card-footer">
@@ -196,8 +194,8 @@
               </div>
             </div>
 
-            <!-- Module 3: Historical Analytics -->
-            <div class="module-card" data-module="analytics">
+            <!-- Module 3: Historical Data Visualization -->
+            <!-- <div class="module-card" data-module="analytics">
               <div class="card-header">
                 <div class="module-icon analytics-icon">📈</div>
                 <div class="module-status">
@@ -206,15 +204,16 @@
                 </div>
               </div>
               <div class="card-content">
-                <h3 class="module-title">Historical Analytics</h3>
+                <h3 class="module-title">Historical Data Visualization</h3>
                 <p class="module-description">
-                  Advanced time series analysis, trend predictions, and
-                  correlation studies for long-term flood pattern insights.
+                  Simple database visualization of water level and flow rate
+                  historical data with time range selection and export
+                  functionality.
                 </p>
                 <div class="module-features">
-                  <span class="feature-tag">Time Series</span>
-                  <span class="feature-tag">Predictions</span>
-                  <span class="feature-tag">Correlations</span>
+                  <span class="feature-tag">Database Storage</span>
+                  <span class="feature-tag">Time Charts</span>
+                  <span class="feature-tag">Data Export</span>
                 </div>
               </div>
               <div class="card-footer">
@@ -222,11 +221,11 @@
                   class="module-btn accent"
                   onclick="navigateToModule('/analytics')"
                 >
-                  <span class="btn-icon">📊</span>
-                  <span class="btn-text">View Analytics</span>
+                  <span class="btn-icon">�</span>
+                  <span class="btn-text">View Historical Data</span>
                 </button>
               </div>
-            </div>
+            </div> -->
 
             <!-- Module 4: Emergency Response -->
             <div class="module-card emergency-card" data-module="emergency">
@@ -240,12 +239,12 @@
               <div class="card-content">
                 <h3 class="module-title">Emergency Response</h3>
                 <p class="module-description">
-                  Mass SMS alert system with contact management. Secure access
-                  required for emergency broadcasts.
+                  SMS alert system with contact management. Secure access
+                  required for admin access.
                 </p>
                 <div class="module-features">
                   <span class="feature-tag emergency-tag">SMS Alerts</span>
-                  <span class="feature-tag emergency-tag">Mass Broadcast</span>
+                  <!-- <span class="feature-tag emergency-tag">Mass Broadcast</span> -->
                   <span class="feature-tag emergency-tag">Secure Access</span>
                 </div>
               </div>
@@ -266,9 +265,9 @@
         <section class="status-overview">
           <div class="overview-content">
             <h3 class="overview-title">🔍 System Overview</h3>
-            <p class="overview-subtitle">Live Updates</p>
+            <!-- <p class="overview-subtitle">Live Updates</p> -->
 
-            <div class="status-grid">
+            <!-- <div class="status-grid">
               <div class="status-item water-level">
                 <div class="status-icon">💧</div>
                 <div class="status-info">
@@ -305,7 +304,7 @@
                   <span class="status-trend stable">● Good</span>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </section>
 
@@ -319,10 +318,10 @@
                   <span class="info-label">Version:</span>
                   <span class="info-value">AGOS v2.1.0</span>
                 </div>
-                <div class="info-item">
+                <!-- <div class="info-item">
                   <span class="info-label">Station ID:</span>
                   <span class="info-value">AGOS-PH-001</span>
-                </div>
+                </div> -->
                 <div class="info-item">
                   <span class="info-label">Location:</span>
                   <span class="info-value">

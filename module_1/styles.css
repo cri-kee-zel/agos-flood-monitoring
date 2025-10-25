@@ -235,6 +235,11 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* Reduce left padding for water level panel to minimize space before labels */
+.water-level-panel {
+  padding-left: 0.5rem; /* Reduced from 1.5rem */
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -306,10 +311,72 @@ body {
 /* Water Visualization */
 .water-container {
   position: relative;
-  height: 400px;
-  margin-bottom: 1.5rem;
-  /* Remove extra side padding so the visual can expand to full width */
-  padding-right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0rem; /* No gap - labels right next to water box */
+  padding: 1rem 1rem 1rem 0; /* Remove left padding to bring labels closer to panel edge */
+  min-height: 500px;
+}
+
+/* Measurement scale - positioned outside and to the left of water visual */
+.measurement-scale {
+  position: relative;
+  width: 160px;
+  height: 450px; /* EXACTLY match water-level-visual height */
+  display: block;
+  flex-shrink: 0;
+}
+
+.scale-mark {
+  position: absolute;
+  right: 5px; /* Closer to water container - reduced from 10px */
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Precise positioning - TOP of label aligns with water level */
+/* Adjusted based on actual testing - labels moved down to match water surface */
+.scale-mark[data-level="0"] {
+  bottom: 0%; /* 0" - at bottom */
+}
+.scale-mark[data-level="8"] {
+  bottom: 17.78%; /* 8" = 80px from bottom (8/45 * 100) */
+}
+.scale-mark[data-level="10"] {
+  bottom: 22.22%; /* 10" = 100px from bottom (10/45 * 100) */
+}
+.scale-mark[data-level="13"] {
+  bottom: 28.89%; /* 13" = 130px from bottom (13/45 * 100) */
+}
+.scale-mark[data-level="19"] {
+  bottom: 42.22%; /* 19" = 190px from bottom (19/45 * 100) */
+}
+.scale-mark[data-level="26"] {
+  bottom: 57.78%; /* 26" = 260px from bottom (26/45 * 100) */
+}
+.scale-mark[data-level="37"] {
+  bottom: 82.22%; /* 37" = 370px from bottom (37/45 * 100) */
+}
+.scale-mark[data-level="45"] {
+  bottom: 100%; /* 45" = 450px from bottom (top of container) */
+}
+
+.water-level-visual {
+  position: relative;
+  width: 450px;
+  height: 450px; /* 450px height: each inch = 10px (450px ÷ 45" max) */
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: transparent; /* Transparent background */
 }
 
 /* Reference controls moved into the threshold area - horizontal layout */
@@ -358,24 +425,7 @@ body {
   font-size: 0.7rem;
 }
 
-.water-level-visual {
-  position: absolute;
-  /* Expand the visual to fully fill the container (no side gaps) */
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  box-sizing: border-box; /* ensure border is included in sizing so gaps appear equal */
-  border: 2px solid var(--border-color);
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(59, 130, 246, 0.1) 100%
-  );
-}
-
+/* Water fill animation - blue water that rises with sensor data */
 .water-fill {
   position: absolute;
   bottom: 0;
@@ -384,11 +434,12 @@ body {
   height: 0%;
   background: linear-gradient(
     to top,
-    var(--water-dark) 0%,
-    var(--water-color) 50%,
-    var(--water-surface) 100%
+    rgba(33, 150, 243, 0.8) 0%,
+    rgba(33, 150, 243, 0.6) 50%,
+    rgba(33, 150, 243, 0.4) 100%
   );
   transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
 }
 
 .water-surface {
@@ -396,7 +447,7 @@ body {
   bottom: 0%;
   left: 0;
   right: 0;
-  height: 20px;
+  height: 3px; /* Reduced from 20px to 3px for better accuracy */
   overflow: hidden;
   transition: bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -410,9 +461,9 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.3) 25%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0.3) 75%,
+    rgba(255, 255, 255, 0.4) 25%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 75%,
     transparent 100%
   );
   animation: wave 3s infinite linear;
@@ -439,46 +490,7 @@ body {
   }
 }
 
-.measurement-scale {
-  position: absolute;
-  /* shift the whole scale to the right by 20px for better alignment */
-  left: 20px;
-  top: 0;
-  bottom: 0;
-  width: 60px;
-  pointer-events: none;
-}
-
-.scale-mark {
-  position: absolute;
-  left: 0;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.scale-mark:nth-child(1) {
-  bottom: 0%;
-}
-.scale-mark:nth-child(2) {
-  bottom: 16.67%;
-}
-.scale-mark:nth-child(3) {
-  bottom: 33.33%;
-}
-.scale-mark:nth-child(4) {
-  bottom: 50%;
-}
-.scale-mark:nth-child(5) {
-  bottom: 66.67%;
-}
-.scale-mark:nth-child(6) {
-  bottom: 83.33%;
-}
-.scale-mark:nth-child(7) {
-  bottom: 100%;
-}
+/* Measurement scale removed - using flood reference chart labels instead */
 
 /* Threshold Controls */
 .threshold-controls {
@@ -527,7 +539,8 @@ body {
   color: var(--text-secondary);
 }
 
-/* Human visual placed inside the water visualization */
+/* Human visual element (hidden by default) */
+
 .human-visual {
   position: absolute;
   left: 12px; /* small inset from the left edge of the visual */
@@ -782,7 +795,7 @@ body {
 
   .water-container,
   .flow-container {
-    height: 300px;
+    height: 330px; /* Increased by 30px to match desktop change */
   }
 
   .value {

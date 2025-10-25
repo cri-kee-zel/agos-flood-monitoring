@@ -8,7 +8,7 @@
     <!-- Page title displayed in browser tab -->
     <title>AGOS - Advanced Ground Observation System</title>
     <!-- Link to main stylesheet for UI styling -->
-    <link rel="stylesheet" href="/module_1/styles.css" />
+    <link rel="stylesheet" href="/module_1/styles.css?v=20251019002" />
     <!-- Google Fonts preconnect for performance optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -49,7 +49,7 @@
         * car-ref
         * alert-threshold
         * emergency-threshold
-        * simulate-btn
+        * simulate-btn (DISABLED - hidden via CSS display:none)
         * reset-btn
         * export-btn
         * ws-status
@@ -92,13 +92,13 @@
           <p>Real-Time Monitoring Dashboard</p>
         </div>
         <div class="module-nav">
-          <button class="nav-btn" onclick="window.location.href='index.html'">
-            📊 Dashboard
-          </button>
+          <button class="nav-btn active">📊 Dashboard</button>
           <button class="nav-btn" onclick="window.location.href='module2.html'">
             🛰️ AI Mapping
           </button>
-          <button class="nav-btn active">📈 Analytics</button>
+          <button class="nav-btn" onclick="window.location.href='module3.html'">
+            📈 Analytics
+          </button>
           <button class="nav-btn" onclick="alert('Module 4 coming soon!')">
             🚨 Emergency
           </button>
@@ -150,16 +150,28 @@
             <!-- Real-time water level from Arduino optical encoder pulse counting -->
             <!-- Each pulse = 7.85mm based on 5cm pulley diameter and 20 slots -->
             <span class="value" id="water-level-value">0.00</span>
-            <span class="unit">cm</span>
+            <span class="unit">inches</span>
             <!-- Centimeters for easy local understanding -->
           </div>
           <!-- Status text changes color based on threshold levels -->
-          <!-- NORMAL (green) < 80cm, WATCH (yellow) < 100cm, ALERT (orange) < 150cm, EMERGENCY (red) ≥150cm -->
+          <!-- NORMAL (green) < 24in, WATCH (yellow) < 32in, ALERT (orange) < 40in, EMERGENCY (red) ≥40in -->
           <div class="level-status" id="water-level-status">NORMAL</div>
         </div>
 
         <!-- Interactive water level visualization container -->
         <div class="water-container">
+          <!-- Measurement scale with flood level markings - positioned outside -->
+          <div class="measurement-scale">
+            <div class="scale-mark" data-level="0">0"</div>
+            <div class="scale-mark" data-level="8">8" Gutter</div>
+            <div class="scale-mark" data-level="10">10" Half Knee</div>
+            <div class="scale-mark" data-level="13">13" Half Tire</div>
+            <div class="scale-mark" data-level="19">19" Knee</div>
+            <div class="scale-mark" data-level="26">26" Tire</div>
+            <div class="scale-mark" data-level="37">37" Waist</div>
+            <div class="scale-mark" data-level="45">45" Chest</div>
+          </div>
+
           <!-- Animated water level visualization with realistic effects -->
           <div class="water-level-visual">
             <!-- Blue water fill that rises/falls with sensor readings -->
@@ -178,35 +190,16 @@
             </div>
             <!-- Visual placeholders for reference objects (controlled by JS) -->
             <div class="human-visual hidden" id="human-visual">🚶</div>
-
-            <!-- Measurement scale with threshold markings -->
-            <div class="measurement-scale">
-              <div class="scale-mark" data-level="0">0cm</div>
-              <!-- Ground level -->
-              <div class="scale-mark" data-level="50">50cm</div>
-              <!-- Ankle deep -->
-              <div class="scale-mark" data-level="100">100cm</div>
-              <!-- ALERT threshold -->
-              <div class="scale-mark" data-level="150">150cm</div>
-              <!-- EMERGENCY threshold -->
-              <div class="scale-mark" data-level="200">200cm</div>
-              <!-- Extreme flooding -->
-              <div class="scale-mark" data-level="250">250cm</div>
-              <!-- Maximum normal range -->
-              <div class="scale-mark" data-level="300">300cm</div>
-              <!-- Sensor maximum -->
-            </div>
           </div>
         </div>
 
         <!-- User-configurable threshold controls -->
         <!-- These values trigger different alert levels and emergency responses -->
         <div class="threshold-controls">
-          <!-- Moved reference objects: human and car (now aligned horizontally) -->
+          <!-- Commented out reference objects: human and car controls
           <div class="reference-controls" aria-hidden="false">
             <div class="reference-object human" id="human-ref">
               <div class="human-icon">🚶</div>
-              <!-- Toggle to show human illustration on the water visualization -->
               <input
                 type="checkbox"
                 id="human-toggle"
@@ -225,21 +218,8 @@
               />
               <span class="ref-unit">cm</span>
             </div>
-
-            <!-- <div class="reference-object car" id="car-ref">
-              <div class="car-icon">🚗</div>
-              <span class="ref-label">Vehicle</span>
-              <input
-                type="number"
-                id="car-height"
-                value="150"
-                min="120"
-                max="180"
-                class="ref-input"
-              />
-              <span class="ref-unit">cm</span>
-            </div> -->
           </div>
+          -->
 
           <div class="threshold-item">
             <label>Alert Level:</label>
@@ -248,15 +228,15 @@
             <input
               type="number"
               id="alert-threshold"
-              value="100"
-              min="50"
-              max="200"
+              value="19"
+              min="12"
+              max="32"
               class="threshold-input"
               readonly
               aria-readonly="true"
               title="Developer-only setting: edit in source code"
             />
-            <span>cm</span>
+            <span>inches (Knee Level)</span>
           </div>
           <div class="threshold-item">
             <label>Emergency Level:</label>
@@ -265,15 +245,15 @@
             <input
               type="number"
               id="emergency-threshold"
-              value="150"
-              min="100"
-              max="250"
+              value="37"
+              min="24"
+              max="40"
               class="threshold-input"
               readonly
               aria-readonly="true"
               title="Developer-only setting: edit in source code"
             />
-            <span>cm</span>
+            <span>inches (Waist Level)</span>
           </div>
         </div>
       </section>
@@ -347,10 +327,47 @@
 
     <!-- Control Panel -->
     <div class="control-panel">
-      <button id="simulate-btn" class="control-btn primary">
+      <!-- TEMPORARY TEST CONTROLS - Commented out for production -->
+      <!--
+      <div
+        style="
+          background: rgba(255, 255, 0, 0.2);
+          padding: 10px;
+          border: 2px solid yellow;
+          border-radius: 8px;
+          margin-bottom: 10px;
+        "
+      >
+        <strong>⚠️ TEST MODE - Remove Later</strong>
+        <br />
+        <label style="margin-right: 10px">Test Water Level (inches):</label>
+        <input
+          type="range"
+          id="test-water-level"
+          min="0"
+          max="45"
+          value="0"
+          step="1"
+          style="width: 300px"
+        />
+        <span
+          id="test-level-display"
+          style="font-weight: bold; margin-left: 10px"
+        >
+          0"
+        </span>
+      </div>
+      -->
+      <!-- END TEMPORARY TEST CONTROLS -->
+
+      <button
+        id="simulate-btn"
+        class="control-btn primary"
+        style="display: none"
+      >
         🔄 Start Simulation
       </button>
-      <button id="reset-btn" class="control-btn">↻ Reset System</button>
+      <!-- <button id="reset-btn" class="control-btn">↻ Reset System</button> -->
       <button id="export-btn" class="control-btn">📊 Export Data</button>
       <div class="connection-status-detailed">
         <span>WebSocket:</span>
@@ -359,7 +376,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/socket.io/socket.io.js"></script>
     <script src="/module_1/app.js"></script>
   </body>
 </html>

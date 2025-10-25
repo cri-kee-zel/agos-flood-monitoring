@@ -1,75 +1,1027 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html><!DOCTYPE html>
+
 <html lang="en">
-  <head>
+
+  <head><html lang="en"><html lang="en">
+
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AGOS Module 3 - Historical Analytics & Trends</title>
-    <link rel="stylesheet" href="/module_1/styles.css" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <head>  <head>
+
+    <title>AGOS Module 3 - Historical Data Visualization</title>
+
+    <link rel="stylesheet" href="/module_1/styles.css" />    <meta charset="UTF-8" />    <meta charset="UTF-8" />
+
     <link rel="stylesheet" href="/module_3/module3-styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
+
+    <link    <title>AGOS Module 3 - Historical Data Visualization</title>    <title>AGOS Module 3 - Historical Data Visualization</title>
+
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
+
+      rel="stylesheet"    <link rel="stylesheet" href="/module_1/styles.css" />    <link rel="stylesheet" href="/module_1/styles.css" />
+
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/1.30.1/date_fns.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>    <link rel="stylesheet" href="/module_3/module3-styles.css" />    <link rel="stylesheet" href="/module_3/module3-styles.css" />
+
   </head>
-  <body>
-    <!--
-      NOTE FOR EDITORS (Module 3 - Historical Analytics & Trends):
-      - You can edit layout, copy and styles in this file freely.
-      - DO NOT rename or remove the ELEMENT IDs listed below. They are
-        referenced by `module_3/module3-app.js` and changing them will
-        stop UI updates or cause runtime warnings/errors in the browser.
-        * data-status
-        * analysis-status
-        * data-range
-        * current-level
-        * current-flow
-        * level-trend
-        * flow-trend
-        * level-peak
-        * level-low
-        * flow-peak
-        * flow-avg
-        * alert-count
-        * last-alert
-        * alert-duration
-        * prediction-accuracy
-        * active-models
-        * model-confidence
-        * water-level-chart
-        * flow-rate-chart
-        * seasonal-chart
-        * correlation-matrix
-        * event-timeline
-        * season-selector
-        * model-selector
-        * export-csv
-        * export-json
-        * export-report
-        * research-modal
-        * close-research-modal
-        * start-date
-        * end-date
-        * apply-custom-range
-        * loading-overlay
-        * loading-text
 
-      - DO NOT remove or rename these classes/attributes used by JS:
-        * .time-btn  (time range buttons)
-        * .chart-control-btn  (chart controls)
-        * .filter-btn (event filters)
-        * .time-range-buttons (layout of time buttons)
+  <body>    <link rel="preconnect" href="https://fonts.googleapis.com" />    <link rel="preconnect" href="https://fonts.googleapis.com" />
 
-      Safe edits: change copy, rearrange panels, add new markup or styles.
-      If you add elements that should be updated by JavaScript, give them
-      an id and update `module3-app.js` accordingly.
-    -->
-    <!-- Emergency Status Banner -->
-    <div id="emergency-banner" class="emergency-banner hidden">
-      <div class="emergency-content">
+    <!-- Main Header -->
+
+    <header class="main-header">    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+      <div class="header-content">
+
+        <div class="logo-section">    <link    <link
+
+          <h1>📈 AGOS HISTORICAL DATA</h1>
+
+          <p>Database Storage & Visualization</p>      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+
+        </div>
+
+        <div class="module-nav">      rel="stylesheet"      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+
+          <button class="nav-btn" onclick="window.location.href='/'">
+
+            📊 Dashboard    />
+
+          </button>
+
+          <button class="nav-btn" onclick="window.location.href='/mapping'">    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>      rel="stylesheet"    <link rel="stylesheet" href="/module_1/styles.css" />    <link rel="stylesheet" href="/module_1/styles.css" />
+
+            🛰️ AI Mapping
+
+          </button>  </head>
+
+          <button class="nav-btn active">📈 Historical Data</button>
+
+          <button class="nav-btn" onclick="window.location.href='/emergency'">  <body>    />
+
+            🚨 Emergency
+
+          </button>    <!-- Main Header -->
+
+        </div>
+
+    <header class="main-header">    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>    <link rel="stylesheet" href="/module_3/module3-simple.css" />    <link rel="stylesheet" href="/module_3/module3-simple.css" />
+
+        <div class="system-status">
+
+          <div class="status-item">      <div class="header-content">
+
+            <span class="status-icon" id="data-status">🟢</span>
+
+            <span>Database</span>        <div class="logo-section">  </head>
+
+          </div>
+
+          <div class="status-item">          <h1>📈 AGOS HISTORICAL DATA</h1>
+
+            <span class="status-icon" id="connection-status">🟢</span>
+
+            <span>Server</span>          <p>Database Storage & Visualization</p>  <body>    <link rel="preconnect" href="https://fonts.googleapis.com" />    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+          </div>
+
+        </div>        </div>
+
+      </div>
+
+    </header>        <div class="module-nav">    <!-- Main Header -->
+
+
+
+    <!-- Historical Data Dashboard -->          <button class="nav-btn" onclick="window.location.href='/'">
+
+    <main class="historical-dashboard">
+
+      <!-- Time Range Selector -->            📊 Dashboard    <header class="main-header">    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+      <section class="time-controls">
+
+        <div class="time-range-buttons">          </button>
+
+          <button class="time-btn" data-range="1h">1 Hour</button>
+
+          <button class="time-btn" data-range="6h">6 Hours</button>          <button class="nav-btn" onclick="window.location.href='/mapping'">      <div class="header-content">
+
+          <button class="time-btn active" data-range="24h">24 Hours</button>
+
+          <button class="time-btn" data-range="7d">7 Days</button>            🛰️ AI Mapping
+
+          <button class="time-btn" data-range="30d">30 Days</button>
+
+        </div>          </button>        <div class="logo-section">    <link    <link
+
+        <div class="data-info">
+
+          <span>          <button class="nav-btn active">📈 Historical Data</button>
+
+            Data Points:
+
+            <strong id="data-count">0</strong>          <button class="nav-btn" onclick="window.location.href='/emergency'">          <h1>📈 AGOS HISTORICAL DATA</h1>
+
+          </span>
+
+          <span>            🚨 Emergency
+
+            Last Update:
+
+            <strong id="last-update">-</strong>          </button>          <p>Database Storage & Visualization</p>      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+
+          </span>
+
+        </div>        </div>
+
+      </section>
+
+        </div>
+
+      <!-- Database Statistics -->
+
+      <section class="stats-overview">        <div class="system-status">
+
+        <div class="stat-card">
+
+          <div class="stat-header">          <div class="status-item">        <div class="module-nav">      rel="stylesheet"      rel="stylesheet"
+
+            <h3>💧 Water Level</h3>
+
+          </div>            <span class="status-icon" id="data-status">🟢</span>
+
+          <div class="stat-value">
+
+            <span class="value" id="current-water-level">0.0</span>            <span>Database</span>          <button class="nav-btn" onclick="window.location.href='index.html'">
+
+            <span class="unit">cm</span>
+
+          </div>          </div>
+
+          <div class="stat-details">
+
+            <span class="detail-item">          <div class="status-item">            📊 Dashboard    />    />
+
+              Max:
+
+              <strong id="max-water-level">0.0 cm</strong>            <span class="status-icon" id="connection-status">🟢</span>
+
+            </span>
+
+            <span class="detail-item">            <span>Server</span>          </button>
+
+              Min:
+
+              <strong id="min-water-level">0.0 cm</strong>          </div>
+
+            </span>
+
+          </div>        </div>          <button class="nav-btn" onclick="window.location.href='module2.html'">    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+        </div>
+
+      </div>
+
+        <div class="stat-card">
+
+          <div class="stat-header">    </header>            🛰️ AI Mapping
+
+            <h3>🌊 Flow Rate</h3>
+
+          </div>
+
+          <div class="stat-value">
+
+            <span class="value" id="current-flow-rate">0.0</span>    <!-- Historical Data Dashboard -->          </button>  </head>  </head>
+
+            <span class="unit">m/s</span>
+
+          </div>    <main class="historical-dashboard">
+
+          <div class="stat-details">
+
+            <span class="detail-item">      <!-- Time Range Selector -->          <button class="nav-btn active">📈 Historical Data</button>
+
+              Max:
+
+              <strong id="max-flow-rate">0.0 m/s</strong>      <section class="time-controls">
+
+            </span>
+
+            <span class="detail-item">        <div class="time-range-buttons">          <button class="nav-btn" onclick="window.location.href='module4.html'">  <body>  <body>
+
+              Avg:
+
+              <strong id="avg-flow-rate">0.0 m/s</strong>          <button class="time-btn" data-range="1h">1 Hour</button>
+
+            </span>
+
+          </div>          <button class="time-btn" data-range="6h">6 Hours</button>            🚨 Emergency
+
+        </div>
+
+          <button class="time-btn active" data-range="24h">24 Hours</button>
+
+        <div class="stat-card">
+
+          <div class="stat-header">          <button class="time-btn" data-range="7d">7 Days</button>          </button>    <!-- Main Header -->    <!-- Main Header -->
+
+            <h3>🔋 System Status</h3>
+
+          </div>          <button class="time-btn" data-range="30d">30 Days</button>
+
+          <div class="stat-value">
+
+            <span class="value" id="battery-level">85</span>        </div>        </div>
+
+            <span class="unit">%</span>
+
+          </div>        <div class="data-info">
+
+          <div class="stat-details">
+
+            <span class="detail-item">          <span>    <header class="main-header">    <header class="main-header">
+
+              Records:
+
+              <strong id="total-records">0</strong>            Data Points:
+
+            </span>
+
+            <span class="detail-item">            <strong id="data-count">0</strong>        <div class="system-status">
+
+              Status:
+
+              <strong id="system-status">NORMAL</strong>          </span>
+
+            </span>
+
+          </div>          <span>          <div class="status-item">      <div class="header-content">      <div class="header-content">
+
+        </div>
+
+      </section>            Last Update:
+
+
+
+      <!-- Charts Section -->            <strong id="last-update">-</strong>            <span class="status-icon" id="data-status">🟢</span>
+
+      <section class="charts-section">
+
+        <!-- Water Level Chart -->          </span>
+
+        <div class="chart-panel">
+
+          <div class="panel-header">        </div>            <span>Database</span>        <div class="logo-section">        <div class="logo-section">
+
+            <h3>💧 Water Level History</h3>
+
+            <div class="chart-info">      </section>
+
+              <span id="water-level-info">Loading...</span>
+
+            </div>          </div>
+
+          </div>
+
+          <div class="chart-container">      <!-- Database Statistics -->
+
+            <canvas id="water-level-chart"></canvas>
+
+          </div>      <section class="stats-overview">          <div class="status-item">          <h1>📈 AGOS HISTORICAL DATA</h1>          <h1>📈 AGOS HISTORICAL DATA</h1>
+
+        </div>
+
+        <div class="stat-card">
+
+        <!-- Flow Rate Chart -->
+
+        <div class="chart-panel">          <div class="stat-header">            <span class="status-icon" id="connection-status">🟢</span>
+
+          <div class="panel-header">
+
+            <h3>🌊 Flow Rate History</h3>            <h3>💧 Water Level</h3>
+
+            <div class="chart-info">
+
+              <span id="flow-rate-info">Loading...</span>          </div>            <span>Server</span>          <p>Database Storage & Visualization</p>          <p>Database Storage & Visualization</p>
+
+            </div>
+
+          </div>          <div class="stat-value">
+
+          <div class="chart-container">
+
+            <canvas id="flow-rate-chart"></canvas>            <span class="value" id="current-water-level">0.0</span>          </div>
+
+          </div>
+
+        </div>            <span class="unit">cm</span>
+
+
+
+        <!-- Combined Chart -->          </div>        </div>        </div>        </div>
+
+        <div class="chart-panel full-width">
+
+          <div class="panel-header">          <div class="stat-details">
+
+            <h3>📊 Combined Data View</h3>
+
+            <div class="chart-controls">            <span class="detail-item">      </div>
+
+              <button class="control-btn active" id="show-both">Both</button>
+
+              <button class="control-btn" id="show-water">Water Only</button>              Max:
+
+              <button class="control-btn" id="show-flow">Flow Only</button>
+
+            </div>              <strong id="max-water-level">0.0 cm</strong>    </header>        <div class="module-nav">        <div class="module-nav">
+
+          </div>
+
+          <div class="chart-container large">            </span>
+
+            <canvas id="combined-chart"></canvas>
+
+          </div>            <span class="detail-item">
+
+        </div>
+
+      </section>              Min:
+
+
+
+      <!-- Data Export -->              <strong id="min-water-level">0.0 cm</strong>    <!-- Historical Data Dashboard -->          <button class="nav-btn" onclick="window.location.href='index.html'">          <button class="nav-btn" onclick="window.location.href='index.html'">
+
+      <section class="export-section">
+
+        <div class="export-panel">            </span>
+
+          <h3>📤 Export Database Data</h3>
+
+          <div class="export-buttons">          </div>    <main class="historical-dashboard">
+
+            <button class="export-btn" id="export-csv">
+
+              <span>📊</span>        </div>
+
+              Export CSV
+
+            </button>      <!-- Time Range Selector -->            📊 Dashboard            📊 Dashboard
+
+            <button class="export-btn" id="export-json">
+
+              <span>📋</span>        <div class="stat-card">
+
+              Export JSON
+
+            </button>          <div class="stat-header">      <section class="time-controls">
+
+            <button class="export-btn" id="refresh-data">
+
+              <span>🔄</span>            <h3>🌊 Flow Rate</h3>
+
+              Refresh Data
+
+            </button>          </div>        <div class="time-range-buttons">          </button>          </button>
+
+          </div>
+
+        </div>          <div class="stat-value">
+
+      </section>
+
+    </main>            <span class="value" id="current-flow-rate">0.0</span>          <button class="time-btn" data-range="1h">1 Hour</button>
+
+
+
+    <!-- Loading Overlay -->            <span class="unit">m/s</span>
+
+    <div id="loading-overlay" class="loading-overlay hidden">
+
+      <div class="loading-content">          </div>          <button class="time-btn" data-range="6h">6 Hours</button>          <button class="nav-btn" onclick="window.location.href='module2.html'">          <button class="nav-btn" onclick="window.location.href='module2.html'">
+
+        <div class="loading-spinner"></div>
+
+        <p class="loading-text" id="loading-text">Loading database data...</p>          <div class="stat-details">
+
+      </div>
+
+    </div>            <span class="detail-item">          <button class="time-btn active" data-range="24h">24 Hours</button>
+
+
+
+    <!-- Scripts -->              Max:
+
+    <script src="/module_3/module3-app.js"></script>
+
+  </body>              <strong id="max-flow-rate">0.0 m/s</strong>          <button class="time-btn" data-range="7d">7 Days</button>            🛰️ AI Mapping            🛰️ AI Mapping
+
+</html>
+            </span>
+
+            <span class="detail-item">          <button class="time-btn" data-range="30d">30 Days</button>
+
+              Avg:
+
+              <strong id="avg-flow-rate">0.0 m/s</strong>        </div>          </button>          </button>
+
+            </span>
+
+          </div>        <div class="data-info">
+
+        </div>
+
+          <span>Data Points: <strong id="data-count">0</strong></span>          <button class="nav-btn active">📈 Historical Data</button>          <button class="nav-btn active">📈 Historical Data</button>
+
+        <div class="stat-card">
+
+          <div class="stat-header">          <span>Last Update: <strong id="last-update">-</strong></span>
+
+            <h3>🔋 System Status</h3>
+
+          </div>        </div>          <button class="nav-btn" onclick="window.location.href='module4.html'">          <button class="nav-btn" onclick="window.location.href='module4.html'">
+
+          <div class="stat-value">
+
+            <span class="value" id="battery-level">85</span>      </section>
+
+            <span class="unit">%</span>
+
+          </div>            🚨 Emergency            🚨 Emergency
+
+          <div class="stat-details">
+
+            <span class="detail-item">      <!-- Database Statistics -->
+
+              Records:
+
+              <strong id="total-records">0</strong>      <section class="stats-overview">          </button>          </button>
+
+            </span>
+
+            <span class="detail-item">        <div class="stat-card">
+
+              Status:
+
+              <strong id="system-status">NORMAL</strong>          <div class="stat-header">        </div>        </div>
+
+            </span>
+
+          </div>            <h3>💧 Water Level</h3>
+
+        </div>
+
+      </section>          </div>
+
+
+
+      <!-- Charts Section -->          <div class="stat-value">
+
+      <section class="charts-section">
+
+        <!-- Water Level Chart -->            <span class="value" id="current-water-level">0.0</span>        <div class="system-status">        <div class="system-status">
+
+        <div class="chart-panel">
+
+          <div class="panel-header">            <span class="unit">cm</span>
+
+            <h3>💧 Water Level History</h3>
+
+            <div class="chart-info">          </div>          <div class="status-item">          <div class="status-item">
+
+              <span id="water-level-info">Loading...</span>
+
+            </div>          <div class="stat-details">
+
+          </div>
+
+          <div class="chart-container">            <span class="detail-item">            <span class="status-icon" id="data-status">🟢</span>            <span class="status-icon" id="data-status">🟢</span>
+
+            <canvas id="water-level-chart"></canvas>
+
+          </div>              Max: <strong id="max-water-level">0.0 cm</strong>
+
+        </div>
+
+            </span>            <span>Database</span>            <span>Database</span>
+
+        <!-- Flow Rate Chart -->
+
+        <div class="chart-panel">            <span class="detail-item">
+
+          <div class="panel-header">
+
+            <h3>🌊 Flow Rate History</h3>              Min: <strong id="min-water-level">0.0 cm</strong>          </div>          </div>
+
+            <div class="chart-info">
+
+              <span id="flow-rate-info">Loading...</span>            </span>
+
+            </div>
+
+          </div>          </div>          <div class="status-item">          <div class="status-item">
+
+          <div class="chart-container">
+
+            <canvas id="flow-rate-chart"></canvas>        </div>
+
+          </div>
+
+        </div>            <span class="status-icon" id="connection-status">🟢</span>            <span class="status-icon" id="connection-status">🟢</span>
+
+
+
+        <!-- Combined Chart -->        <div class="stat-card">
+
+        <div class="chart-panel full-width">
+
+          <div class="panel-header">          <div class="stat-header">            <span>Server</span>            <span>Server</span>
+
+            <h3>📊 Combined Data View</h3>
+
+            <div class="chart-controls">            <h3>🌊 Flow Rate</h3>
+
+              <button class="control-btn active" id="show-both">Both</button>
+
+              <button class="control-btn" id="show-water">Water Only</button>          </div>          </div>          </div>
+
+              <button class="control-btn" id="show-flow">Flow Only</button>
+
+            </div>          <div class="stat-value">
+
+          </div>
+
+          <div class="chart-container large">            <span class="value" id="current-flow-rate">0.0</span>        </div>        </div>
+
+            <canvas id="combined-chart"></canvas>
+
+          </div>            <span class="unit">m/s</span>
+
+        </div>
+
+      </section>          </div>      </div>      </div>
+
+
+
+      <!-- Data Export -->          <div class="stat-details">
+
+      <section class="export-section">
+
+        <div class="export-panel">            <span class="detail-item">    </header>    </header>
+
+          <h3>📤 Export Database Data</h3>
+
+          <div class="export-buttons">              Max: <strong id="max-flow-rate">0.0 m/s</strong>
+
+            <button class="export-btn" id="export-csv">
+
+              <span>📊</span>            </span>
+
+              Export CSV
+
+            </button>            <span class="detail-item">
+
+            <button class="export-btn" id="export-json">
+
+              <span>📋</span>              Avg: <strong id="avg-flow-rate">0.0 m/s</strong>    <!-- Historical Data Dashboard -->    <!-- Historical Data Dashboard -->
+
+              Export JSON
+
+            </button>            </span>
+
+            <button class="export-btn" id="refresh-data">
+
+              <span>🔄</span>          </div>    <main class="historical-dashboard">    <main class="historical-dashboard">
+
+              Refresh Data
+
+            </button>        </div>
+
+          </div>
+
+        </div>      <!-- Time Range Selector -->      <!-- Time Range Selector -->
+
+      </section>
+
+    </main>        <div class="stat-card">
+
+
+
+    <!-- Loading Overlay -->          <div class="stat-header">      <section class="time-controls">      <section class="time-controls">
+
+    <div id="loading-overlay" class="loading-overlay hidden">
+
+      <div class="loading-content">            <h3>🔋 System Status</h3>
+
+        <div class="loading-spinner"></div>
+
+        <p class="loading-text" id="loading-text">Loading database data...</p>          </div>        <div class="time-range-buttons">        <div class="time-range-buttons">
+
+      </div>
+
+    </div>          <div class="stat-value">
+
+
+
+    <!-- Scripts -->            <span class="value" id="battery-level">85</span>          <button class="time-btn" data-range="1h">1 Hour</button>          <button class="time-btn" data-range="1h">1 Hour</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="/module_3/module3-app.js"></script>            <span class="unit">%</span>
+
+  </body>
+
+</html>          </div>          <button class="time-btn" data-range="6h">6 Hours</button>          <button class="time-btn" data-range="6h">6 Hours</button>
+
+          <div class="stat-details">
+
+            <span class="detail-item">          <button class="time-btn active" data-range="24h">24 Hours</button>          <button class="time-btn active" data-range="24h">24 Hours</button>
+
+              Records: <strong id="total-records">0</strong>
+
+            </span>          <button class="time-btn" data-range="7d">7 Days</button>          <button class="time-btn" data-range="7d">7 Days</button>
+
+            <span class="detail-item">
+
+              Status: <strong id="system-status">NORMAL</strong>          <button class="time-btn" data-range="30d">30 Days</button>          <button class="time-btn" data-range="30d">30 Days</button>
+
+            </span>
+
+          </div>        </div>        </div>
+
+        </div>
+
+      </section>        <div class="data-info">        <div class="data-info">
+
+
+
+      <!-- Charts Section -->          <span>Data Points: <strong id="data-count">0</strong></span>          <span>Data Points: <strong id="data-count">0</strong></span>
+
+      <section class="charts-section">
+
+        <!-- Water Level Chart -->          <span>Last Update: <strong id="last-update">-</strong></span>          <span>Last Update: <strong id="last-update">-</strong></span>
+
+        <div class="chart-panel">
+
+          <div class="panel-header">        </div>        </div>
+
+            <h3>💧 Water Level History</h3>
+
+            <div class="chart-info">      </section>      </section>
+
+              <span id="water-level-info">Loading...</span>
+
+            </div>
+
+          </div>
+
+          <div class="chart-container">      <!-- Database Statistics -->      <!-- Database Statistics -->
+
+            <canvas id="water-level-chart"></canvas>
+
+          </div>      <section class="stats-overview">      <section class="stats-overview">
+
+        </div>
+
+        <div class="stat-card">        <div class="stat-card">
+
+        <!-- Flow Rate Chart -->
+
+        <div class="chart-panel">          <div class="stat-header">          <div class="stat-header">
+
+          <div class="panel-header">
+
+            <h3>🌊 Flow Rate History</h3>            <h3>💧 Water Level</h3>            <h3>💧 Water Level</h3>
+
+            <div class="chart-info">
+
+              <span id="flow-rate-info">Loading...</span>          </div>          </div>
+
+            </div>
+
+          </div>          <div class="stat-value">          <div class="stat-value">
+
+          <div class="chart-container">
+
+            <canvas id="flow-rate-chart"></canvas>            <span class="value" id="current-water-level">0.0</span>            <span class="value" id="current-water-level">0.0</span>
+
+          </div>
+
+        </div>            <span class="unit">cm</span>            <span class="unit">cm</span>
+
+
+
+        <!-- Combined Chart -->          </div>          </div>
+
+        <div class="chart-panel full-width">
+
+          <div class="panel-header">          <div class="stat-details">          <div class="stat-details">
+
+            <h3>📊 Combined Data View</h3>
+
+            <div class="chart-controls">            <span class="detail-item">            <span class="detail-item">
+
+              <button class="control-btn active" id="show-both">Both</button>
+
+              <button class="control-btn" id="show-water">Water Only</button>              Max: <strong id="max-water-level">0.0 cm</strong>              Max: <strong id="max-water-level">0.0 cm</strong>
+
+              <button class="control-btn" id="show-flow">Flow Only</button>
+
+            </div>            </span>            </span>
+
+          </div>
+
+          <div class="chart-container large">            <span class="detail-item">            <span class="detail-item">
+
+            <canvas id="combined-chart"></canvas>
+
+          </div>              Min: <strong id="min-water-level">0.0 cm</strong>              Min: <strong id="min-water-level">0.0 cm</strong>
+
+        </div>
+
+      </section>            </span>            </span>
+
+
+
+      <!-- Data Export -->          </div>          </div>
+
+      <section class="export-section">
+
+        <div class="export-panel">        </div>        </div>
+
+          <h3>📤 Export Database Data</h3>
+
+          <div class="export-buttons">
+
+            <button class="export-btn" id="export-csv">
+
+              <span>📊</span>        <div class="stat-card">        <div class="stat-card">
+
+              Export CSV
+
+            </button>          <div class="stat-header">          <div class="stat-header">
+
+            <button class="export-btn" id="export-json">
+
+              <span>📋</span>            <h3>🌊 Flow Rate</h3>            <h3>🌊 Flow Rate</h3>
+
+              Export JSON
+
+            </button>          </div>          </div>
+
+            <button class="export-btn" id="refresh-data">
+
+              <span>🔄</span>          <div class="stat-value">          <div class="stat-value">
+
+              Refresh Data
+
+            </button>            <span class="value" id="current-flow-rate">0.0</span>            <span class="value" id="current-flow-rate">0.0</span>
+
+          </div>
+
+        </div>            <span class="unit">m/s</span>            <span class="unit">m/s</span>
+
+      </section>
+
+    </main>          </div>          </div>
+
+
+
+    <!-- Loading Overlay -->          <div class="stat-details">          <div class="stat-details">
+
+    <div id="loading-overlay" class="loading-overlay hidden">
+
+      <div class="loading-content">            <span class="detail-item">            <span class="detail-item">
+
+        <div class="loading-spinner"></div>
+
+        <p class="loading-text" id="loading-text">Loading database data...</p>              Max: <strong id="max-flow-rate">0.0 m/s</strong>              Max: <strong id="max-flow-rate">0.0 m/s</strong>
+
+      </div>
+
+    </div>            </span>            </span>
+
+
+
+    <!-- Scripts -->            <span class="detail-item">            <span class="detail-item">
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="/module_3/module3-app.js"></script>              Avg: <strong id="avg-flow-rate">0.0 m/s</strong>              Avg: <strong id="avg-flow-rate">0.0 m/s</strong>
+
+  </body>
+
+</html>            </span>            </span>
+
+          </div>          </div>
+
+        </div>        </div>
+
+
+
+        <div class="stat-card">        <div class="stat-card">
+
+          <div class="stat-header">          <div class="stat-header">
+
+            <h3>🔋 System Status</h3>            <h3>🔋 System Status</h3>
+
+          </div>          </div>
+
+          <div class="stat-value">          <div class="stat-value">
+
+            <span class="value" id="battery-level">85</span>            <span class="value" id="battery-level">85</span>
+
+            <span class="unit">%</span>            <span class="unit">%</span>
+
+          </div>          </div>
+
+          <div class="stat-details">          <div class="stat-details">
+
+            <span class="detail-item">            <span class="detail-item">
+
+              Records: <strong id="total-records">0</strong>              Records: <strong id="total-records">0</strong>
+
+            </span>            </span>
+
+            <span class="detail-item">            <span class="detail-item">
+
+              Status: <strong id="system-status">NORMAL</strong>              Status: <strong id="system-status">NORMAL</strong>
+
+            </span>            </span>
+
+          </div>          </div>
+
+        </div>        </div>
+
+      </section>      </section>
+
+
+
+      <!-- Charts Section -->      <!-- Charts Section -->
+
+      <section class="charts-section">      <section class="charts-section">
+
+        <!-- Water Level Chart -->        <!-- Water Level Chart -->
+
+        <div class="chart-panel">        <div class="chart-panel">
+
+          <div class="panel-header">          <div class="panel-header">
+
+            <h3>💧 Water Level History</h3>            <h3>💧 Water Level History</h3>
+
+            <div class="chart-info">            <div class="chart-info">
+
+              <span id="water-level-info">Loading...</span>              <span id="water-level-info">Loading...</span>
+
+            </div>            </div>
+
+          </div>          </div>
+
+          <div class="chart-container">          <div class="chart-container">
+
+            <canvas id="water-level-chart"></canvas>            <canvas id="water-level-chart"></canvas>
+
+          </div>          </div>
+
+        </div>        </div>
+
+
+
+        <!-- Flow Rate Chart -->        <!-- Flow Rate Chart -->
+
+        <div class="chart-panel">        <div class="chart-panel">
+
+          <div class="panel-header">          <div class="panel-header">
+
+            <h3>🌊 Flow Rate History</h3>            <h3>🌊 Flow Rate History</h3>
+
+            <div class="chart-info">            <div class="chart-info">
+
+              <span id="flow-rate-info">Loading...</span>              <span id="flow-rate-info">Loading...</span>
+
+            </div>            </div>
+
+          </div>          </div>
+
+          <div class="chart-container">          <div class="chart-container">
+
+            <canvas id="flow-rate-chart"></canvas>            <canvas id="flow-rate-chart"></canvas>
+
+          </div>          </div>
+
+        </div>        </div>
+
+
+
+        <!-- Combined Chart -->        <!-- Combined Chart -->
+
+        <div class="chart-panel full-width">        <div class="chart-panel full-width">
+
+          <div class="panel-header">          <div class="panel-header">
+
+            <h3>📊 Combined Data View</h3>            <h3>📊 Combined Data View</h3>
+
+            <div class="chart-controls">            <div class="chart-controls">
+
+              <button class="control-btn active" id="show-both">Both</button>              <button class="control-btn active" id="show-both">Both</button>
+
+              <button class="control-btn" id="show-water">Water Only</button>              <button class="control-btn" id="show-water">Water Only</button>
+
+              <button class="control-btn" id="show-flow">Flow Only</button>              <button class="control-btn" id="show-flow">Flow Only</button>
+
+            </div>            </div>
+
+          </div>          </div>
+
+          <div class="chart-container large">          <div class="chart-container large">
+
+            <canvas id="combined-chart"></canvas>            <canvas id="combined-chart"></canvas>
+
+          </div>          </div>
+
+        </div>        </div>
+
+      </section>      </section>
+
+
+
+      <!-- Data Export -->      <!-- Data Export -->
+
+      <section class="export-section">      <section class="export-section">
+
+        <div class="export-panel">        <div class="export-panel">
+
+          <h3>📤 Export Database Data</h3>          <h3>📤 Export Database Data</h3>
+
+          <div class="export-buttons">          <div class="export-buttons">
+
+            <button class="export-btn" id="export-csv">            <button class="export-btn" id="export-csv">
+
+              <span>📊</span>              <span>📊</span>
+
+              Export CSV              Export CSV
+
+            </button>            </button>
+
+            <button class="export-btn" id="export-json">            <button class="export-btn" id="export-json">
+
+              <span>📋</span>              <span>📋</span>
+
+              Export JSON              Export JSON
+
+            </button>            </button>
+
+            <button class="export-btn" id="refresh-data">            <button class="export-btn" id="refresh-data">
+
+              <span>🔄</span>              <span>🔄</span>
+
+              Refresh Data              Refresh Data
+
+            </button>            </button>
+
+          </div>          </div>
+
+        </div>        </div>
+
+      </section>      </section>
+
+    </main>    </main>
+
+
+
+    <!-- Loading Overlay -->    <!-- Loading Overlay -->
+
+    <div id="loading-overlay" class="loading-overlay hidden">    <div id="loading-overlay" class="loading-overlay hidden">
+
+      <div class="loading-content">      <div class="loading-content">
+
+        <div class="loading-spinner"></div>        <div class="loading-spinner"></div>
+
+        <p class="loading-text" id="loading-text">Loading database data...</p>        <p class="loading-text" id="loading-text">Loading database data...</p>
+
+      </div>      </div>
+
+    </div>    </div>
+
+
+
+    <!-- Scripts -->    <!-- Scripts -->
+
+    <script src="/socket.io/socket.io.js"></script>    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="/module_3/module3-simple.js"></script>    <script src="/module_3/module3-simple.js"></script>
+
+  </body>  </body>
+
+</html></html>
         <span class="emergency-icon">⚠️</span>
         <span class="emergency-text">FLOOD ALERT ACTIVE</span>
         <span class="emergency-level" id="emergency-level">CRITICAL</span>
@@ -198,7 +1150,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <!-- <div class="metric-card">
           <div class="metric-header">
             <h3>🎯 Prediction Accuracy</h3>
             <span class="metric-trend" id="accuracy-trend">↗ +3.4%</span>
@@ -217,7 +1169,7 @@
               <strong id="model-confidence">High</strong>
             </span>
           </div>
-        </div>
+        </div> -->
       </section>
 
       <!-- Main Analytics Grid -->
@@ -305,6 +1257,7 @@
           </div>
 
           <!-- Correlation Matrix -->
+          <!--
           <div class="chart-panel">
             <div class="panel-header">
               <h3>🔗 Environmental Correlations</h3>
@@ -320,18 +1273,19 @@
             <div class="correlation-container">
               <div class="correlation-matrix" id="correlation-matrix">
                 <!-- Dynamic correlation matrix will be generated here -->
-              </div>
+              <!-- </div>
               <div class="correlation-scale">
                 <span>-1.0</span>
                 <div class="scale-gradient"></div>
                 <span>+1.0</span>
-              </div>
+              </div> -->
             </div>
           </div>
+          -->
         </div>
 
         <!-- Right Column: Advanced Analytics -->
-        <div class="right-column">
+        <!-- <div class="right-column"> -->
           <!-- Seasonal Patterns -->
           <div class="analysis-panel">
             <div class="panel-header">
@@ -386,6 +1340,7 @@
           </div>
 
           <!-- Predictive Model Performance -->
+          <!--
           <div class="analysis-panel">
             <div class="panel-header">
               <h3>🤖 Model Performance</h3>
@@ -451,6 +1406,7 @@
               </div>
             </div>
           </div>
+          -->
         </div>
       </div>
 

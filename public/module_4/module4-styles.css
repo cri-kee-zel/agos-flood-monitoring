@@ -1352,3 +1352,776 @@
     background: #fff;
   }
 }
+
+/* SMS Recipients Management Panel Styles */
+.recipients-panel {
+  background: var(--panel-bg);
+  border-radius: 1rem;
+  border: 1px solid var(--panel-border);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.recipients-panel .panel-header {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recipients-panel .panel-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.recipients-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.recipient-count-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.recipients-controls {
+  padding: 2rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.add-recipient-form {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.phone-input {
+  flex: 1;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: monospace;
+  background: var(--input-bg);
+  color: var(--text-color);
+  transition: border-color 0.3s ease;
+}
+
+.phone-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.add-btn {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.add-btn:active {
+  transform: translateY(0);
+}
+
+.format-help {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.recipients-list-container {
+  padding: 2rem;
+}
+
+.recipients-list-container h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.recipients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.no-recipients {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 2rem;
+  background: var(--input-bg);
+  border-radius: 0.5rem;
+  border: 2px dashed #e5e7eb;
+}
+
+.recipient-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--input-bg);
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.recipient-item:hover {
+  background: #e2e8f0;
+  opacity: 0.3;
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.phone-number {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.delete-recipient-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-recipient-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.delete-recipient-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive design for recipients panel */
+@media (max-width: 768px) {
+  .recipients-panel .panel-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .add-recipient-form {
+    flex-direction: column;
+  }
+
+  .phone-input {
+    width: 100%;
+  }
+
+  .recipient-item {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .phone-number {
+    font-size: 1rem;
+  }
+}
+
+/* Dark mode support for recipients panel */
+@media (prefers-color-scheme: dark) {
+  .recipients-panel {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .phone-input {
+    background: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .phone-input:focus {
+    border-color: #60a5fa;
+  }
+
+  .recipient-item {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .recipient-item:hover {
+    background: #1f2937;
+    border-color: #60a5fa;
+  }
+
+  .no-recipients {
+    background: #111827;
+    border-color: #374151;
+    color: #9ca3af;
+  }
+}
+
+/* ============================================
+   ARDUINO DATA MONITOR PANEL STYLES
+   ============================================ */
+
+.arduino-monitor-panel {
+  background: var(--panel-bg);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 1.5rem;
+}
+
+.arduino-monitor-panel .panel-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arduino-monitor-panel .panel-header h2 {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.status-badge-container {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  color: white;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-badge.status-connected {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #22c55e;
+}
+
+.status-badge.status-disconnected {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.status-badge.status-connecting {
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+}
+
+/* Arduino Controls - Dark Theme */
+.arduino-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  background: #1e293b;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
+}
+
+.arduino-controls .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.arduino-controls .btn:hover {
+  background: #1e293b;
+  border-color: #64748b;
+  transform: translateY(-1px);
+}
+
+.arduino-controls .btn.active {
+  background: #3b82f6;
+  border-color: #2563eb;
+  color: white;
+}
+
+.arduino-controls .btn span {
+  font-size: 1rem;
+}
+
+.baud-selector {
+  padding: 0.5rem 1rem;
+  border: 2px solid #64748b;
+  background: #1e293b;
+  color: #ffffff;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.baud-selector:hover {
+  border-color: #3b82f6;
+  background: #334155;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.baud-selector:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #334155;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Arduino Output - WHITE Background for Terminal */
+.arduino-output {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  height: 500px;
+  overflow-y: auto;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.arduino-output::-webkit-scrollbar {
+  width: 12px;
+}
+
+.arduino-output::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.arduino-output::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 6px;
+  border: 2px solid #e5e7eb;
+}
+
+.arduino-output::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+.log-line {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.log-line:last-child {
+  border-bottom: none;
+}
+
+.log-line .timestamp {
+  color: #6b7280;
+  font-weight: 600;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.log-line .message {
+  color: #111827;
+  word-break: break-word;
+}
+
+.log-line .message.success {
+  color: #059669;
+  font-weight: 500;
+}
+
+.log-line .message.error {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.log-line .message.warning {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.log-line .message.info {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Arduino Input Area - Dark Theme */
+.arduino-input-area {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  background: #1e293b;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
+}
+
+.arduino-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 0.375rem;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.arduino-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #1e293b;
+}
+
+.arduino-input::placeholder {
+  color: #64748b;
+}
+
+.arduino-input-area .btn.primary {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.arduino-input-area .btn.primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.arduino-input-area .btn.primary span {
+  font-size: 1rem;
+}
+
+/* Arduino Stats - Dark Theme */
+.arduino-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  background: #1e293b;
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  border: 2px solid #475569;
+}
+
+.arduino-stats .stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .arduino-monitor-panel .panel-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .arduino-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .arduino-controls .btn {
+    justify-content: center;
+  }
+
+  .arduino-output {
+    height: 400px;
+    font-size: 0.75rem;
+  }
+
+  .arduino-input-area {
+    flex-direction: column;
+  }
+
+  .arduino-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .arduino-monitor-panel {
+    background: #0f172a;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ============================================
+   Message Customization Styles
+   ============================================ */
+
+/* Customize Message Button */
+.customize-msg-btn {
+  width: 100%;
+  padding: 8px 16px;
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.customize-msg-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Message Customization Form */
+.message-customization-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.message-customization-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-customization-form label {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+/* Default Message Display (Read-only) */
+.default-message-display {
+  width: 100%;
+  padding: 12px;
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+  color: #475569;
+  resize: none;
+  cursor: not-allowed;
+  line-height: 1.5;
+}
+
+/* Custom Message Input (Editable) */
+.custom-message-input {
+  width: 100%;
+  padding: 12px;
+  background: #ffffff;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  color: #1e293b;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.3s ease;
+}
+
+.custom-message-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.custom-message-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Character Counter */
+.char-counter-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.char-counter {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+}
+
+.char-counter.danger {
+  color: #ef4444;
+}
+
+/* Help Text */
+.help-text {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Modal Footer Buttons Spacing */
+#message-customization-modal .modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+#message-customization-modal .modal-footer .btn {
+  flex: 0 1 auto;
+}
+
+/* Modal Close Button (X button) */
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal-close:hover {
+  background: rgba(239, 68, 68, 0.8);
+  border-color: rgba(239, 68, 68, 1);
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.modal-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+/* Ensure modal header has relative positioning for close button */
+.modal-header {
+  position: relative;
+  padding: 1.5rem 3rem 1.5rem 2rem; /* Extra right padding for close button */
+}
+
+/* ==================== GLOBAL ALERT COOLDOWN STYLES ==================== */
+
+/* Cooldown state for alert buttons */
+.quick-alert-btn.cooldown {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  background: #64748b !important;
+  filter: grayscale(50%);
+  transition: all 0.3s ease;
+  box-shadow: none !important;
+}
+
+/* Prevent hover effects during cooldown */
+.quick-alert-btn.cooldown:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 0.5 !important;
+}
+
+/* ==================== END COOLDOWN STYLES ==================== */

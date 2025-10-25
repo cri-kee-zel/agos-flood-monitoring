@@ -857,8 +857,9 @@ class AGOSMappingSystem {
       riskElement.className = `risk-level risk-${results.riskLevel.toLowerCase()}`;
     }
 
-    // Update timestamp
-    const ts = results.timestamp.toLocaleString();
+    // Update timestamp - Convert to Philippine Time (UTC+8)
+    const phtTime = new Date(results.timestamp.getTime() + (8 * 60 * 60 * 1000));
+    const ts = phtTime.toLocaleString('en-PH');
     this.safeSetText("analysis-timestamp", ts);
   }
 

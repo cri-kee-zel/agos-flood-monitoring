@@ -1,198 +1,59 @@
 /**
- * AGOS Module 3: Historical Analytics & Trends
- * Comprehensive data analysis and pattern recognition system
- *
- * This module provides deep analytical capabilities for flood monitoring:
- * - Time series analysis with interactive charts (Chart.js integration)
- * - Statistical correlation matrix for environmental parameters
- * - Seasonal pattern recognition for Philippine monsoon cycles
- * - Historical flood event timeline and severity classification
- * - Predictive model performance metrics and accuracy tracking
- * - Research collaboration portal for academic partnerships
- * - Multi-format data export (CSV, JSON, PDF reports)
- *
- * Author: Senior IoT Engineer
- * Date: 2025-08-18 05:19:30 UTC
- * User: cri-kee-zel
+ * AGOS Module 3: Simple Historical Data Visualization
+ * Displays water level and flow rate data from database
+ * Author: AGOS Development Team
+ * Date: 2025-10-19
  */
 
-class AGOSAnalyticsSystem {
+class AGOSHistoricalData {
   constructor() {
-    // Configuration object - Contains all analytical parameters and settings
     this.config = {
-      // Time range options for historical data analysis
+      API_BASE: window.location.origin,
+      UPDATE_INTERVAL: 30000, // 30 seconds
+      CHART_COLORS: {
+        waterLevel: "#3b82f6", // Blue
+        flowRate: "#06b6d4", // Cyan
+        background: "rgba(59, 130, 246, 0.1)",
+        backgroundFlow: "rgba(6, 182, 212, 0.1)",
+      },
       TIME_RANGES: {
-        "24h": { hours: 24, interval: "minute" }, // Hourly analysis for recent data
-        "7d": { days: 7, interval: "hour" }, // Daily patterns over a week
-        "30d": { days: 30, interval: "hour" }, // Monthly trends and cycles
-        "90d": { days: 90, interval: "day" }, // Seasonal analysis (quarterly)
-        "1y": { days: 365, interval: "day" }, // Annual patterns and climate trends
-        custom: { custom: true }, // User-defined date ranges
+        "1h": { hours: 1, label: "1 Hour" },
+        "6h": { hours: 6, label: "6 Hours" },
+        "24h": { hours: 24, label: "24 Hours" },
+        "7d": { hours: 168, label: "7 Days" },
+        "30d": { hours: 720, label: "30 Days" },
       },
-
-      // Color scheme for different data series in charts
-      COLORS: {
-        waterLevel: "#3b82f6", // Blue - Primary water level data
-        flowRate: "#06b6d4", // Cyan - Flow velocity measurements
-        rainfall: "#8b5cf6", // Purple - Precipitation data
-        temperature: "#f59e0b", // Amber - Temperature readings
-        emergency: "#ef4444", // Red - Emergency alert events
-        alert: "#f97316", // Orange - Alert level events
-        normal: "#22c55e", // Green - Normal operational status
-      },
-
-      // Parameters for correlation analysis between environmental factors
-      CORRELATION_PARAMS: [
-        "water_level",
-        "flow_rate",
-        "rainfall",
-        "temperature",
-        "humidity",
-      ],
-
-      // Flood severity thresholds matching hardware schematic values
-      FLOOD_THRESHOLDS: {
-        NORMAL: 0, // 0-49cm - Safe water levels
-        WATCH: 50, // 50-99cm - Monitor conditions
-        ALERT: 100, // 100-149cm - Prepare for flooding
-        EMERGENCY: 150, // 150cm+ - Immediate evacuation required
-      },
-
-      // System update intervals (milliseconds)
-      REAL_TIME_UPDATE: 5000, // 5 seconds - Live data refresh from Module 1
-      ANALYTICS_UPDATE: 60000, // 1 minute - Recalculate analytics and trends
     };
 
-    // System state
     this.state = {
-      currentTimeRange: "30d",
-      selectedModel: "hybrid",
-      dataStatus: "connected",
-      analysisStatus: "ready",
-
-      // Data storage
-      historicalData: [],
-      currentData: null,
-      correlationMatrix: null,
-      seasonalData: null,
-      floodEvents: [],
-
-      // Charts
+      currentRange: "24h",
+      data: [],
       charts: {},
-
-      // Filters
-      eventFilters: { severity: "all" },
-      seasonFilter: "monsoon",
+      isLoading: false,
     };
 
-    // DOM elements
-    this.elements = {};
-
-    // Initialize system
     this.init();
   }
 
-  /**
-   * Initialize the analytics system
-   */
   async init() {
-    console.log("📈 AGOS Analytics System Initializing...");
+    console.log("📈 AGOS Historical Data System Initializing...");
 
     try {
-      this.cacheElements();
       this.setupEventListeners();
-      await this.loadHistoricalData();
       this.initializeCharts();
-      this.calculateAnalytics();
-      this.startRealTimeUpdates();
+      await this.loadHistoricalData();
+      this.startAutoRefresh();
 
-      console.log("✅ AGOS Analytics System Initialized");
-      this.updateSystemStatus("System Ready");
+      console.log("✅ Historical Data System Ready");
+      this.updateStatus("System Ready");
     } catch (error) {
-      console.error("❌ Analytics System Initialization Failed:", error);
-      this.handleSystemError(error);
+      console.error("❌ Historical Data System Error:", error);
+      this.updateStatus("System Error");
     }
   }
 
-  /**
-   * Cache DOM elements
-   */
-  cacheElements() {
-    const elements = [
-      "data-status",
-      "analysis-status",
-      "data-range",
-      "current-level",
-      "current-flow",
-      "level-trend",
-      "flow-trend",
-      "level-peak",
-      "level-low",
-      "flow-peak",
-      "flow-avg",
-      "alert-count",
-      "alert-trend",
-      "last-alert",
-      "alert-duration",
-      "prediction-accuracy",
-      "accuracy-trend",
-      "active-models",
-      "model-confidence",
-      "water-level-chart",
-      "flow-rate-chart",
-      "seasonal-chart",
-      "correlation-matrix",
-      "event-timeline",
-      "confusion-matrix",
-      "season-selector",
-      "model-selector",
-      "custom-date-picker",
-      "start-date",
-      "end-date",
-      "apply-custom-range",
-      "seasonal-insights",
-      "research-modal",
-      "close-research-modal",
-      "export-csv",
-      "export-json",
-      "export-report",
-      "research-collab",
-      "data-resolution",
-      "include-predictions",
-      "include-weather",
-      "include-events",
-      "loading-overlay",
-      "loading-text",
-    ];
-
-    elements.forEach((id) => {
-      this.elements[id] = document.getElementById(id);
-      if (!this.elements[id]) {
-        console.warn(`⚠️ Element not found: ${id}`);
-      }
-    });
-  }
-
-  /**
-   * Safe DOM helper - set textContent of an element only if it exists.
-   * Use this helper when updating UI text to avoid runtime errors if an
-   * element is missing (e.g., during iterative edits to HTML/CSS).
-   */
-  safeSetText(id, text) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.textContent = text;
-    } else {
-      // Developer-facing non-blocking notice - commented out to avoid console noise
-      // console.warn(`Element not found (safeSetText): ${id}`);
-    }
-  }
-
-  /**
-   * Setup event listeners
-   */
   setupEventListeners() {
-    // Time range selection
+    // Time range buttons
     document.querySelectorAll(".time-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const range = e.target.dataset.range;
@@ -200,310 +61,350 @@ class AGOSAnalyticsSystem {
       });
     });
 
-    // Custom date range
-    this.elements["apply-custom-range"]?.addEventListener("click", () => {
-      this.applyCustomDateRange();
+    // Chart control buttons
+    document.getElementById("show-both")?.addEventListener("click", () => {
+      this.updateCombinedChart("both");
+    });
+    document.getElementById("show-water")?.addEventListener("click", () => {
+      this.updateCombinedChart("water");
+    });
+    document.getElementById("show-flow")?.addEventListener("click", () => {
+      this.updateCombinedChart("flow");
     });
 
-    // Chart controls
-    document.querySelectorAll(".chart-control-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const chart = e.target.dataset.chart;
-        const view = e.target.dataset.view;
-        this.changeChartView(chart, view);
-      });
+    // Export buttons
+    document.getElementById("export-csv")?.addEventListener("click", () => {
+      this.exportData("csv");
     });
-
-    // Event filters
-    document.querySelectorAll(".filter-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const severity = e.target.dataset.severity;
-        this.filterEvents(severity);
-      });
+    document.getElementById("export-json")?.addEventListener("click", () => {
+      this.exportData("json");
     });
-
-    // Season selector
-    this.elements["season-selector"]?.addEventListener("change", (e) => {
-      this.state.seasonFilter = e.target.value;
-      this.updateSeasonalAnalysis();
+    document.getElementById("refresh-data")?.addEventListener("click", () => {
+      this.loadHistoricalData();
     });
-
-    // Model selector
-    this.elements["model-selector"]?.addEventListener("change", (e) => {
-      this.state.selectedModel = e.target.value;
-      this.updateModelPerformance();
-    });
-
-    // Export functions
-    this.elements["export-csv"]?.addEventListener("click", () =>
-      this.exportData("csv")
-    );
-    this.elements["export-json"]?.addEventListener("click", () =>
-      this.exportData("json")
-    );
-    this.elements["export-report"]?.addEventListener("click", () =>
-      this.generateAnalyticsReport()
-    );
-    this.elements["research-collab"]?.addEventListener("click", () =>
-      this.openResearchModal()
-    );
-
-    // Modal controls
-    this.elements["close-research-modal"]?.addEventListener("click", () =>
-      this.closeResearchModal()
-    );
-
-    // Research form submission
-    document
-      .querySelector(".submit-request-btn")
-      ?.addEventListener("click", () => this.submitResearchRequest());
-
-    // Window events
-    window.addEventListener("resize", () => this.handleWindowResize());
-    document.addEventListener("visibilitychange", () =>
-      this.handleVisibilityChange()
-    );
   }
 
-  /**
-   * Load historical data
-   */
+  initializeCharts() {
+    console.log("📊 Initializing charts...");
+
+    // Water Level Chart
+    const waterCtx = document.getElementById("water-level-chart");
+    if (waterCtx) {
+      this.state.charts.waterLevel = new Chart(waterCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Water Level (inches)",
+              data: [],
+              borderColor: this.config.CHART_COLORS.waterLevel,
+              backgroundColor: this.config.CHART_COLORS.background,
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+            },
+          ],
+        },
+        options: this.getChartOptions("Water Level (inches)"),
+      });
+    }
+
+    // Flow Rate Chart
+    const flowCtx = document.getElementById("flow-rate-chart");
+    if (flowCtx) {
+      this.state.charts.flowRate = new Chart(flowCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Flow Rate (m/s)",
+              data: [],
+              borderColor: this.config.CHART_COLORS.flowRate,
+              backgroundColor: this.config.CHART_COLORS.backgroundFlow,
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+            },
+          ],
+        },
+        options: this.getChartOptions("Flow Rate (m/s)"),
+      });
+    }
+
+    // Combined Chart
+    const combinedCtx = document.getElementById("combined-chart");
+    if (combinedCtx) {
+      this.state.charts.combined = new Chart(combinedCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Water Level (inches)",
+              data: [],
+              borderColor: this.config.CHART_COLORS.waterLevel,
+              backgroundColor: this.config.CHART_COLORS.background,
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+              yAxisID: "y",
+            },
+            {
+              label: "Flow Rate (m/s)",
+              data: [],
+              borderColor: this.config.CHART_COLORS.flowRate,
+              backgroundColor: this.config.CHART_COLORS.backgroundFlow,
+              borderWidth: 2,
+              fill: false,
+              tension: 0.3,
+              yAxisID: "y1",
+            },
+          ],
+        },
+        options: this.getCombinedChartOptions(),
+      });
+    }
+  }
+
+  getChartOptions(yAxisLabel) {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+        },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+        },
+      },
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: "Time",
+          },
+          grid: {
+            color: "rgba(255, 255, 255, 0.1)",
+          },
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            text: yAxisLabel,
+          },
+          grid: {
+            color: "rgba(255, 255, 255, 0.1)",
+          },
+        },
+      },
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false,
+      },
+    };
+  }
+
+  getCombinedChartOptions() {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+        },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+        },
+      },
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: "Time",
+          },
+          grid: {
+            color: "rgba(255, 255, 255, 0.1)",
+          },
+        },
+        y: {
+          type: "linear",
+          display: true,
+          position: "left",
+          title: {
+            display: true,
+            text: "Water Level (inches)",
+          },
+          grid: {
+            color: "rgba(59, 130, 246, 0.2)",
+          },
+        },
+        y1: {
+          type: "linear",
+          display: true,
+          position: "right",
+          title: {
+            display: true,
+            text: "Flow Rate (m/s)",
+          },
+          grid: {
+            drawOnChartArea: false,
+            color: "rgba(6, 182, 212, 0.2)",
+          },
+        },
+      },
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false,
+      },
+    };
+  }
+
   async loadHistoricalData() {
-    console.log("📊 Loading historical data...");
-    this.showLoading("Loading historical data...");
+    console.log(`📊 Loading historical data for ${this.state.currentRange}...`);
+    this.showLoading("Loading database data...");
 
     try {
-      // Simulate loading historical data (in production, this would be from database)
-      await this.delay(2000);
-
-      // Generate comprehensive historical data
-      this.state.historicalData = this.generateHistoricalData();
-      this.state.floodEvents = this.generateFloodEvents();
-
-      console.log(
-        `✅ Loaded ${this.state.historicalData.length} historical records`
+      const range = this.config.TIME_RANGES[this.state.currentRange];
+      const response = await fetch(
+        `${this.config.API_BASE}/api/historical-data?range=${this.state.currentRange}&limit=1000`
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        this.state.data = result.data;
+        this.updateCharts();
+        this.updateStatistics();
+        this.updateDataInfo(result.count);
+
+        console.log(`✅ Loaded ${result.count} data points`);
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (error) {
       console.error("❌ Failed to load historical data:", error);
-      throw error;
+      this.updateStatus("Data Load Error");
     } finally {
       this.hideLoading();
     }
   }
 
-  /**
-   * Generate comprehensive historical data
-   */
-  generateHistoricalData() {
-    const data = [];
-    const now = new Date();
-    const timeRange = this.config.TIME_RANGES[this.state.currentTimeRange];
-
-    let startTime = new Date(now);
-    if (timeRange.days) {
-      startTime.setDate(startTime.getDate() - timeRange.days);
-    } else if (timeRange.hours) {
-      startTime.setHours(startTime.getHours() - timeRange.hours);
+  updateCharts() {
+    if (!this.state.data || this.state.data.length === 0) {
+      console.warn("⚠️ No data to display");
+      return;
     }
 
-    // Generate data points
-    const intervalMinutes =
-      timeRange.interval === "minute"
-        ? 1
-        : timeRange.interval === "hour"
-        ? 60
-        : timeRange.interval === "day"
-        ? 1440
-        : 60;
-
-    for (
-      let time = new Date(startTime);
-      time <= now;
-      time = new Date(time.getTime() + intervalMinutes * 60000)
-    ) {
-      const dayOfYear = this.getDayOfYear(time);
-      const hourOfDay = time.getHours();
-
-      // Simulate seasonal patterns (Philippines monsoon: June-November)
-      const isMonsoon = time.getMonth() >= 5 && time.getMonth() <= 10;
-      const seasonalFactor = isMonsoon ? 1.5 : 0.8;
-
-      // Daily patterns (higher during afternoon/evening)
-      const dailyFactor = 1 + 0.3 * Math.sin(((hourOfDay - 6) * Math.PI) / 12);
-
-      // Base levels with realistic variations
-      const baseLevel =
-        35 + seasonalFactor * 15 * Math.sin((dayOfYear * 2 * Math.PI) / 365);
-      const baseFlow =
-        0.8 + seasonalFactor * 0.4 * Math.sin((dayOfYear * 2 * Math.PI) / 365);
-
-      // Add noise and correlations
-      const rainfall = Math.max(
-        0,
-        seasonalFactor * 5 * Math.random() + (isMonsoon ? 10 : 2)
-      );
-      const temperature =
-        26 +
-        4 * Math.sin((dayOfYear * 2 * Math.PI) / 365) +
-        (Math.random() - 0.5) * 3;
-      const humidity = 70 + seasonalFactor * 15 + (Math.random() - 0.5) * 10;
-
-      // Water level influenced by rainfall and seasonal patterns
-      const waterLevel = Math.max(
-        0,
-        baseLevel + dailyFactor * 5 + rainfall * 0.8 + (Math.random() - 0.5) * 8
-      );
-
-      // Flow rate correlated with water level
-      const flowRate = Math.max(
-        0,
-        baseFlow +
-          (waterLevel - 35) * 0.02 +
-          rainfall * 0.05 +
-          (Math.random() - 0.5) * 0.3
-      );
-
-      data.push({
-        timestamp: new Date(time),
-        waterLevel: Number(waterLevel.toFixed(2)),
-        flowRate: Number(flowRate.toFixed(3)),
-        rainfall: Number(rainfall.toFixed(1)),
-        temperature: Number(temperature.toFixed(1)),
-        humidity: Number(humidity.toFixed(1)),
-        turbidityUpstream: Number((0.2 + Math.random() * 0.3).toFixed(2)),
-        turbidityDownstream: Number((0.2 + Math.random() * 0.4).toFixed(2)),
-        batteryLevel: Math.max(60, 100 - Math.random() * 0.1), // Slow discharge
-        sensorHealth: Math.random() > 0.05, // 5% chance of sensor issues
-        predictionAccuracy: Number((85 + Math.random() * 10).toFixed(1)),
+    // Prepare data for charts
+    const labels = this.state.data.map((item) => {
+      const date = new Date(item.timestamp);
+      return date.toLocaleTimeString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
-    }
-
-    return data;
-  }
-
-  /**
-   * Generate flood events for timeline
-   */
-  generateFloodEvents() {
-    const events = [];
-    const data = this.state.historicalData;
-
-    // Identify flood events based on water level thresholds
-    let currentEvent = null;
-
-    data.forEach((point, index) => {
-      const level = point.waterLevel;
-      const flow = point.flowRate;
-
-      if (level >= this.config.FLOOD_THRESHOLDS.ALERT || flow >= 1.5) {
-        if (!currentEvent) {
-          // Start new event
-          const severity =
-            level >= this.config.FLOOD_THRESHOLDS.EMERGENCY
-              ? "emergency"
-              : level >= this.config.FLOOD_THRESHOLDS.ALERT
-              ? "alert"
-              : "watch";
-
-          currentEvent = {
-            id: `event_${events.length + 1}`,
-            startTime: point.timestamp,
-            endTime: null,
-            severity: severity,
-            peakLevel: level,
-            peakFlow: flow,
-            duration: 0,
-            affectedAreas: this.generateAffectedAreas(severity),
-            cause: this.generateEventCause(point),
-          };
-        } else {
-          // Update ongoing event
-          currentEvent.peakLevel = Math.max(currentEvent.peakLevel, level);
-          currentEvent.peakFlow = Math.max(currentEvent.peakFlow, flow);
-
-          // Update severity if needed
-          const newSeverity =
-            level >= this.config.FLOOD_THRESHOLDS.EMERGENCY
-              ? "emergency"
-              : level >= this.config.FLOOD_THRESHOLDS.ALERT
-              ? "alert"
-              : "watch";
-          if (
-            newSeverity === "emergency" &&
-            currentEvent.severity !== "emergency"
-          ) {
-            currentEvent.severity = "emergency";
-          }
-        }
-      } else if (currentEvent && level < this.config.FLOOD_THRESHOLDS.WATCH) {
-        // End current event
-        currentEvent.endTime = point.timestamp;
-        currentEvent.duration = Math.round(
-          (currentEvent.endTime - currentEvent.startTime) / (1000 * 60)
-        ); // minutes
-        events.push(currentEvent);
-        currentEvent = null;
-      }
     });
 
-    // Close any ongoing event
-    if (currentEvent) {
-      currentEvent.endTime = data[data.length - 1].timestamp;
-      currentEvent.duration = Math.round(
-        (currentEvent.endTime - currentEvent.startTime) / (1000 * 60)
+    const waterLevels = this.state.data.map((item) => item.water_level || 0);
+    const flowRates = this.state.data.map((item) => item.flow_rate || 0);
+
+    // Update Water Level Chart
+    if (this.state.charts.waterLevel) {
+      this.state.charts.waterLevel.data.labels = labels;
+      this.state.charts.waterLevel.data.datasets[0].data = waterLevels;
+      this.state.charts.waterLevel.update();
+    }
+
+    // Update Flow Rate Chart
+    if (this.state.charts.flowRate) {
+      this.state.charts.flowRate.data.labels = labels;
+      this.state.charts.flowRate.data.datasets[0].data = flowRates;
+      this.state.charts.flowRate.update();
+    }
+
+    // Update Combined Chart
+    if (this.state.charts.combined) {
+      this.state.charts.combined.data.labels = labels;
+      this.state.charts.combined.data.datasets[0].data = waterLevels;
+      this.state.charts.combined.data.datasets[1].data = flowRates;
+      this.state.charts.combined.update();
+    }
+
+    console.log("📈 Charts updated successfully");
+  }
+
+  updateStatistics() {
+    if (!this.state.data || this.state.data.length === 0) return;
+
+    const waterLevels = this.state.data
+      .map((item) => item.water_level || 0)
+      .filter((val) => val > 0);
+    const flowRates = this.state.data
+      .map((item) => item.flow_rate || 0)
+      .filter((val) => val >= 0);
+
+    // Water Level Stats
+    if (waterLevels.length > 0) {
+      const maxWater = Math.max(...waterLevels);
+      const minWater = Math.min(...waterLevels);
+      const currentWater = waterLevels[waterLevels.length - 1] || 0;
+
+      this.safeSetText("current-water-level", currentWater.toFixed(1));
+      this.safeSetText("max-water-level", `${maxWater.toFixed(1)} inches`);
+      this.safeSetText("min-water-level", `${minWater.toFixed(1)} inches`);
+    }
+
+    // Flow Rate Stats
+    if (flowRates.length > 0) {
+      const maxFlow = Math.max(...flowRates);
+      const avgFlow = flowRates.reduce((a, b) => a + b, 0) / flowRates.length;
+      const currentFlow = flowRates[flowRates.length - 1] || 0;
+
+      this.safeSetText("current-flow-rate", currentFlow.toFixed(2));
+      this.safeSetText("max-flow-rate", `${maxFlow.toFixed(2)} m/s`);
+      this.safeSetText("avg-flow-rate", `${avgFlow.toFixed(2)} m/s`);
+    }
+
+    // System Stats
+    this.safeSetText("total-records", this.state.data.length.toString());
+
+    const latestData = this.state.data[this.state.data.length - 1];
+    if (latestData) {
+      this.safeSetText(
+        "battery-level",
+        (latestData.battery_level || 85).toString()
       );
-      events.push(currentEvent);
-    }
-
-    return events.reverse(); // Most recent first
-  }
-
-  /**
-   * Generate affected areas for flood events
-   */
-  generateAffectedAreas(severity) {
-    const areas = {
-      watch: ["Riverbank Communities"],
-      alert: ["Riverbank Communities", "Low-lying Areas"],
-      emergency: [
-        "Riverbank Communities",
-        "Low-lying Areas",
-        "Commercial District",
-        "Residential Areas",
-      ],
-    };
-    return areas[severity] || [];
-  }
-
-  /**
-   * Generate event cause analysis
-   */
-  generateEventCause(dataPoint) {
-    if (dataPoint.rainfall > 10) {
-      return "Heavy Rainfall";
-    } else if (dataPoint.temperature > 30) {
-      return "High Temperature / Evaporation";
-    } else {
-      return "Upstream Water Release";
+      this.safeSetText("system-status", latestData.alert_status || "NORMAL");
     }
   }
 
-  /**
-   * Get day of year (1-365)
-   */
-  getDayOfYear(date) {
-    const start = new Date(date.getFullYear(), 0, 0);
-    const diff = date - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    return Math.floor(diff / oneDay);
+  updateDataInfo(count) {
+    this.safeSetText("data-count", count.toString());
+    // Convert to Philippine Time (UTC+8)
+    const now = new Date();
+    const phtTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    this.safeSetText("last-update", phtTime.toLocaleTimeString("en-PH"));
   }
 
-  /**
-   * Change time range for analysis
-   */
   changeTimeRange(range) {
-    this.state.currentTimeRange = range;
-    console.log(`📊 Changing time range to: ${range}`);
+    console.log(`📅 Changing time range to: ${range}`);
 
     // Update active button
     document.querySelectorAll(".time-btn").forEach((btn) => {
@@ -513,316 +414,154 @@ class AGOSAnalyticsSystem {
       }
     });
 
-    // Reload data for new time range
+    this.state.currentRange = range;
     this.loadHistoricalData();
   }
 
-  /**
-   * Apply custom date range
-   */
-  applyCustomDateRange() {
-    const startDate = this.elements["start-date"]?.value;
-    const endDate = this.elements["end-date"]?.value;
+  updateCombinedChart(mode) {
+    console.log(`📊 Updating combined chart mode: ${mode}`);
 
-    if (startDate && endDate) {
-      console.log(`📅 Applying custom range: ${startDate} to ${endDate}`);
-      this.state.customRange = {
-        start: new Date(startDate),
-        end: new Date(endDate),
-      };
-      this.changeTimeRange("custom");
+    // Update active button
+    document.querySelectorAll(".control-btn").forEach((btn) => {
+      btn.classList.remove("active");
+    });
+
+    const chart = this.state.charts.combined;
+    if (!chart) return;
+
+    switch (mode) {
+      case "water":
+        chart.data.datasets[0].hidden = false;
+        chart.data.datasets[1].hidden = true;
+        document.getElementById("show-water").classList.add("active");
+        break;
+      case "flow":
+        chart.data.datasets[0].hidden = true;
+        chart.data.datasets[1].hidden = false;
+        document.getElementById("show-flow").classList.add("active");
+        break;
+      case "both":
+      default:
+        chart.data.datasets[0].hidden = false;
+        chart.data.datasets[1].hidden = false;
+        document.getElementById("show-both").classList.add("active");
+        break;
     }
+
+    chart.update();
   }
 
-  /**
-   * Change chart view
-   */
-  changeChartView(chartName, viewType) {
-    console.log(`📈 Changing ${chartName} chart to ${viewType} view`);
-
-    // Update chart based on view type
-    if (this.state.charts[chartName]) {
-      // Implementation would update chart type/data
-      console.log(`Chart ${chartName} updated to ${viewType}`);
-    }
-  }
-
-  /**
-   * Filter events by severity
-   */
-  filterEvents(severity) {
-    this.state.eventFilters.severity = severity;
-    console.log(`🔍 Filtering events by severity: ${severity}`);
-
-    // Update event display
-    this.updateEventTimeline();
-  }
-
-  /**
-   * Update seasonal analysis
-   */
-  updateSeasonalAnalysis() {
-    console.log(
-      `🌧️ Updating seasonal analysis for: ${this.state.seasonFilter}`
-    );
-    // Implementation would recalculate seasonal patterns
-  }
-
-  /**
-   * Update model performance metrics
-   */
-  updateModelPerformance() {
-    console.log(
-      `🤖 Updating performance for model: ${this.state.selectedModel}`
-    );
-    // Implementation would show model-specific metrics
-  }
-
-  /**
-   * Export data in specified format
-   */
   exportData(format) {
-    console.log(`📤 Exporting data in ${format} format`);
+    console.log(`📤 Exporting data as ${format}`);
 
-    const exportData = {
-      metadata: {
-        exported: new Date().toISOString(),
-        timeRange: this.state.currentTimeRange,
-        recordCount: this.state.historicalData.length,
-      },
-      data: this.state.historicalData,
-      events: this.state.floodEvents,
-    };
+    if (!this.state.data || this.state.data.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `agos-historical-data-${this.state.currentRange}-${timestamp}`;
 
     if (format === "csv") {
-      this.exportCSV(exportData);
+      this.exportCSV(filename);
     } else if (format === "json") {
-      this.exportJSON(exportData);
+      this.exportJSON(filename);
     }
   }
 
-  /**
-   * Export as CSV
-   */
-  exportCSV(data) {
+  exportCSV(filename) {
     const headers = [
       "timestamp",
-      "waterLevel",
-      "flowRate",
-      "rainfall",
-      "temperature",
-      "humidity",
+      "water_level",
+      "flow_rate",
+      "upstream_turbidity",
+      "downstream_turbidity",
+      "battery_level",
+      "alert_status",
     ];
+
     const csvContent = [
       headers.join(","),
-      ...data.data.map((row) => headers.map((header) => row[header]).join(",")),
+      ...this.state.data.map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header];
+            return typeof value === "string" && value.includes(",")
+              ? `"${value}"`
+              : value || "";
+          })
+          .join(",")
+      ),
     ].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
+    this.downloadFile(csvContent, `${filename}.csv`, "text/csv");
+  }
+
+  exportJSON(filename) {
+    const jsonData = {
+      metadata: {
+        exported: new Date().toISOString(),
+        range: this.state.currentRange,
+        count: this.state.data.length,
+      },
+      data: this.state.data,
+    };
+
+    const jsonContent = JSON.stringify(jsonData, null, 2);
+    this.downloadFile(jsonContent, `${filename}.json`, "application/json");
+  }
+
+  downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `agos-analytics-${Date.now()}.csv`;
+    link.download = filename;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }
 
-  /**
-   * Export as JSON
-   */
-  exportJSON(data) {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `agos-analytics-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  /**
-   * Generate comprehensive analytics report
-   */
-  generateAnalyticsReport() {
-    console.log("📊 Generating comprehensive analytics report...");
-    // Implementation would generate PDF report with charts and analysis
-  }
-
-  /**
-   * Open research collaboration modal
-   */
-  openResearchModal() {
-    const modal = this.elements["research-modal"];
-    if (modal) {
-      modal.classList.remove("hidden");
-    }
-  }
-
-  /**
-   * Close research modal
-   */
-  closeResearchModal() {
-    const modal = this.elements["research-modal"];
-    if (modal) {
-      modal.classList.add("hidden");
-    }
-  }
-
-  /**
-   * Submit research collaboration request
-   */
-  submitResearchRequest() {
-    console.log("🎓 Submitting research collaboration request...");
-    // Implementation would handle research partnership requests
-    this.closeResearchModal();
-  }
-
-  /**
-   * Initialize all charts
-   */
-  initializeCharts() {
-    console.log("📈 Initializing analytics charts...");
-    // Implementation would create Chart.js instances
-  }
-
-  /**
-   * Calculate analytics and trends
-   */
-  calculateAnalytics() {
-    console.log("🔢 Calculating analytics and trends...");
-    // Implementation would perform statistical analysis
-  }
-
-  /**
-   * Start real-time data updates
-   */
-  startRealTimeUpdates() {
-    // Real-time updates from Module 1
+  startAutoRefresh() {
     setInterval(() => {
-      if (window.agosSystem) {
-        const newData = {
-          timestamp: new Date(),
-          waterLevel: window.agosSystem.state.waterLevel,
-          flowRate: window.agosSystem.state.flowRate,
-          batteryLevel: window.agosSystem.state.batteryLevel,
-        };
-
-        this.state.currentData = newData;
-        this.updateRealTimeDisplays();
-      }
-    }, this.config.REAL_TIME_UPDATE);
-
-    // Analytics recalculation
-    setInterval(() => {
-      this.calculateAnalytics();
-    }, this.config.ANALYTICS_UPDATE);
+      console.log("🔄 Auto-refreshing data...");
+      this.loadHistoricalData();
+    }, this.config.UPDATE_INTERVAL);
   }
 
-  /**
-   * Update real-time displays
-   */
-  updateRealTimeDisplays() {
-    // Update current readings display
-    if (this.state.currentData) {
-      this.safeSetText(
-        "current-level",
-        `${this.state.currentData.waterLevel.toFixed(2)} cm`
-      );
-      this.safeSetText(
-        "current-flow",
-        `${this.state.currentData.flowRate.toFixed(2)} m/s`
-      );
-    }
+  updateStatus(message) {
+    console.log(`ℹ️ Status: ${message}`);
+    // Update status indicators if needed
   }
 
-  /**
-   * Update event timeline display
-   */
-  updateEventTimeline() {
-    console.log("⏰ Updating event timeline...");
-    // Implementation would update the event timeline visualization
+  showLoading(message = "Loading...") {
+    const overlay = document.getElementById("loading-overlay");
+    const text = document.getElementById("loading-text");
+
+    if (overlay) overlay.classList.remove("hidden");
+    if (text) text.textContent = message;
+
+    this.state.isLoading = true;
   }
 
-  /**
-   * Update system status
-   */
-  updateSystemStatus(status) {
-    console.log(`ℹ️ Analytics system status: ${status}`);
-    // Safe updates (non-throwing when elements are missing)
-    this.safeSetText("data-status", this.state.dataStatus.toUpperCase());
-    this.safeSetText(
-      "analysis-status",
-      this.state.analysisStatus.toUpperCase()
-    );
-  }
-
-  /**
-   * Handle system error
-   */
-  handleSystemError(error) {
-    console.error("💥 Analytics system error:", error);
-    this.updateSystemStatus(`Error: ${error.message}`);
-  }
-
-  /**
-   * Handle window resize
-   */
-  handleWindowResize() {
-    // Resize charts if they exist
-    Object.values(this.state.charts).forEach((chart) => {
-      if (chart && chart.resize) {
-        chart.resize();
-      }
-    });
-  }
-
-  /**
-   * Handle visibility change
-   */
-  handleVisibilityChange() {
-    if (document.hidden) {
-      console.log("📱 Analytics page hidden");
-    } else {
-      console.log("👁️ Analytics page visible");
-      this.calculateAnalytics(); // Refresh when page becomes visible
-    }
-  }
-
-  /**
-   * Show loading overlay
-   */
-  showLoading(message) {
-    const overlay = this.elements["loading-overlay"];
-
-    if (overlay) {
-      overlay.classList.remove("hidden");
-    }
-
-    // Use safeSetText for loading text to avoid missing element errors
-    this.safeSetText("loading-text", message);
-  }
-
-  /**
-   * Hide loading overlay
-   */
   hideLoading() {
-    const overlay = this.elements["loading-overlay"];
-    if (overlay) {
-      overlay.classList.add("hidden");
-    }
+    const overlay = document.getElementById("loading-overlay");
+    if (overlay) overlay.classList.add("hidden");
+
+    this.state.isLoading = false;
   }
 
-  /**
-   * Utility delay function
-   */
-  delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  safeSetText(id, text) {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = text;
+    }
   }
 }
 
-// Initialize the analytics system when DOM is ready
+// Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  window.agosAnalyticsSystem = new AGOSAnalyticsSystem();
+  console.log("🌊 Initializing AGOS Historical Data System...");
+  window.agosHistoricalData = new AGOSHistoricalData();
 });
