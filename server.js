@@ -205,6 +205,293 @@ app.get("/api/flood-events", (req, res) => {
   res.json(events);
 });
 
+// ========================================
+// Android SMS Gateway Webhook Receiver
+// ========================================
+// Receives incoming SMS notifications from Android SMS Gateway
+app.post("/api/sms-webhook", express.json(), (req, res) => {
+  console.log("📩 Incoming SMS webhook received");
+  console.log("📄 Webhook payload:", JSON.stringify(req.body, null, 2));
+
+  try {
+    const { event, payload } = req.body;
+
+    if (event === "sms:received") {
+      const { messageId, message, phoneNumber, simNumber, receivedAt } =
+        payload;
+
+      console.log(`📱 SMS Received:`);
+      console.log(`  From: ${phoneNumber}`);
+      console.log(`  Message: ${message}`);
+      console.log(`  SIM: ${simNumber}`);
+      console.log(`  Time: ${receivedAt}`);
+
+      // Broadcast to all connected WebSocket clients (Module 4)
+      const notification = {
+        type: "sms-received",
+        messageId,
+        phoneNumber,
+        message,
+        simNumber,
+        receivedAt,
+        timestamp: new Date().toISOString(),
+      };
+
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(notification));
+        }
+      });
+
+      console.log(
+        `✅ Incoming SMS broadcasted to ${wss.clients.size} WebSocket clients`
+      );
+
+      // Optional: Store in database or log file
+      // You can add database storage here if needed
+
+      res.json({
+        success: true,
+        message: "SMS webhook received and processed",
+      });
+    } else {
+      console.log(`⚠️ Unknown event type: ${event}`);
+      res.json({
+        success: true,
+        message: "Event received but not processed",
+      });
+    }
+  } catch (error) {
+    console.error("❌ Error processing SMS webhook:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      message: error.message,
+    });
+  }
+});
+
+// SMS Logging Endpoint (receives logs from Module 4)
+app.post("/api/sms-sent-log", express.json(), (req, res) => {
+  console.log("📤 SMS Sent Log received");
+  console.log("📄 Log data:", JSON.stringify(req.body, null, 2));
+
+  try {
+    const {
+      alertType,
+      message,
+      recipients,
+      timestamp,
+      operator,
+      gatewayMode,
+      gatewayResponse,
+    } = req.body;
+
+    console.log(`✅ SMS Alert Logged:`);
+    console.log(`  Type: ${alertType}`);
+    console.log(`  Operator: ${operator}`);
+    console.log(`  Recipients: ${recipients ? recipients.length : 0}`);
+    console.log(`  Gateway: Android SMS Gateway (${gatewayMode} mode)`);
+    console.log(`  Time: ${timestamp}`);
+
+    // Optional: Store in database
+    // db.run("INSERT INTO sms_logs ...");
+
+    res.json({
+      success: true,
+      message: "SMS log recorded",
+    });
+  } catch (error) {
+    console.error("❌ Error logging SMS:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+});
+
+// Recipients Management API
+const recipientsFile = path.join(__dirname, "recipients.json");
+
+// Get all recipients
+app.get("/api/recipients", (req, res) => {
+  try {
+    if (fs.existsSync(recipientsFile)) {
+      const data = fs.readFileSync(recipientsFile, "utf8");
+      const recipientsData = JSON.parse(data);
+      res.json({
+        success: true,
+        recipients: recipientsData.recipients || [],
+        count: (recipientsData.recipients || []).length,
+      });
+    } else {
+      res.json({ success: true, recipients: [], count: 0 });
+    }
+  } catch (error) {
+    console.error("❌ Error reading recipients:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to read recipients" });
+  }
+});
+
+// Add recipient
+app.post("/api/recipients", express.json(), (req, res) => {
+  try {
+    const { phoneNumber, name, role } = req.body;
+
+    if (!phoneNumber) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
+
+    // Read current recipients
+    let recipients = { recipients: [] };
+    if (fs.existsSync(recipientsFile)) {
+      const data = fs.readFileSync(recipientsFile, "utf8");
+      recipients = JSON.parse(data);
+    }
+
+    // Add new recipient
+    const newRecipient = {
+      phoneNumber,
+      name: name || "Unknown",
+      role: role || "Resident",
+      addedAt: new Date().toISOString(),
+    };
+
+    recipients.recipients.push(newRecipient);
+
+    // Save to file
+    fs.writeFileSync(recipientsFile, JSON.stringify(recipients, null, 2));
+
+    console.log(`✅ Recipient added: ${phoneNumber}`);
+    res.json({
+      success: true,
+      recipient: newRecipient,
+      recipients: recipients.recipients,
+      count: recipients.recipients.length,
+    });
+  } catch (error) {
+    console.error("❌ Error adding recipient:", error);
+    res.status(500).json({ success: false, error: "Failed to add recipient" });
+  }
+});
+
+// Delete recipient
+app.delete("/api/recipients/:phoneNumber", (req, res) => {
+  try {
+    const phoneNumber = decodeURIComponent(req.params.phoneNumber);
+
+    if (!fs.existsSync(recipientsFile)) {
+      return res
+        .status(404)
+        .json({ success: false, error: "No recipients found" });
+    }
+
+    const data = fs.readFileSync(recipientsFile, "utf8");
+    const recipients = JSON.parse(data);
+
+    // Filter out the recipient
+    const originalLength = recipients.recipients.length;
+    recipients.recipients = recipients.recipients.filter(
+      (r) => r.phoneNumber !== phoneNumber && r !== phoneNumber
+    );
+
+    if (recipients.recipients.length === originalLength) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Recipient not found" });
+    }
+
+    // Save to file
+    fs.writeFileSync(recipientsFile, JSON.stringify(recipients, null, 2));
+
+    console.log(`✅ Recipient deleted: ${phoneNumber}`);
+    res.json({
+      success: true,
+      phoneNumber,
+      recipients: recipients.recipients,
+      count: recipients.recipients.length,
+    });
+  } catch (error) {
+    console.error("❌ Error deleting recipient:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to delete recipient" });
+  }
+});
+
+// SMS Gateway Proxy Endpoint (to avoid CORS issues)
+app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
+  try {
+    const { mode, credentials, payload } = req.body;
+
+    console.log("📱 SMS Gateway Proxy Request:");
+    console.log("  Mode:", mode);
+    console.log("  URL:", credentials.url);
+    console.log("  Recipients:", payload.phoneNumbers.length);
+    console.log("  Payload:", JSON.stringify(payload, null, 2));
+
+    // Create Basic Auth header
+    const auth = Buffer.from(
+      `${credentials.username}:${credentials.password}`
+    ).toString("base64");
+
+    // Determine which module to use (http or https)
+    const isHttps = credentials.url.startsWith("https");
+    const httpModule = isHttps ? require("https") : require("http");
+    const urlModule = require("url");
+    const parsedUrl = new URL(credentials.url);
+
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (isHttps ? 443 : 80),
+      path: parsedUrl.pathname,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${auth}`,
+        "Content-Length": Buffer.byteLength(JSON.stringify(payload)),
+      },
+    };
+
+    // Make request to Android SMS Gateway
+    const proxyReq = httpModule.request(options, (proxyRes) => {
+      let data = "";
+
+      proxyRes.on("data", (chunk) => {
+        data += chunk;
+      });
+
+      proxyRes.on("end", () => {
+        console.log(`✅ SMS Gateway Response: ${proxyRes.statusCode}`);
+        console.log("📄 Response:", data);
+
+        try {
+          const response = JSON.parse(data);
+          res.status(proxyRes.statusCode).json(response);
+        } catch (e) {
+          res.status(proxyRes.statusCode).send(data);
+        }
+      });
+    });
+
+    proxyReq.on("error", (error) => {
+      console.error("❌ SMS Gateway Proxy Error:", error);
+      res.status(500).json({
+        error: "Failed to connect to SMS Gateway",
+        message: error.message,
+      });
+    });
+
+    proxyReq.write(JSON.stringify(payload));
+    proxyReq.end();
+  } catch (error) {
+    console.error("❌ Error in SMS Gateway Proxy:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // WebSocket Server for real-time data
 const server = require("http").createServer(app);
 const wss = new WebSocket.Server({ server });

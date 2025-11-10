@@ -12,6 +12,21 @@ class AGOSEmergencySystem {
       ACCESS_CODES: {
         "agos-admin": "agosadmin2025",
       },
+      // Android SMS Gateway Configuration
+      SMS_GATEWAY: {
+        mode: "cloud", // 'local' or 'cloud'
+        simNumber: 1, // SIM card slot number (1 or 2) - helps with RESULT_NO_DEFAULT_SMS_APP error
+        local: {
+          url: "http://192.168.1.3:8080/message",
+          username: "sms",
+          password: "2mTCnAtq",
+        },
+        cloud: {
+          url: "https://api.sms-gate.app/3rdparty/v1/message",
+          username: "PZPOWL",
+          password: "xd4cdwgmw6-z-k",
+        },
+      },
     };
 
     this.state = {
@@ -40,7 +55,7 @@ class AGOSEmergencySystem {
     this.elements = {};
     this.socket = null; // WebSocket connection
 
-    // Global Alert Cooldown System (3 minutes)
+    // Global Alert Cooldown System (10 seconds)
     this.globalAlertCooldown = {
       active: false,
       endTime: null,
@@ -186,9 +201,9 @@ class AGOSEmergencySystem {
   async loadRecipients() {
     try {
       console.log("📱 Loading SMS recipients from server...");
-      console.log("🔗 Fetching from: /api/sms-recipients");
+      console.log("🔗 Fetching from: /api/recipients");
 
-      const response = await fetch("/api/sms-recipients");
+      const response = await fetch("/api/recipients");
       console.log("📡 Response status:", response.status, response.statusText);
 
       if (!response.ok) {
@@ -218,9 +233,9 @@ class AGOSEmergencySystem {
   async addRecipient(phoneNumber) {
     try {
       console.log("📱 Adding new recipient:", phoneNumber);
-      console.log("🔗 Posting to: /api/sms-recipients");
+      console.log("🔗 Posting to: /api/recipients");
 
-      const response = await fetch("/api/sms-recipients", {
+      const response = await fetch("/api/recipients", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -264,13 +279,15 @@ class AGOSEmergencySystem {
     try {
       console.log("🗑️ Deleting recipient:", phoneNumber);
 
-      const response = await fetch("/api/sms-recipients", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phoneNumber: phoneNumber }),
-      });
+      const response = await fetch(
+        `/api/recipients/${encodeURIComponent(phoneNumber)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data = await response.json();
 
@@ -323,7 +340,15 @@ class AGOSEmergencySystem {
         console.log("📝 Showing 'no recipients' message");
       } else {
         console.log("📝 Rendering recipients list...");
-        this.state.recipients.forEach((phoneNumber, index) => {
+        this.state.recipients.forEach((recipient, index) => {
+          // Handle both string and object formats
+          const phoneNumber =
+            typeof recipient === "string" ? recipient : recipient.phoneNumber;
+          const name =
+            typeof recipient === "object" && recipient.name
+              ? recipient.name
+              : "Unknown";
+
           const recipientDiv = document.createElement("div");
           recipientDiv.className = "recipient-item";
           recipientDiv.innerHTML = `
@@ -535,22 +560,15 @@ class AGOSEmergencySystem {
           return;
         }
 
-        // START COOLDOWN IMMEDIATELY (before modal opens)
-        startGlobalCooldown(this);
-
-        // Determine alert type from button class
-        let alertType = "info"; // default
-        if (button.classList.contains("critical")) {
-          alertType = "critical";
-        } else if (button.classList.contains("warning")) {
-          alertType = "warning";
-        } else if (button.classList.contains("all-clear")) {
-          alertType = "all-clear";
-        }
+        // Determine alert type from data-alert attribute
+        const alertCard = button.closest("[data-alert]");
+        const alertType = alertCard
+          ? alertCard.getAttribute("data-alert")
+          : "weather-update";
 
         console.log(`📱 Alert type determined: ${alertType}`);
 
-        // Send SMS command
+        // Send SMS command (cooldown starts AFTER successful send)
         this.sendSMSAlert(alertType, button);
       });
     });
@@ -562,8 +580,16 @@ class AGOSEmergencySystem {
   }
 
   async sendSMSAlert(alertType, button) {
+    // Check if global cooldown is active
+    if (isGlobalCooldownActive()) {
+      console.log("⏳ Alert blocked - global cooldown is active");
+      return;
+    }
+
     try {
-      console.log(`📱 Sending ${alertType} SMS alert...`);
+      console.log(
+        `📱 Sending ${alertType} SMS alert via Android SMS Gateway...`
+      );
       console.log("📊 Current system state:", {
         operator: this.state.currentOperator,
         recipientCount: this.state.recipientCount,
@@ -580,67 +606,133 @@ class AGOSEmergencySystem {
         return;
       }
 
+      // Get SMS Gateway configuration
+      const gateway = this.config.SMS_GATEWAY;
+      const mode = gateway.mode;
+      const credentials = gateway[mode];
+
+      // Check if SMS Gateway is configured
+      if (!credentials.username || !credentials.password) {
+        alert(
+          `⚠️ Android SMS Gateway not configured!\n\nPlease update the credentials in module4-app.js:\n\nSMS_GATEWAY.${mode}.username\nSMS_GATEWAY.${mode}.password\n\nSee ANDROID_SMS_GATEWAY_SETUP.md for instructions.`
+        );
+        console.error("❌ SMS Gateway credentials not set");
+        return;
+      }
+
+      // Get final message (custom or default)
+      const message = getFinalMessage(alertType);
+
       // Show loading
       const originalText = button.innerHTML;
       button.innerHTML = "<span>📤 Sending...</span>";
       button.disabled = true;
 
-      // Prepare SMS data
-      const smsData = {
-        alertType: alertType,
-        operator: this.state.currentOperator,
-        timestamp: new Date().toISOString(),
-        sensorData: this.state.sensorData,
-        recipients: this.state.recipients,
-        recipientCount: this.state.recipientCount,
+      // Prepare Android SMS Gateway API payload
+      const payload = {
+        textMessage: {
+          Text: message,
+        },
+        phoneNumbers: this.state.recipients.map((r) =>
+          typeof r === "string" ? r : r.phoneNumber
+        ),
       };
 
-      console.log("📤 Sending SMS data to server:", smsData);
+      // Add SIM number if specified (helps with RESULT_NO_DEFAULT_SMS_APP error)
+      if (this.config.SMS_GATEWAY.simNumber) {
+        payload.simNumber = this.config.SMS_GATEWAY.simNumber;
+      }
 
-      // Send to server
-      const response = await fetch("/api/send-sms", {
+      // Create Basic Auth header
+      const authHeader =
+        "Basic " + btoa(credentials.username + ":" + credentials.password);
+
+      console.log("📤 Sending to Android SMS Gateway via proxy:", {
+        mode: mode,
+        url: credentials.url,
+        recipients: payload.phoneNumbers.length,
+      });
+
+      // Send through server proxy to avoid CORS issues
+      const response = await fetch("/api/sms-gateway-proxy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(smsData),
+        body: JSON.stringify({
+          mode: mode,
+          credentials: credentials,
+          payload: payload,
+        }),
       });
 
-      console.log(
-        "📡 Server response status:",
-        response.status,
-        response.statusText
-      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `SMS Gateway returned ${response.status}: ${errorText}`
+        );
+      }
 
       const result = await response.json();
-      console.log("📄 Server response data:", result);
+      console.log("✅ SMS Gateway response:", result);
 
-      if (result.success) {
-        console.log("✅ SMS command sent successfully to server");
-        button.innerHTML = "<span>✅ Sent!</span>";
+      // Also send notification to server for logging
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        const logData = {
+          type: "sms-sent-log",
+          alertType: alertType,
+          message: message,
+          recipients: this.state.recipients.map((r) =>
+            typeof r === "string" ? r : r.phoneNumber
+          ),
+          timestamp: new Date().toISOString(),
+          operator: this.state.currentOperator,
+          gatewayMode: mode,
+          gatewayResponse: result,
+        };
+        this.socket.send(JSON.stringify(logData));
+      }
 
-        // Show success message
-        alert(`✅ SMS Alert Queued Successfully!
+      // Start global cooldown for ALL buttons
+      startGlobalCooldown(this);
+
+      // Show success message
+      button.innerHTML = "<span>✅ Sent!</span>";
+      alert(`✅ SMS Alert Sent Successfully!
 
 📱 Alert Type: ${alertType.toUpperCase()}
 👤 Operator: ${this.state.currentOperator}
 📞 Recipients: ${this.state.recipientCount} phone numbers
 📊 Water Level: ${this.state.sensorData.waterLevel.toFixed(1)} inches
 🌊 Flow Rate: ${this.state.sensorData.flowRate.toFixed(2)} m/s
+🌐 Gateway: Android SMS Gateway (${mode} mode)
 
-⏳ The alert has been queued for Arduino to send via GSM.
-The system will broadcast SMS to all recipients shortly.`);
+✅ Messages sent via Android SMS Gateway!`);
 
-        setTimeout(() => {
-          button.innerHTML = originalText;
-          button.disabled = false;
-        }, 3000);
-      } else {
-        throw new Error(result.message || "Failed to send SMS");
-      }
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }, 3000);
     } catch (error) {
-      console.error("❌ Error sending SMS:", error);
-      alert("Failed to send SMS alert: " + error.message);
+      console.error("❌ Error sending SMS via Android Gateway:", error);
+
+      let errorMessage = "Failed to send SMS alert: " + error.message;
+
+      // Add helpful troubleshooting tips
+      if (error.message.includes("Failed to fetch")) {
+        errorMessage += "\n\n🔍 Troubleshooting:\n";
+        errorMessage += "1. Ensure Android SMS Gateway app is running\n";
+        errorMessage += "2. Check phone is on same network (Local mode)\n";
+        errorMessage += "3. Verify the phone's IP address is correct\n";
+        errorMessage +=
+          "4. Test URL in browser: " +
+          this.config.SMS_GATEWAY[this.config.SMS_GATEWAY.mode].url;
+      } else if (error.message.includes("401")) {
+        errorMessage +=
+          "\n\n🔐 Authentication failed - check username/password";
+      }
+
+      alert(errorMessage);
 
       // Reset button
       button.innerHTML = originalText;
@@ -1250,12 +1342,12 @@ function loadCustomMessages() {
 
 // ==================== GLOBAL ALERT COOLDOWN SYSTEM ====================
 
-// Start global 3-minute cooldown for ALL alert buttons
+// Start global 10-second cooldown for ALL alert buttons
 function startGlobalCooldown(agosSystem) {
-  const COOLDOWN_DURATION = 180000; // 3 minutes in milliseconds
+  const COOLDOWN_DURATION = 10000; // 10 seconds in milliseconds
   const endTime = Date.now() + COOLDOWN_DURATION;
 
-  console.log("⏳ Starting global alert cooldown (3 minutes)");
+  console.log("⏳ Starting global alert cooldown (10 seconds)");
   console.log(
     "📋 Button elements available:",
     Object.keys(agosSystem.alertButtonElements)

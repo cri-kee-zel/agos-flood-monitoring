@@ -1,6 +1,16 @@
 {
   "recipients": [
-    "+639691467590",
-    "+639937329850"
+    {
+      "phoneNumber": "+639937329850",
+      "name": "Unknown",
+      "role": "Resident",
+      "addedAt": "2025-11-09T14:00:00.000Z"
+    },
+    {
+      "phoneNumber": "+639691467590",
+      "name": "Unknown",
+      "role": "Resident",
+      "addedAt": "2025-11-09T14:05:24.902Z"
+    }
   ]
 }
