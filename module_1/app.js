@@ -726,6 +726,8 @@ class AGOSSystem {
     console.log("🚨 EMERGENCY ALERT ACTIVATED");
     this.state.emergencyActive = true;
 
+    // DISABLED: Emergency banner hidden by default (auto-SMS handles alerts)
+    /*
     const banner = this.elements["emergency-banner"];
     const levelElement = this.elements["emergency-level"];
 
@@ -747,6 +749,7 @@ class AGOSSystem {
 
     // Play alert sound (browser API)
     this.playAlertSound();
+    */
 
     // Log emergency event
     this.logEmergencyEvent("EMERGENCY_ACTIVATED", {

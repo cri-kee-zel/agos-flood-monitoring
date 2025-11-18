@@ -49,6 +49,12 @@ class AGOSEmergencySystem {
       // SMS Recipients Management
       recipients: [],
       recipientCount: 0,
+      
+      // Auto-alert tracking
+      autoAlertSent: {
+        flashFlood: false,  // Track if 19" alert was sent
+        floodWatch: false,  // Track if 10" alert was sent
+      },
     };
 
     this.elements = {};
@@ -201,9 +207,9 @@ class AGOSEmergencySystem {
 
   /**
    * Auto-enable/disable alert buttons based on water level
-   * - Flash Flood (red/critical): enabled at 19+ inches
-   * - Flood Watch (yellow/warning): enabled at 10+ inches
-   * - Both disabled below 10 inches
+   * - Flash Flood (red/critical): AUTO-SEND SMS at 19+ inches
+   * - Flood Watch (yellow/warning): AUTO-SEND SMS at 10+ inches
+   * - Both disabled below thresholds
    */
   updateAlertButtons() {
     const waterLevel = this.state.sensorData.waterLevel;
@@ -217,15 +223,21 @@ class AGOSEmergencySystem {
       return;
     }
 
-    // Flash Flood Alert (EMERGENCY) - Enable at 19+ inches
+    // Flash Flood Alert (EMERGENCY) - AUTO-SEND at 19+ inches
     if (waterLevel >= 19) {
-      flashFloodBtn.disabled = false;
-      flashFloodBtn.style.opacity = "1";
-      flashFloodBtn.style.cursor = "pointer";
+      flashFloodBtn.disabled = true; // Disable button (auto-send only)
+      flashFloodBtn.style.opacity = "0.5";
+      flashFloodBtn.style.cursor = "not-allowed";
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
         1
-      )}" - EMERGENCY threshold reached`;
-      console.log('🚨 Flash Flood Alert ENABLED (water level >= 19")');
+      )}" - Auto-alert active`;
+      
+      // AUTO-SEND Flash Flood SMS (only once when threshold crossed)
+      if (!this.state.autoAlertSent.flashFlood && this.state.operatorLoggedIn) {
+        console.log('🚨 AUTO-SENDING Flash Flood Alert at 19"');
+        this.autoSendSMS('flash-flood');
+        this.state.autoAlertSent.flashFlood = true;
+      }
     } else {
       flashFloodBtn.disabled = true;
       flashFloodBtn.style.opacity = "0.5";
@@ -233,18 +245,29 @@ class AGOSEmergencySystem {
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
         1
       )}" - Requires 19+ inches`;
-      console.log('🚫 Flash Flood Alert DISABLED (water level < 19")');
+      
+      // Reset auto-alert flag when water level drops
+      if (this.state.autoAlertSent.flashFlood) {
+        this.state.autoAlertSent.flashFlood = false;
+        console.log('🔄 Flash Flood auto-alert reset');
+      }
     }
 
-    // Flood Watch Alert (ALERT) - Enable at 10+ inches
+    // Flood Watch Alert (ALERT) - AUTO-SEND at 10+ inches
     if (waterLevel >= 10) {
-      floodWatchBtn.disabled = false;
-      floodWatchBtn.style.opacity = "1";
-      floodWatchBtn.style.cursor = "pointer";
+      floodWatchBtn.disabled = true; // Disable button (auto-send only)
+      floodWatchBtn.style.opacity = "0.5";
+      floodWatchBtn.style.cursor = "not-allowed";
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
         1
-      )}" - ALERT threshold reached`;
-      console.log('⚠️ Flood Watch Alert ENABLED (water level >= 10")');
+      )}" - Auto-alert active`;
+      
+      // AUTO-SEND Flood Watch SMS (only once when threshold crossed)
+      if (!this.state.autoAlertSent.floodWatch && this.state.operatorLoggedIn) {
+        console.log('⚠️ AUTO-SENDING Flood Watch Alert at 10"');
+        this.autoSendSMS('flood-watch');
+        this.state.autoAlertSent.floodWatch = true;
+      }
     } else {
       floodWatchBtn.disabled = true;
       floodWatchBtn.style.opacity = "0.5";
@@ -252,7 +275,32 @@ class AGOSEmergencySystem {
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
         1
       )}" - Requires 10+ inches`;
-      console.log('🚫 Flood Watch Alert DISABLED (water level < 10")');
+      
+      // Reset auto-alert flag when water level drops
+      if (this.state.autoAlertSent.floodWatch) {
+        this.state.autoAlertSent.floodWatch = false;
+        console.log('🔄 Flood Watch auto-alert reset');
+      }
+    }
+  }
+
+  /**
+   * Auto-send SMS alert (called automatically when threshold reached)
+   */
+  async autoSendSMS(alertType) {
+    console.log(`🤖 AUTO-SENDING ${alertType} alert...`);
+    
+    // Check if there are recipients
+    if (this.state.recipients.length === 0) {
+      console.warn('⚠️ No recipients configured - skipping auto-send');
+      return;
+    }
+    
+    // Call the existing sendSMSAlert function
+    try {
+      await this.sendSMSAlert(alertType, null);
+    } catch (error) {
+      console.error('❌ Auto-send failed:', error);
     }
   }
 
