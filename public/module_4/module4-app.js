@@ -294,14 +294,16 @@ class AGOSEmergencySystem {
         1
       )}" - Requires 10+ inches`;
 
-      // Reset both auto-alert flags when water level drops below 10"
-      if (this.state.autoAlertSent.flashFlood) {
-        this.state.autoAlertSent.flashFlood = false;
-        console.log("🔄 Flash Flood auto-alert reset");
-      }
-      if (this.state.autoAlertSent.floodWatch) {
-        this.state.autoAlertSent.floodWatch = false;
-        console.log("🔄 Flood Watch auto-alert reset");
+      // Reset both auto-alert flags ONLY when water level is at 0" (start of new cycle)
+      if (waterLevel < 1) {
+        if (this.state.autoAlertSent.flashFlood) {
+          this.state.autoAlertSent.flashFlood = false;
+          console.log("🔄 Flash Flood auto-alert reset (new cycle at 0\")");
+        }
+        if (this.state.autoAlertSent.floodWatch) {
+          this.state.autoAlertSent.floodWatch = false;
+          console.log("🔄 Flood Watch auto-alert reset (new cycle at 0\")");
+        }
       }
     }
   }
