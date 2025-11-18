@@ -223,14 +223,26 @@ class AGOSEmergencySystem {
       return;
     }
 
-    // Flash Flood Alert (EMERGENCY) - AUTO-SEND at 19+ inches
+    // Logic based on water level thresholds:
+    // 19" - Enable BOTH buttons, auto-send Flash Flood
+    // 10" - Disable Flash Flood, Enable Flood Watch, auto-send Flood Watch
+    // 2" - Disable BOTH buttons
+
     if (waterLevel >= 19) {
-      flashFloodBtn.disabled = true; // Disable button (auto-send only)
-      flashFloodBtn.style.opacity = "0.5";
-      flashFloodBtn.style.cursor = "not-allowed";
+      // AT 19 INCHES: Enable BOTH buttons, auto-send Flash Flood once
+      flashFloodBtn.disabled = false;
+      flashFloodBtn.style.opacity = "1";
+      flashFloodBtn.style.cursor = "pointer";
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
         1
-      )}" - Auto-alert active`;
+      )}" - Flash Flood Alert Ready`;
+
+      floodWatchBtn.disabled = false;
+      floodWatchBtn.style.opacity = "1";
+      floodWatchBtn.style.cursor = "pointer";
+      floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
+        1
+      )}" - Flood Watch Ready`;
 
       // AUTO-SEND Flash Flood SMS (only once when threshold crossed)
       if (!this.state.autoAlertSent.flashFlood && this.state.operatorLoggedIn) {
@@ -238,7 +250,8 @@ class AGOSEmergencySystem {
         this.autoSendSMS("flash-flood");
         this.state.autoAlertSent.flashFlood = true;
       }
-    } else {
+    } else if (waterLevel >= 10) {
+      // AT 10 INCHES: Disable Flash Flood, Enable Flood Watch, auto-send Flood Watch once
       flashFloodBtn.disabled = true;
       flashFloodBtn.style.opacity = "0.5";
       flashFloodBtn.style.cursor = "not-allowed";
@@ -246,21 +259,12 @@ class AGOSEmergencySystem {
         1
       )}" - Requires 19+ inches`;
 
-      // Reset auto-alert flag when water level drops
-      if (this.state.autoAlertSent.flashFlood) {
-        this.state.autoAlertSent.flashFlood = false;
-        console.log("🔄 Flash Flood auto-alert reset");
-      }
-    }
-
-    // Flood Watch Alert (ALERT) - AUTO-SEND at 10+ inches
-    if (waterLevel >= 10) {
-      floodWatchBtn.disabled = true; // Disable button (auto-send only)
-      floodWatchBtn.style.opacity = "0.5";
-      floodWatchBtn.style.cursor = "not-allowed";
+      floodWatchBtn.disabled = false;
+      floodWatchBtn.style.opacity = "1";
+      floodWatchBtn.style.cursor = "pointer";
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
         1
-      )}" - Auto-alert active`;
+      )}" - Flood Watch Ready`;
 
       // AUTO-SEND Flood Watch SMS (only once when threshold crossed)
       if (!this.state.autoAlertSent.floodWatch && this.state.operatorLoggedIn) {
@@ -268,7 +272,21 @@ class AGOSEmergencySystem {
         this.autoSendSMS("flood-watch");
         this.state.autoAlertSent.floodWatch = true;
       }
+
+      // Reset Flash Flood flag when dropping below 19"
+      if (this.state.autoAlertSent.flashFlood) {
+        this.state.autoAlertSent.flashFlood = false;
+        console.log('🔄 Flash Flood auto-alert reset (below 19")');
+      }
     } else {
+      // BELOW 10 INCHES (including at 2"): Disable BOTH buttons
+      flashFloodBtn.disabled = true;
+      flashFloodBtn.style.opacity = "0.5";
+      flashFloodBtn.style.cursor = "not-allowed";
+      flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
+        1
+      )}" - Requires 19+ inches`;
+
       floodWatchBtn.disabled = true;
       floodWatchBtn.style.opacity = "0.5";
       floodWatchBtn.style.cursor = "not-allowed";
@@ -276,7 +294,11 @@ class AGOSEmergencySystem {
         1
       )}" - Requires 10+ inches`;
 
-      // Reset auto-alert flag when water level drops
+      // Reset both auto-alert flags when water level drops below 10"
+      if (this.state.autoAlertSent.flashFlood) {
+        this.state.autoAlertSent.flashFlood = false;
+        console.log("🔄 Flash Flood auto-alert reset");
+      }
       if (this.state.autoAlertSent.floodWatch) {
         this.state.autoAlertSent.floodWatch = false;
         console.log("🔄 Flood Watch auto-alert reset");
