@@ -496,11 +496,42 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
 const server = require("http").createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// Timed simulation sequence - floods gradually over 4 minutes, then resets after 3 more minutes
+const simulationSequence = [
+  { time: 0, level: 0 }, // Start: 0 inches
+  { time: 60, level: 2 }, // 1 minute: 2 inches (ankle)
+  { time: 180, level: 10 }, // 3 minutes: 10 inches (half knee) - ALERT
+  { time: 240, level: 19 }, // 4 minutes: 19 inches (knee) - EMERGENCY
+  { time: 420, level: 0 }, // 7 minutes (4min + 3min): reset to 0
+];
+
+const SIMULATION_CYCLE_DURATION = 420; // Loop every 7 minutes (4 min sequence + 3 min wait)
+let simulationStartTime = Date.now();
+
+function getSimulatedWaterLevel() {
+  const totalElapsed = (Date.now() - simulationStartTime) / 1000;
+  const elapsedSeconds = totalElapsed % SIMULATION_CYCLE_DURATION; // Loop every 7 minutes
+
+  // Find the exact level based on time - NO interpolation, instant jumps only
+  let currentLevel = 0;
+  for (let i = simulationSequence.length - 1; i >= 0; i--) {
+    if (elapsedSeconds >= simulationSequence[i].time) {
+      currentLevel = simulationSequence[i].level;
+      break;
+    }
+  }
+
+  return currentLevel;
+}
+
 wss.on("connection", (ws, req) => {
   console.log(
     "📡 New WebSocket connection from:",
     req.connection.remoteAddress
   );
+
+  // Reset simulation timer for each new connection
+  simulationStartTime = Date.now();
 
   // Send initial sensor data
   ws.send(
@@ -518,14 +549,14 @@ wss.on("connection", (ws, req) => {
   // Set up periodic data sending
   const interval = setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
-      // Use real Arduino data if available, otherwise simulate
+      // Use real Arduino data if available, otherwise use timed simulation
       const dataAge =
         Date.now() - new Date(latestArduinoData.timestamp).getTime();
       const useRealData = latestArduinoData.connected && dataAge < 30000; // Use if less than 30s old
 
       const waterLevel = useRealData
         ? latestArduinoData.waterLevel
-        : Math.random() * 20; // Simulate 0-20 inches
+        : getSimulatedWaterLevel(); // Use timed sequence simulation
 
       console.log(`📤 Sending water level: ${waterLevel.toFixed(2)} inches`);
 
