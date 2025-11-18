@@ -496,16 +496,16 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
 const server = require("http").createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Timed simulation sequence - floods gradually over 4 minutes, then resets after 3 more minutes
+// Timed simulation sequence - new timing: 90s → 330s → 580s → reset after 3min
 const simulationSequence = [
-  { time: 0, level: 0 }, // Start: 0 inches
-  { time: 60, level: 2 }, // 1 minute: 2 inches (ankle)
-  { time: 180, level: 10 }, // 3 minutes: 10 inches (half knee) - ALERT
-  { time: 240, level: 19 }, // 4 minutes: 19 inches (knee) - EMERGENCY
-  { time: 420, level: 0 }, // 7 minutes (4min + 3min): reset to 0
+  { time: 0, level: 0 }, // Start: 0 inches - Both buttons disabled
+  { time: 90, level: 2 }, // 1min 30s: 2 inches (ankle) - Both buttons disabled
+  { time: 330, level: 10 }, // 5min 30s: 10 inches (half knee) - Flood Watch enabled + auto-sends
+  { time: 580, level: 19 }, // 9min 40s: 19 inches (knee) - Both buttons enabled + Flash Flood auto-sends
+  { time: 760, level: 0 }, // 12min 40s (9:40 + 3min): reset to 0
 ];
 
-const SIMULATION_CYCLE_DURATION = 420; // Loop every 7 minutes (4 min sequence + 3 min wait)
+const SIMULATION_CYCLE_DURATION = 760; // Loop every 12 minutes 40 seconds
 let simulationStartTime = Date.now();
 
 function getSimulatedWaterLevel() {
