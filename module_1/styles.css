@@ -346,6 +346,9 @@ body {
 .scale-mark[data-level="0"] {
   bottom: 0%; /* 0" - at bottom */
 }
+.scale-mark[data-level="2"] {
+  bottom: 4.44%; /* 2" = 20px from bottom (2/45 * 100) - ANKLE LEVEL */
+}
 .scale-mark[data-level="8"] {
   bottom: 17.78%; /* 8" = 80px from bottom (8/45 * 100) */
 }

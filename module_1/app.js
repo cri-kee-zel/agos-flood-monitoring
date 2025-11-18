@@ -17,12 +17,12 @@ class AGOSSystem {
       MAX_RECONNECT_ATTEMPTS: 10, // Maximum retries before giving up on connection
 
       // Emergency thresholds (configurable based on river characteristics)
-      ALERT_LEVEL: 100, // cm - Yellow alert when water reaches 1 meter
-      EMERGENCY_LEVEL: 150, // cm - Red alert at 1.5 meters (flood conditions)
+      ALERT_LEVEL: 19, // inches - Yellow alert at knee level (19 inches)
+      EMERGENCY_LEVEL: 37, // inches - Red alert at waist level (37 inches)
       CRITICAL_FLOW: 1.2, // m/s - Dangerous flow rate threshold
 
       // System operational limits (hardware constraints)
-      MAX_WATER_LEVEL: 300, // cm - Maximum sensor range (3 meters)
+      MAX_WATER_LEVEL: 45, // inches - Maximum sensor range (45 inches = 450px visual height, 10px per inch)
       MAX_FLOW_RATE: 5.0, // m/s - Maximum flow rate the sensors can detect
 
       // Battery management thresholds
@@ -39,7 +39,7 @@ class AGOSSystem {
       emergencyActive: false, // Flag indicating if emergency alert is active
 
       // Real-time sensor data from Arduino hardware
-      waterLevel: 0.0, // cm - From optical encoder on float system
+      waterLevel: 0.0, // inches - From optical encoder on float system
       flowRate: 0.0, // m/s - Calculated from POF turbidity sensors
       upstreamTurbidity: 0.0, // Upstream POF sensor reading (normalized 0-1)
       downstreamTurbidity: 0.0, // Downstream POF sensor reading (normalized 0-1)
@@ -171,6 +171,19 @@ class AGOSSystem {
       this.exportData()
     );
 
+    // Test water level slider
+    const testSlider = document.getElementById("test-water-level");
+    const testDisplay = document.getElementById("test-level-display");
+    if (testSlider && testDisplay) {
+      testSlider.addEventListener("input", (e) => {
+        const level = parseFloat(e.target.value);
+        testDisplay.textContent = `${level}"`;
+        // Update water level visualization directly
+        this.state.waterLevel = level;
+        this.updateWaterLevelDisplay();
+      });
+    }
+
     // Reference height changes
     this.elements["human-height"]?.addEventListener("input", () =>
       this.updateReferencePositions()
@@ -234,6 +247,7 @@ class AGOSSystem {
 
       this.socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
+        console.log("📨 WebSocket message received:", message);
         if (message.type === "sensor-data") {
           // Update state with real Arduino data
           this.state.waterLevel = parseFloat(message.data.waterLevel) || 0;
@@ -242,10 +256,20 @@ class AGOSSystem {
             parseFloat(message.data.batteryLevel) || 100;
           this.state.lastUpdate = new Date(message.data.timestamp);
 
-          console.log(`🤖 Arduino water level: ${this.state.waterLevel}cm`);
+          console.log(
+            `🌊 Water level updated: ${this.state.waterLevel} inches`
+          );
 
           // Update the visualization
           this.updateAllDisplays();
+
+          // Update test slider to match (if exists)
+          const testSlider = document.getElementById("test-water-level");
+          const testDisplay = document.getElementById("test-level-display");
+          if (testSlider && testDisplay) {
+            testSlider.value = this.state.waterLevel;
+            testDisplay.textContent = `${this.state.waterLevel.toFixed(2)}"`;
+          }
         }
       };
 

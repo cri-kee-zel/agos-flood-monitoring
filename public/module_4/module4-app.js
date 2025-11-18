@@ -15,16 +15,15 @@ class AGOSEmergencySystem {
       // Android SMS Gateway Configuration
       SMS_GATEWAY: {
         mode: "cloud", // 'local' or 'cloud'
-        simNumber: 1, // SIM card slot number (1 or 2) - helps with RESULT_NO_DEFAULT_SMS_APP error
         local: {
-          url: "http://192.168.1.3:8080/message",
+          url: "http://180.195.194.119:8080/message", // Public address (works across different networks)
           username: "sms",
-          password: "2mTCnAtq",
+          password: "-BBb5H0J",
         },
         cloud: {
           url: "https://api.sms-gate.app/3rdparty/v1/message",
-          username: "PZPOWL",
-          password: "xd4cdwgmw6-z-k",
+          username: "6LLSLH",
+          password: "ea2bb5pxdxperx",
         },
       },
     };
@@ -608,15 +607,14 @@ class AGOSEmergencySystem {
 
       // Get SMS Gateway configuration
       const gateway = this.config.SMS_GATEWAY;
-      const mode = gateway.mode;
-      const credentials = gateway[mode];
+      const config = gateway.mode === "cloud" ? gateway.cloud : gateway.local;
 
-      // Check if SMS Gateway is configured
-      if (!credentials.username || !credentials.password) {
+      // Check if Android SMS Gateway is configured
+      if (!config.username || !config.password) {
         alert(
-          `⚠️ Android SMS Gateway not configured!\n\nPlease update the credentials in module4-app.js:\n\nSMS_GATEWAY.${mode}.username\nSMS_GATEWAY.${mode}.password\n\nSee ANDROID_SMS_GATEWAY_SETUP.md for instructions.`
+          `⚠️ Android SMS Gateway not configured!\n\nPlease update credentials in module4-app.js:\n\nSMS_GATEWAY.${gateway.mode}.username\nSMS_GATEWAY.${gateway.mode}.password\n\nGet credentials from the Android SMS Gateway app.`
         );
-        console.error("❌ SMS Gateway credentials not set");
+        console.error("❌ Android SMS Gateway credentials not set");
         return;
       }
 
@@ -628,40 +626,34 @@ class AGOSEmergencySystem {
       button.innerHTML = "<span>📤 Sending...</span>";
       button.disabled = true;
 
-      // Prepare Android SMS Gateway API payload
+      // Prepare Android SMS Gateway payload
+      const recipientNumbers = this.state.recipients.map((r) =>
+        typeof r === "string" ? r : r.phoneNumber
+      );
+
       const payload = {
         textMessage: {
-          Text: message,
+          text: message,
         },
-        phoneNumbers: this.state.recipients.map((r) =>
-          typeof r === "string" ? r : r.phoneNumber
-        ),
+        phoneNumbers: recipientNumbers,
       };
 
-      // Add SIM number if specified (helps with RESULT_NO_DEFAULT_SMS_APP error)
-      if (this.config.SMS_GATEWAY.simNumber) {
-        payload.simNumber = this.config.SMS_GATEWAY.simNumber;
-      }
-
-      // Create Basic Auth header
-      const authHeader =
-        "Basic " + btoa(credentials.username + ":" + credentials.password);
-
-      console.log("📤 Sending to Android SMS Gateway via proxy:", {
-        mode: mode,
-        url: credentials.url,
-        recipients: payload.phoneNumbers.length,
+      console.log("📤 Sending to Android SMS Gateway:", {
+        url: config.url,
+        mode: gateway.mode,
+        recipients: recipientNumbers.length,
       });
 
-      // Send through server proxy to avoid CORS issues
+      // Send to Android SMS Gateway
       const response = await fetch("/api/sms-gateway-proxy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          mode: mode,
-          credentials: credentials,
+          gatewayUrl: config.url,
+          username: config.username,
+          password: config.password,
           payload: payload,
         }),
       });
@@ -669,12 +661,12 @@ class AGOSEmergencySystem {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `SMS Gateway returned ${response.status}: ${errorText}`
+          `Android SMS Gateway returned ${response.status}: ${errorText}`
         );
       }
 
       const result = await response.json();
-      console.log("✅ SMS Gateway response:", result);
+      console.log("✅ Android SMS Gateway response:", result);
 
       // Also send notification to server for logging
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -687,7 +679,7 @@ class AGOSEmergencySystem {
           ),
           timestamp: new Date().toISOString(),
           operator: this.state.currentOperator,
-          gatewayMode: mode,
+          gatewayMode: `android-sms-${gateway.mode}`,
           gatewayResponse: result,
         };
         this.socket.send(JSON.stringify(logData));
@@ -705,31 +697,33 @@ class AGOSEmergencySystem {
 📞 Recipients: ${this.state.recipientCount} phone numbers
 📊 Water Level: ${this.state.sensorData.waterLevel.toFixed(1)} inches
 🌊 Flow Rate: ${this.state.sensorData.flowRate.toFixed(2)} m/s
-🌐 Gateway: Android SMS Gateway (${mode} mode)
+🌐 Gateway: Android SMS Gateway (${gateway.mode})
 
-✅ Messages sent via Android SMS Gateway!`);
+✅ Messages queued on Android device!`);
 
       setTimeout(() => {
         button.innerHTML = originalText;
         button.disabled = false;
       }, 3000);
     } catch (error) {
-      console.error("❌ Error sending SMS via Android Gateway:", error);
+      console.error("❌ Error sending SMS via Android SMS Gateway:", error);
 
       let errorMessage = "Failed to send SMS alert: " + error.message;
 
       // Add helpful troubleshooting tips
       if (error.message.includes("Failed to fetch")) {
         errorMessage += "\n\n🔍 Troubleshooting:\n";
-        errorMessage += "1. Ensure Android SMS Gateway app is running\n";
-        errorMessage += "2. Check phone is on same network (Local mode)\n";
-        errorMessage += "3. Verify the phone's IP address is correct\n";
+        errorMessage += "1. Check if Android SMS Gateway app is running\n";
+        errorMessage += "2. Verify the device IP address is correct\n";
         errorMessage +=
-          "4. Test URL in browser: " +
-          this.config.SMS_GATEWAY[this.config.SMS_GATEWAY.mode].url;
-      } else if (error.message.includes("401")) {
+          "3. Ensure both devices are on the same network (local mode)\n";
+        errorMessage += "4. Check username and password are correct";
+      } else if (
+        error.message.includes("401") ||
+        error.message.includes("403")
+      ) {
         errorMessage +=
-          "\n\n🔐 Authentication failed - check username/password";
+          "\n\n🔐 Authentication failed - check username/password in Android SMS Gateway app";
       }
 
       alert(errorMessage);

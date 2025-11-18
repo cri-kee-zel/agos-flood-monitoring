@@ -424,24 +424,22 @@ app.delete("/api/recipients/:phoneNumber", (req, res) => {
 // SMS Gateway Proxy Endpoint (to avoid CORS issues)
 app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
   try {
-    const { mode, credentials, payload } = req.body;
+    const { gatewayUrl, username, password, payload } = req.body;
 
     console.log("📱 SMS Gateway Proxy Request:");
-    console.log("  Mode:", mode);
-    console.log("  URL:", credentials.url);
+    console.log("  URL:", gatewayUrl);
+    console.log("  Username:", username);
     console.log("  Recipients:", payload.phoneNumbers.length);
     console.log("  Payload:", JSON.stringify(payload, null, 2));
 
     // Create Basic Auth header
-    const auth = Buffer.from(
-      `${credentials.username}:${credentials.password}`
-    ).toString("base64");
+    const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
     // Determine which module to use (http or https)
-    const isHttps = credentials.url.startsWith("https");
+    const isHttps = gatewayUrl.startsWith("https");
     const httpModule = isHttps ? require("https") : require("http");
     const urlModule = require("url");
-    const parsedUrl = new URL(credentials.url);
+    const parsedUrl = new URL(gatewayUrl);
 
     const options = {
       hostname: parsedUrl.hostname,
@@ -492,6 +490,8 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
   }
 });
 
+// Note: PhilSMS proxy endpoint removed - using Android SMS Gateway instead
+
 // WebSocket Server for real-time data
 const server = require("http").createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -508,9 +508,9 @@ wss.on("connection", (ws, req) => {
       type: "sensor-data",
       data: {
         timestamp: new Date().toISOString(),
-        waterLevel: Math.random() * 100 + 50,
+        waterLevel: latestArduinoData.waterLevel || 0, // Use Arduino data or default to 0
         flowRate: Math.random() * 5 + 1,
-        batteryLevel: Math.random() * 20 + 80,
+        batteryLevel: 90,
       },
     })
   );
@@ -518,12 +518,23 @@ wss.on("connection", (ws, req) => {
   // Set up periodic data sending
   const interval = setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
+      // Use real Arduino data if available, otherwise simulate
+      const dataAge =
+        Date.now() - new Date(latestArduinoData.timestamp).getTime();
+      const useRealData = latestArduinoData.connected && dataAge < 30000; // Use if less than 30s old
+
+      const waterLevel = useRealData
+        ? latestArduinoData.waterLevel
+        : Math.random() * 45; // Simulate 0-45 inches
+
+      console.log(`📤 Sending water level: ${waterLevel.toFixed(2)} inches`);
+
       ws.send(
         JSON.stringify({
           type: "sensor-data",
           data: {
             timestamp: new Date().toISOString(),
-            waterLevel: Math.random() * 100 + 50,
+            waterLevel: waterLevel,
             flowRate: Math.random() * 5 + 1,
             rainfall: Math.random() * 20,
             temperature: Math.random() * 10 + 25,

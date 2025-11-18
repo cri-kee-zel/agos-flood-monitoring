@@ -8,7 +8,7 @@
     <!-- Page title displayed in browser tab -->
     <title>AGOS - Advanced Ground Observation System</title>
     <!-- Link to main stylesheet for UI styling -->
-    <link rel="stylesheet" href="/module_1/styles.css?v=20251019002" />
+    <link rel="stylesheet" href="/module_1/styles.css?v=20251113001" />
     <!-- Google Fonts preconnect for performance optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -163,6 +163,7 @@
           <!-- Measurement scale with flood level markings - positioned outside -->
           <div class="measurement-scale">
             <div class="scale-mark" data-level="0">0"</div>
+            <div class="scale-mark" data-level="2">2" Ankle</div>
             <div class="scale-mark" data-level="8">8" Gutter</div>
             <div class="scale-mark" data-level="10">10" Half Knee</div>
             <div class="scale-mark" data-level="13">13" Half Tire</div>
@@ -327,8 +328,7 @@
 
     <!-- Control Panel -->
     <div class="control-panel">
-      <!-- TEMPORARY TEST CONTROLS - Commented out for production -->
-      <!--
+      <!-- TEMPORARY TEST CONTROLS - For testing water level visualization -->
       <div
         style="
           background: rgba(255, 255, 0, 0.2);
@@ -357,7 +357,6 @@
           0"
         </span>
       </div>
-      -->
       <!-- END TEMPORARY TEST CONTROLS -->
 
       <button
@@ -376,6 +375,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/module_1/app.js"></script>
+    <script src="/module_1/app.js?v=20251113002"></script>
   </body>
 </html>
