@@ -525,7 +525,7 @@ wss.on("connection", (ws, req) => {
 
       const waterLevel = useRealData
         ? latestArduinoData.waterLevel
-        : Math.random() * 45; // Simulate 0-45 inches
+        : Math.random() * 20; // Simulate 0-20 inches
 
       console.log(`📤 Sending water level: ${waterLevel.toFixed(2)} inches`);
 
