@@ -49,11 +49,11 @@ class AGOSEmergencySystem {
       // SMS Recipients Management
       recipients: [],
       recipientCount: 0,
-      
+
       // Auto-alert tracking
       autoAlertSent: {
-        flashFlood: false,  // Track if 19" alert was sent
-        floodWatch: false,  // Track if 10" alert was sent
+        flashFlood: false, // Track if 19" alert was sent
+        floodWatch: false, // Track if 10" alert was sent
       },
     };
 
@@ -231,11 +231,11 @@ class AGOSEmergencySystem {
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
         1
       )}" - Auto-alert active`;
-      
+
       // AUTO-SEND Flash Flood SMS (only once when threshold crossed)
       if (!this.state.autoAlertSent.flashFlood && this.state.operatorLoggedIn) {
         console.log('🚨 AUTO-SENDING Flash Flood Alert at 19"');
-        this.autoSendSMS('flash-flood');
+        this.autoSendSMS("flash-flood");
         this.state.autoAlertSent.flashFlood = true;
       }
     } else {
@@ -245,11 +245,11 @@ class AGOSEmergencySystem {
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
         1
       )}" - Requires 19+ inches`;
-      
+
       // Reset auto-alert flag when water level drops
       if (this.state.autoAlertSent.flashFlood) {
         this.state.autoAlertSent.flashFlood = false;
-        console.log('🔄 Flash Flood auto-alert reset');
+        console.log("🔄 Flash Flood auto-alert reset");
       }
     }
 
@@ -261,11 +261,11 @@ class AGOSEmergencySystem {
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
         1
       )}" - Auto-alert active`;
-      
+
       // AUTO-SEND Flood Watch SMS (only once when threshold crossed)
       if (!this.state.autoAlertSent.floodWatch && this.state.operatorLoggedIn) {
         console.log('⚠️ AUTO-SENDING Flood Watch Alert at 10"');
-        this.autoSendSMS('flood-watch');
+        this.autoSendSMS("flood-watch");
         this.state.autoAlertSent.floodWatch = true;
       }
     } else {
@@ -275,11 +275,11 @@ class AGOSEmergencySystem {
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
         1
       )}" - Requires 10+ inches`;
-      
+
       // Reset auto-alert flag when water level drops
       if (this.state.autoAlertSent.floodWatch) {
         this.state.autoAlertSent.floodWatch = false;
-        console.log('🔄 Flood Watch auto-alert reset');
+        console.log("🔄 Flood Watch auto-alert reset");
       }
     }
   }
@@ -289,18 +289,18 @@ class AGOSEmergencySystem {
    */
   async autoSendSMS(alertType) {
     console.log(`🤖 AUTO-SENDING ${alertType} alert...`);
-    
+
     // Check if there are recipients
     if (this.state.recipients.length === 0) {
-      console.warn('⚠️ No recipients configured - skipping auto-send');
+      console.warn("⚠️ No recipients configured - skipping auto-send");
       return;
     }
-    
+
     // Call the existing sendSMSAlert function
     try {
       await this.sendSMSAlert(alertType, null);
     } catch (error) {
-      console.error('❌ Auto-send failed:', error);
+      console.error("❌ Auto-send failed:", error);
     }
   }
 
@@ -729,10 +729,15 @@ class AGOSEmergencySystem {
       // Get final message (custom or default)
       const message = getFinalMessage(alertType);
 
-      // Show loading
-      const originalText = button.innerHTML;
-      button.innerHTML = "<span>📤 Sending...</span>";
-      button.disabled = true;
+      // Show loading (only if button is provided)
+      let originalText = null;
+      if (button) {
+        originalText = button.innerHTML;
+        button.innerHTML = "<span>📤 Sending...</span>";
+        button.disabled = true;
+      } else {
+        console.log("🤖 Auto-send mode - no button to update");
+      }
 
       // Prepare Android SMS Gateway payload
       const recipientNumbers = this.state.recipients.map((r) =>
@@ -797,8 +802,11 @@ class AGOSEmergencySystem {
       startGlobalCooldown(this);
 
       // Show success message
-      button.innerHTML = "<span>✅ Sent!</span>";
-      alert(`✅ SMS Alert Sent Successfully!
+      if (button) {
+        button.innerHTML = "<span>✅ Sent!</span>";
+      }
+      
+      const successMsg = `✅ SMS Alert Sent Successfully!
 
 📱 Alert Type: ${alertType.toUpperCase()}
 👤 Operator: ${this.state.currentOperator}
@@ -807,11 +815,20 @@ class AGOSEmergencySystem {
 🌊 Flow Rate: ${this.state.sensorData.flowRate.toFixed(2)} m/s
 🌐 Gateway: Android SMS Gateway (${gateway.mode})
 
-✅ Messages queued on Android device!`);
+✅ Messages queued on Android device!`;
+      
+      // Only show alert if not auto-send
+      if (button) {
+        alert(successMsg);
+      } else {
+        console.log('🤖 AUTO-SEND SUCCESS:', successMsg);
+      }
 
       setTimeout(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
+        if (button && originalText) {
+          button.innerHTML = originalText;
+          button.disabled = false;
+        }
       }, 3000);
     } catch (error) {
       console.error("❌ Error sending SMS via Android SMS Gateway:", error);
@@ -837,8 +854,10 @@ class AGOSEmergencySystem {
       alert(errorMessage);
 
       // Reset button
-      button.innerHTML = originalText;
-      button.disabled = false;
+      if (button && originalText) {
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }
     }
   }
 
