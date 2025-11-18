@@ -379,7 +379,12 @@ body {
   border: 2px solid var(--border-color);
   border-radius: 0.5rem;
   overflow: hidden;
-  background: transparent; /* Transparent background */
+  background: rgba(
+    15,
+    23,
+    42,
+    0.5
+  ); /* Dark semi-transparent background to see water */
 }
 
 /* Reference controls moved into the threshold area - horizontal layout */
@@ -430,19 +435,20 @@ body {
 
 /* Water fill animation - blue water that rises with sensor data */
 .water-fill {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 0%;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 0%; /* NO !important here - allow JavaScript to override */
   background: linear-gradient(
     to top,
-    rgba(33, 150, 243, 0.8) 0%,
-    rgba(33, 150, 243, 0.6) 50%,
-    rgba(33, 150, 243, 0.4) 100%
-  );
-  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
+    rgba(59, 130, 246, 0.95) 0%,
+    rgba(59, 130, 246, 0.85) 50%,
+    rgba(96, 165, 250, 0.75) 100%
+  ) !important;
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  z-index: 1 !important;
+  will-change: height;
 }
 
 .water-surface {

@@ -17,8 +17,8 @@ class AGOSSystem {
       MAX_RECONNECT_ATTEMPTS: 10, // Maximum retries before giving up on connection
 
       // Emergency thresholds (configurable based on river characteristics)
-      ALERT_LEVEL: 19, // inches - Yellow alert at knee level (19 inches)
-      EMERGENCY_LEVEL: 37, // inches - Red alert at waist level (37 inches)
+      ALERT_LEVEL: 10, // inches - Yellow alert at half knee level (10 inches)
+      EMERGENCY_LEVEL: 19, // inches - Red alert at knee level (19 inches)
       CRITICAL_FLOW: 1.2, // m/s - Dangerous flow rate threshold
 
       // System operational limits (hardware constraints)
@@ -104,6 +104,11 @@ class AGOSSystem {
       // Update reference object positions
       this.updateReferencePositions();
 
+      // Force initial water level display (set to 0)
+      console.log("🎬 Forcing initial water level display update...");
+      this.state.waterLevel = 0;
+      this.updateWaterLevelDisplay();
+
       console.log("✅ AGOS System Initialized Successfully");
       this.updateSystemStatus("System Ready");
     } catch (error) {
@@ -152,8 +157,25 @@ class AGOSSystem {
       this.elements[id] = document.getElementById(id);
       if (!this.elements[id]) {
         console.warn(`⚠️ Element not found: ${id}`);
+      } else {
+        console.log(`✅ Cached element: ${id}`);
       }
     });
+
+    // CRITICAL: Verify water fill elements are present
+    if (this.elements["water-fill"]) {
+      console.log("🌊 Water fill element found:", this.elements["water-fill"]);
+    } else {
+      console.error("❌ CRITICAL: water-fill element is MISSING!");
+    }
+    if (this.elements["water-surface"]) {
+      console.log(
+        "🌊 Water surface element found:",
+        this.elements["water-surface"]
+      );
+    } else {
+      console.error("❌ CRITICAL: water-surface element is MISSING!");
+    }
   }
 
   /**
@@ -175,13 +197,17 @@ class AGOSSystem {
     const testSlider = document.getElementById("test-water-level");
     const testDisplay = document.getElementById("test-level-display");
     if (testSlider && testDisplay) {
+      console.log("✅ Test slider found and attached");
       testSlider.addEventListener("input", (e) => {
         const level = parseFloat(e.target.value);
         testDisplay.textContent = `${level}"`;
         // Update water level visualization directly
         this.state.waterLevel = level;
+        console.log(`🎚️ Test slider: ${level}" - Updating water level...`);
         this.updateWaterLevelDisplay();
       });
+    } else {
+      console.warn("⚠️ Test slider not found!");
     }
 
     // Reference height changes
@@ -543,11 +569,22 @@ class AGOSSystem {
       100,
       (level / this.config.MAX_WATER_LEVEL) * 100
     );
+    console.log(
+      `💧 Water level: ${level.toFixed(2)}" | Fill: ${fillPercentage.toFixed(
+        1
+      )}% | Max: ${this.config.MAX_WATER_LEVEL}"`
+    );
     if (fillElement) {
       fillElement.style.height = `${fillPercentage}%`;
+      console.log(`  ✅ Water fill height set to ${fillPercentage}%`);
+    } else {
+      console.warn("  ⚠️ Fill element not found!");
     }
     if (surfaceElement) {
       surfaceElement.style.bottom = `${fillPercentage}%`;
+      console.log(`  ✅ Water surface bottom set to ${fillPercentage}%`);
+    } else {
+      console.warn("  ⚠️ Surface element not found!");
     }
   }
 
@@ -1145,3 +1182,17 @@ class AGOSSystem {
     console.log("✅ AGOS system cleanup completed");
   }
 }
+
+// Initialize the dashboard when the DOM is fully loaded
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("🚀 Initializing AGOS Dashboard...");
+  window.agosSystem = new AGOSSystem();
+  console.log("✅ AGOS Dashboard initialized and ready");
+});
+
+// Cleanup on page unload
+window.addEventListener("beforeunload", () => {
+  if (window.agosSystem) {
+    window.agosSystem.cleanup();
+  }
+});

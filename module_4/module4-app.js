@@ -177,6 +177,9 @@ class AGOSEmergencySystem {
 
     // No UI update needed - Module 1 handles sensor display
     console.log("📊 Sensor data updated:", this.state.sensorData);
+
+    // Update alert button states based on water level
+    this.updateAlertButtons();
   }
 
   determineAlertStatus(data) {
@@ -195,6 +198,63 @@ class AGOSEmergencySystem {
 
   // Sensor display removed - Module 1 handles this functionality
   // Module 4 focuses on emergency response and SMS alerts only
+
+  /**
+   * Auto-enable/disable alert buttons based on water level
+   * - Flash Flood (red/critical): enabled at 19+ inches
+   * - Flood Watch (yellow/warning): enabled at 10+ inches
+   * - Both disabled below 10 inches
+   */
+  updateAlertButtons() {
+    const waterLevel = this.state.sensorData.waterLevel;
+
+    // Get button elements
+    const flashFloodBtn = this.alertButtonElements["flash-flood"];
+    const floodWatchBtn = this.alertButtonElements["flood-watch"];
+
+    if (!flashFloodBtn || !floodWatchBtn) {
+      console.warn("⚠️ Alert buttons not found, skipping auto-enable");
+      return;
+    }
+
+    // Flash Flood Alert (EMERGENCY) - Enable at 19+ inches
+    if (waterLevel >= 19) {
+      flashFloodBtn.disabled = false;
+      flashFloodBtn.style.opacity = "1";
+      flashFloodBtn.style.cursor = "pointer";
+      flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
+        1
+      )}" - EMERGENCY threshold reached`;
+      console.log('🚨 Flash Flood Alert ENABLED (water level >= 19")');
+    } else {
+      flashFloodBtn.disabled = true;
+      flashFloodBtn.style.opacity = "0.5";
+      flashFloodBtn.style.cursor = "not-allowed";
+      flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
+        1
+      )}" - Requires 19+ inches`;
+      console.log('🚫 Flash Flood Alert DISABLED (water level < 19")');
+    }
+
+    // Flood Watch Alert (ALERT) - Enable at 10+ inches
+    if (waterLevel >= 10) {
+      floodWatchBtn.disabled = false;
+      floodWatchBtn.style.opacity = "1";
+      floodWatchBtn.style.cursor = "pointer";
+      floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
+        1
+      )}" - ALERT threshold reached`;
+      console.log('⚠️ Flood Watch Alert ENABLED (water level >= 10")');
+    } else {
+      floodWatchBtn.disabled = true;
+      floodWatchBtn.style.opacity = "0.5";
+      floodWatchBtn.style.cursor = "not-allowed";
+      floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
+        1
+      )}" - Requires 10+ inches`;
+      console.log('🚫 Flood Watch Alert DISABLED (water level < 10")');
+    }
+  }
 
   // Phone Number Management Methods
   async loadRecipients() {
