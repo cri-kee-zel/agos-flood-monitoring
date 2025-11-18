@@ -496,10 +496,10 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
 const server = require("http").createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Timed simulation sequence - new timing: 90s → 330s → 580s → reset after 3min
+// Timed simulation sequence - new timing: 120s → 330s → 580s → reset after 3min
 const simulationSequence = [
   { time: 0, level: 0 }, // Start: 0 inches - Both buttons disabled
-  { time: 90, level: 2 }, // 1min 30s: 2 inches (ankle) - Both buttons disabled
+  { time: 120, level: 2 }, // 2min: 2 inches (ankle) - Both buttons disabled
   { time: 330, level: 10 }, // 5min 30s: 10 inches (half knee) - Flood Watch enabled + auto-sends
   { time: 580, level: 19 }, // 9min 40s: 19 inches (knee) - Both buttons enabled + Flash Flood auto-sends
   { time: 760, level: 0 }, // 12min 40s (9:40 + 3min): reset to 0
