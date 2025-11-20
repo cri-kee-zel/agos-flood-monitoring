@@ -298,11 +298,11 @@ class AGOSEmergencySystem {
       if (waterLevel < 1) {
         if (this.state.autoAlertSent.flashFlood) {
           this.state.autoAlertSent.flashFlood = false;
-          console.log("🔄 Flash Flood auto-alert reset (new cycle at 0\")");
+          console.log('🔄 Flash Flood auto-alert reset (new cycle at 0")');
         }
         if (this.state.autoAlertSent.floodWatch) {
           this.state.autoAlertSent.floodWatch = false;
-          console.log("🔄 Flood Watch auto-alert reset (new cycle at 0\")");
+          console.log('🔄 Flood Watch auto-alert reset (new cycle at 0")');
         }
       }
     }
