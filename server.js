@@ -106,6 +106,9 @@ let latestArduinoData = {
   connected: false,
 };
 
+// Command queue for Arduino (two-way communication)
+let pendingArduinoCommand = null;
+
 // API endpoint to receive Arduino data
 app.post("/api/arduino-data", (req, res) => {
   const { distance1, distance2, timestamp } = req.body;
@@ -141,6 +144,116 @@ app.post("/api/arduino-data", (req, res) => {
   });
 
   res.json({ status: "success" });
+});
+
+// ========================================
+// Arduino R4 WiFi Serial Data Endpoint
+// ========================================
+// Receives data from Arduino R4 WiFi and broadcasts to Module 4 serial monitor
+app.post("/api/arduino-serial", express.json(), (req, res) => {
+  try {
+    const {
+      type,
+      waterLevel,
+      sensor1,
+      sensor2,
+      sensor3,
+      timestamp,
+      rssi,
+      uptime,
+    } = req.body;
+
+    // Format timestamp for display
+    const now = new Date();
+    const timeStr = now.toTimeString().split(" ")[0];
+    const msStr = String(now.getMilliseconds()).padStart(3, "0");
+    const displayTime = `[${timeStr}.${msStr}]`;
+
+    let logMessage = "";
+    let logType = "info";
+
+    if (type === "sensor-data") {
+      // Store Arduino data for Module 1 dashboard
+      latestArduinoData = {
+        waterLevel: parseFloat(waterLevel) || 0,
+        distance2: 0,
+        timestamp: new Date().toISOString(),
+        connected: true,
+      };
+
+      // Format sensor status
+      const s1 = sensor1 ? "●" : "○";
+      const s2 = sensor2 ? "●" : "○";
+      const s3 = sensor3 ? "●" : "○";
+
+      logMessage = `📊 Water Level: ${waterLevel}" | Sensors: S1=${s1} S2=${s2} S3=${s3} | Signal: ${rssi}dBm`;
+      logType =
+        waterLevel >= 19 ? "error" : waterLevel >= 10 ? "warning" : "success";
+
+      console.log(`${displayTime} ${logMessage}`);
+
+      // Broadcast sensor data to all clients (Module 1)
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: "sensor-data",
+              data: {
+                timestamp: new Date().toISOString(),
+                waterLevel: parseFloat(waterLevel) || 0,
+                flowRate: Math.random() * 5 + 1,
+                batteryLevel: 90,
+                signalStrength: rssi || -45,
+              },
+            })
+          );
+        }
+      });
+    } else if (type === "heartbeat") {
+      logMessage = `💓 Heartbeat | Uptime: ${uptime}s | Signal: ${rssi}dBm`;
+      logType = "info";
+      console.log(`${displayTime} ${logMessage}`);
+    } else {
+      logMessage = `📥 ${JSON.stringify(req.body)}`;
+      logType = "info";
+      console.log(`${displayTime} ${logMessage}`);
+    }
+
+    // Broadcast to Module 4 serial monitor
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(
+          JSON.stringify({
+            type: "arduino-serial",
+            timestamp: displayTime,
+            message: logMessage,
+            logType: logType,
+            rawData: req.body,
+          })
+        );
+      }
+    });
+
+    res.json({ success: true, message: "Data received" });
+  } catch (error) {
+    console.error("❌ Error processing Arduino data:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========================================
+// Arduino Command Poll Endpoint (Two-Way Communication)
+// ========================================
+// Arduino polls this endpoint to check for pending commands from web interface
+app.get("/api/arduino-command", (req, res) => {
+  if (pendingArduinoCommand) {
+    const command = pendingArduinoCommand;
+    pendingArduinoCommand = null; // Clear after sending
+    console.log(`📤 Sending command to Arduino: ${command}`);
+    res.json({ command: command });
+  } else {
+    res.json({ command: null });
+  }
 });
 
 // API endpoint for sensor data
@@ -590,6 +703,32 @@ wss.on("connection", (ws, req) => {
           break;
         case "command":
           handleArduinoCommand(data);
+          break;
+        case "arduino-command":
+          // Command from web serial monitor to Arduino
+          console.log("🎮 Arduino command from web:", data.command);
+
+          // Store command for Arduino to poll
+          pendingArduinoCommand = data.command;
+
+          // Echo back to all clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              const now = new Date();
+              const timeStr = now.toTimeString().split(" ")[0];
+              const msStr = String(now.getMilliseconds()).padStart(3, "0");
+              const displayTime = `[${timeStr}.${msStr}]`;
+
+              client.send(
+                JSON.stringify({
+                  type: "arduino-serial",
+                  timestamp: displayTime,
+                  message: `📤 Command queued for Arduino: ${data.command}`,
+                  logType: "info",
+                })
+              );
+            }
+          });
           break;
         default:
           console.log("🤷 Unknown message type:", data.type);

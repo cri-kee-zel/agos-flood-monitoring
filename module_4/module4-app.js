@@ -1086,24 +1086,39 @@ function initializeArduinoMonitor() {
     try {
       const data = JSON.parse(event.data);
 
+      // Handle Arduino serial data from R4 WiFi
+      if (data.type === "arduino-serial") {
+        const message = data.message || "No message";
+        const logType = data.logType || "info";
+        addArduinoLog(message, logType);
+
+        // Update data received counter
+        arduinoDataReceived += event.data.length / 1024; // KB
+        updateArduinoStats();
+      }
       // Handle sensor data from Arduino
-      if (data.type === "sensor-data" || data.type === "sensor_data") {
+      else if (data.type === "sensor-data" || data.type === "sensor_data") {
         const sensorData = data.data || data;
 
+        // Update emergency system with sensor data
+        if (window.agosEmergencySystem) {
+          window.agosEmergencySystem.updateSensorData(sensorData);
+        }
+
         // Format sensor data as log message
-        const message = `📊 Water: ${sensorData.waterLevel || 0} | Flow: ${
+        const message = `📊 Water: ${sensorData.waterLevel || 0}" | Flow: ${
           sensorData.flowRate || 0
         } | Battery: ${sensorData.batteryLevel || 0}%`;
         addArduinoLog(message, "info");
 
         // Update data received counter
-        arduinoDataReceived += event.data.length;
+        arduinoDataReceived += event.data.length / 1024; // KB
         updateArduinoStats();
       }
     } catch (error) {
       // If not JSON, treat as plain text message
       addArduinoLog(event.data, "info");
-      arduinoDataReceived += event.data.length;
+      arduinoDataReceived += event.data.length / 1024; // KB
       updateArduinoStats();
     }
   };
