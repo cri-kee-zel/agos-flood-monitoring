@@ -1,29 +1,46 @@
 # AGOS - Advanced Ground Observation System
 
-## IoT Flood Monitoring for Philippine Rivers
+## Real-time Flood Monitoring & Emergency Response for Puerto Princesa
 
-![AGOS System](https://img.shields.io/badge/AGOS-v1.0.0-blue) ![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![Docker](https://img.shields.io/badge/Docker-Ready-blue) ![License](https://img.shields.io/badge/License-MIT-yellow)
+![AGOS System](https://img.shields.io/badge/AGOS-v2.1.0-blue) ![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![Arduino](https://img.shields.io/badge/Arduino-R4_WiFi-00979D) ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-A comprehensive flood monitoring system using Arduino R4 WiFi, multiple sensors, and real-time web interface for disaster prevention and response.
+A comprehensive flood monitoring system using **Arduino R4 WiFi**, water level sensors, and real-time web interface designed specifically for Puerto Princesa City flood-prone areas.
 
 ## 🌊 System Overview
 
-AGOS consists of a **Main Gateway** plus 4 integrated modules:
+AGOS is a complete flood monitoring solution featuring:
 
-**Main Gateway** (`main/`): Central hub with system overview and module navigation
+**Main Gateway** (`main/`): Central hub for system navigation and overview
 
-1. **Module 1 - Real-time Dashboard** (`module_1/`): Live sensor monitoring with WebSocket updates
-2. **Module 2 - AI-Enhanced Mapping** (`module_2/`): Flood mapping with satellite integration and AI analysis
-3. **Module 3 - Historical Analytics** (`module_3/`): Time series analysis and predictive modeling
-4. **Module 4 - Emergency Response** (`module_4/`): SMS alerts via SIM800L and emergency coordination
+**Active Modules:**
+1. **Real-time Dashboard** (`module_1/`): Live water level monitoring with 5-second WebSocket updates
+2. **Emergency Response** (`module_4/`): SMS alert system with Android SMS Gateway integration
+3. **Water Level Control Panel** (`public/water-level-control.html`): Testing interface for simulating water levels (0", 2", 10", 19")
+
+**System Features:**
+- Arduino R4 WiFi with two-way communication
+- Real-time sensor data transmission via HTTP
+- WebSocket broadcasting for live dashboard updates
+- Command polling system (Arduino checks server every 2 seconds)
+- SMS alerts via Android SMS Gateway (sms-gate.app)
+- Restricted access emergency panel with operator authentication
 
 ## 🏗️ Hardware Components
 
-- **Arduino R4 WiFi** - Main controller with WiFi connectivity
-- **Omron E3X-NA11 Optical Encoder** - Water flow rate measurement
-- **POF (Plastic Optical Fiber) Sensors** - Turbidity and water quality
-- **SIM800L GSM Module** - SMS emergency alerts
-- **Multiple environmental sensors** - Temperature, humidity, rainfall
+**Current Active Setup:**
+- **Arduino R4 WiFi** - Main controller with WiFi connectivity (WiFiS3 library)
+- **3x TSOP38238 IR Receivers** - Water level detection sensors
+  - Sensor 1: Half Knee (10 inches)
+  - Sensor 2: Knee Level (19 inches)
+  - Sensor 3: Waist Level (37 inches)
+- **3x IR LEDs** - Optical water level sensing
+- **ULN2803 Darlington Array** - LED driver circuit
+
+**Communication:**
+- WiFi connection to server (178.128.83.244 for production, localhost for testing)
+- HTTP POST for sensor data transmission (every 5 seconds)
+- HTTP GET for command polling (every 2 seconds)
+- WebSocket for real-time dashboard updates
 
 ## 🚀 Quick Start - Local Development
 
@@ -54,11 +71,10 @@ AGOS consists of a **Main Gateway** plus 4 integrated modules:
    ```
 
 5. **Access the application**
-   - **Main Gateway**: http://localhost:3000 (NEW!)
-   - Real-time Dashboard: http://localhost:3000/dashboard
-   - AI Mapping: http://localhost:3000/mapping
-   - Analytics: http://localhost:3000/analytics
-   - Emergency: http://localhost:3000/emergency
+   - **Main Gateway**: http://localhost:3000
+   - **Real-time Dashboard**: http://localhost:3000/dashboard
+   - **Emergency Response**: http://localhost:3000/emergency
+   - **Water Level Control**: http://localhost:3000/water-control (Testing interface)
 
 ## 🌐 Production Deployment on DigitalOcean
 
@@ -203,19 +219,51 @@ WEATHER_API_KEY=your-api-key
 
 ### Hardware Configuration
 
-Arduino configuration in `server.js`:
+**Arduino R4 WiFi Setup:**
 
-- Serial port: `/dev/ttyUSB0`
-- Baud rate: `9600`
-- Update interval: `5000ms`
+1. **WiFi Configuration** (in `arduino_r4_wifi_agos.ino`):
+   ```cpp
+   const char* WIFI_SSID = "YOUR_WIFI_SSID";
+   const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+   const char* SERVER_HOST = "178.128.83.244";  // Production
+   // const char* SERVER_HOST = "192.168.1.5";  // Testing (localhost)
+   const int SERVER_PORT = 3000;
+   ```
+
+2. **Sensor Pins:**
+   - IR LED 1: Pin 9 (10" sensor)
+   - IR LED 2: Pin 10 (19" sensor)
+   - IR LED 3: Pin 11 (37" sensor)
+   - Receiver 1: A0
+   - Receiver 2: A1
+   - Receiver 3: A2
+
+3. **Timing Configuration:**
+   - Sensor read: Every 1 second
+   - Data transmission: Every 5 seconds
+   - Command polling: Every 2 seconds
+   - Heartbeat: Every 30 seconds
 
 ## 📱 API Endpoints
 
+**Server Endpoints:**
 - `GET /api/health` - System health check
-- `GET /api/sensor-data` - Current sensor readings
-- `GET /api/historical-data?range=24h` - Historical data
-- `GET /api/flood-events` - Flood event history
-- WebSocket `/ws` - Real-time data stream
+- `POST /api/arduino-serial` - Receives sensor data from Arduino
+- `GET /api/arduino-command` - Returns pending commands for Arduino
+- `POST /api/sms-gateway-proxy` - Forwards SMS requests to Android gateway
+- WebSocket `ws://localhost:3000` - Real-time data broadcasting
+
+**Arduino Commands:**
+- `sim0` or `clear` - Simulate 0 inches (no water)
+- `sim2` - Simulate 2 inches
+- `sim10` or `half` - Simulate 10 inches (half knee)
+- `sim19` or `knee` - Simulate 19 inches (knee level)
+- `sim37` or `waist` - Simulate 37 inches (waist level)
+- `status` - Display system status
+- `test` - Test all sensors
+- `wifi` - Show WiFi connection info
+- `demo` - Run automatic demo sequence
+- `help` - Show available commands
 
 ## 🛠️ Development
 
@@ -256,15 +304,39 @@ npm test
 - **Gzip compression** - Response optimization
 - **Static file caching** - Asset optimization
 
-## 🚨 Emergency Response
+## 🚨 Emergency Response System
 
-The system includes automated emergency response:
+**SMS Alert Integration:**
 
-- **Real-time alerts** when water levels exceed thresholds
-- **SMS notifications** via SIM800L GSM module
-- **Multi-tier alerting** (watch, alert, emergency)
-- **Operator dashboard** for manual alerts
-- **Integration** with local disaster response teams
+The system uses **Android SMS Gateway** (sms-gate.app) for reliable SMS delivery:
+
+1. **Gateway Setup:**
+   - Download SMS Gateway app on Android device
+   - Configure API credentials in `recipients.json`:
+     ```json
+     {
+       "smsGatewayUsername": "YOUR_USERNAME",
+       "smsGatewayPassword": "YOUR_PASSWORD"
+     }
+     ```
+
+2. **Alert Levels:**
+   - **Flood Watch** (10 inches): "Flooding is possible in your area"
+   - **Flash Flood Alert** (19 inches): "Flash flooding is occurring or imminent"
+   - **Flash Flood Emergency** (37 inches): "LIFE-THREATENING flash flooding is happening NOW"
+
+3. **Features:**
+   - Restricted operator access with password authentication
+   - Cooldown timer (60 seconds between alerts)
+   - Custom message editing
+   - Contact management (add/remove recipients)
+   - Manual SMS triggering
+   - Arduino serial monitor with two-way communication
+
+4. **Recipients Management:**
+   - Stored in `recipients.json`
+   - Add via emergency panel interface
+   - Phone numbers in international format (+639...)
 
 ## 🔍 Troubleshooting
 
@@ -314,21 +386,49 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 4. Push to branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
+## 🎯 Testing & Simulation
+
+**Water Level Control Panel** (`/water-control`):
+
+A dedicated testing interface for simulating different water levels:
+
+1. **Access**: http://localhost:3000/water-control
+2. **Four Control Buttons:**
+   - 🟢 CLEAR (0 inches)
+   - 🟡 2 INCHES
+   - 🟠 10 INCHES
+   - 🔴 19 INCHES
+
+3. **Features:**
+   - Visual water filling animation
+   - Real-time WebSocket updates
+   - Commands sent directly to Arduino
+   - Active button highlighting
+   - Smooth level transitions
+
+4. **How to Use:**
+   - Click any button to set water level
+   - Button stays highlighted until another is pressed
+   - Water animates to selected level
+   - Arduino receives corresponding `sim` command
+
 ## 🙏 Acknowledgments
 
-- **DOST-PAGASA** - Weather data integration
-- **Arduino Community** - Hardware support
-- **Node.js Community** - Backend framework
-- **Philippine Disaster Response** - Emergency protocols
+- **Arduino Community** - Hardware and library support
+- **Node.js & Express** - Backend framework
+- **Android SMS Gateway** (sms-gate.app) - SMS integration
+- **Puerto Princesa City Government** - Flood monitoring support
 
-## 📞 Support
+## 👨‍💻 Development Team
 
-- **Email**: support@agos-monitoring.com
-- **Documentation**: [docs.agos-monitoring.com](https://docs.agos-monitoring.com)
-- **Status Page**: [status.agos-monitoring.com](https://status.agos-monitoring.com)
+**Developed by:** cri-kee-zel & JC
+
+**Project Location:** Puerto Princesa City, Philippines
+
+**Version:** AGOS v2.1.0
 
 ---
 
-**AGOS** - _Advancing Ground Observation Systems for Disaster Prevention_
+**AGOS** - _Advanced Ground Observation System for Flood Monitoring_
 
-Built with ❤️ for the Philippines 🇵🇭
+Built with ❤️ for Puerto Princesa City, Philippines 🇵🇭
