@@ -110,6 +110,10 @@ let latestArduinoData = {
   connected: false,
 };
 
+// Manual control flag - when true, don't override with simulated data
+let manualWaterLevelControl = false;
+let manualWaterLevel = 0;
+
 // Command queue for Arduino (two-way communication)
 let pendingArduinoCommand = null;
 
@@ -666,14 +670,21 @@ wss.on("connection", (ws, req) => {
   // Set up periodic data sending
   const interval = setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
-      // Use real Arduino data if available, otherwise use timed simulation
-      const dataAge =
-        Date.now() - new Date(latestArduinoData.timestamp).getTime();
-      const useRealData = latestArduinoData.connected && dataAge < 30000; // Use if less than 30s old
+      let waterLevel;
+      
+      // Check if manual control is active
+      if (manualWaterLevelControl) {
+        waterLevel = manualWaterLevel;
+      } else {
+        // Use real Arduino data if available, otherwise use timed simulation
+        const dataAge =
+          Date.now() - new Date(latestArduinoData.timestamp).getTime();
+        const useRealData = latestArduinoData.connected && dataAge < 30000; // Use if less than 30s old
 
-      const waterLevel = useRealData
-        ? latestArduinoData.waterLevel
-        : getSimulatedWaterLevel(); // Use timed sequence simulation
+        waterLevel = useRealData
+          ? latestArduinoData.waterLevel
+          : getSimulatedWaterLevel(); // Use timed sequence simulation
+      }
 
       console.log(`📤 Sending water level: ${waterLevel.toFixed(2)} inches`);
 
@@ -712,13 +723,17 @@ wss.on("connection", (ws, req) => {
           // Water level control from water-control page
           console.log(`💧 Water level control: ${data.level} inches`);
 
+          // Enable manual control mode
+          manualWaterLevelControl = true;
+          manualWaterLevel = data.level;
+
           // Update global water level data
           latestArduinoData.waterLevel = data.level;
           latestArduinoData.timestamp = new Date().toISOString();
 
           // Broadcast to all clients (Module 1 dashboard)
           wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN && client !== ws) {
+            if (client.readyState === WebSocket.OPEN) {
               client.send(
                 JSON.stringify({
                   type: "sensor-data",
