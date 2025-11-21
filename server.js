@@ -98,6 +98,10 @@ app.get("/emergency", (req, res) => {
   res.sendFile(path.join(__dirname, "module_4", "module4.html"));
 });
 
+app.get("/water-control", (req, res) => {
+  res.sendFile(path.join(__dirname, "water-level-control.html"));
+});
+
 // Global variable to store latest Arduino data
 let latestArduinoData = {
   waterLevel: 0,
@@ -703,6 +707,32 @@ wss.on("connection", (ws, req) => {
           break;
         case "command":
           handleArduinoCommand(data);
+          break;
+        case "water-level-control":
+          // Water level control from water-control page
+          console.log(`💧 Water level control: ${data.level} inches`);
+
+          // Update global water level data
+          latestArduinoData.waterLevel = data.level;
+          latestArduinoData.timestamp = new Date().toISOString();
+
+          // Broadcast to all clients (Module 1 dashboard)
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN && client !== ws) {
+              client.send(
+                JSON.stringify({
+                  type: "sensor-data",
+                  data: {
+                    timestamp: new Date().toISOString(),
+                    waterLevel: data.level,
+                    flowRate: Math.random() * 5 + 1,
+                    batteryLevel: 90,
+                    signalStrength: -45,
+                  },
+                })
+              );
+            }
+          });
           break;
         case "arduino-command":
           // Command from web serial monitor to Arduino

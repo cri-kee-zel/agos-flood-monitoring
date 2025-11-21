@@ -13,11 +13,13 @@ AGOS is a complete flood monitoring solution featuring:
 **Main Gateway** (`main/`): Central hub for system navigation and overview
 
 **Active Modules:**
+
 1. **Real-time Dashboard** (`module_1/`): Live water level monitoring with 5-second WebSocket updates
 2. **Emergency Response** (`module_4/`): SMS alert system with Android SMS Gateway integration
 3. **Water Level Control Panel** (`public/water-level-control.html`): Testing interface for simulating water levels (0", 2", 10", 19")
 
 **System Features:**
+
 - Arduino R4 WiFi with two-way communication
 - Real-time sensor data transmission via HTTP
 - WebSocket broadcasting for live dashboard updates
@@ -28,6 +30,7 @@ AGOS is a complete flood monitoring solution featuring:
 ## 🏗️ Hardware Components
 
 **Current Active Setup:**
+
 - **Arduino R4 WiFi** - Main controller with WiFi connectivity (WiFiS3 library)
 - **3x TSOP38238 IR Receivers** - Water level detection sensors
   - Sensor 1: Half Knee (10 inches)
@@ -37,6 +40,7 @@ AGOS is a complete flood monitoring solution featuring:
 - **ULN2803 Darlington Array** - LED driver circuit
 
 **Communication:**
+
 - WiFi connection to server (178.128.83.244 for production, localhost for testing)
 - HTTP POST for sensor data transmission (every 5 seconds)
 - HTTP GET for command polling (every 2 seconds)
@@ -222,6 +226,7 @@ WEATHER_API_KEY=your-api-key
 **Arduino R4 WiFi Setup:**
 
 1. **WiFi Configuration** (in `arduino_r4_wifi_agos.ino`):
+
    ```cpp
    const char* WIFI_SSID = "YOUR_WIFI_SSID";
    const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
@@ -231,6 +236,7 @@ WEATHER_API_KEY=your-api-key
    ```
 
 2. **Sensor Pins:**
+
    - IR LED 1: Pin 9 (10" sensor)
    - IR LED 2: Pin 10 (19" sensor)
    - IR LED 3: Pin 11 (37" sensor)
@@ -247,6 +253,7 @@ WEATHER_API_KEY=your-api-key
 ## 📱 API Endpoints
 
 **Server Endpoints:**
+
 - `GET /api/health` - System health check
 - `POST /api/arduino-serial` - Receives sensor data from Arduino
 - `GET /api/arduino-command` - Returns pending commands for Arduino
@@ -254,6 +261,7 @@ WEATHER_API_KEY=your-api-key
 - WebSocket `ws://localhost:3000` - Real-time data broadcasting
 
 **Arduino Commands:**
+
 - `sim0` or `clear` - Simulate 0 inches (no water)
 - `sim2` - Simulate 2 inches
 - `sim10` or `half` - Simulate 10 inches (half knee)
@@ -311,6 +319,7 @@ npm test
 The system uses **Android SMS Gateway** (sms-gate.app) for reliable SMS delivery:
 
 1. **Gateway Setup:**
+
    - Download SMS Gateway app on Android device
    - Configure API credentials in `recipients.json`:
      ```json
@@ -321,11 +330,13 @@ The system uses **Android SMS Gateway** (sms-gate.app) for reliable SMS delivery
      ```
 
 2. **Alert Levels:**
+
    - **Flood Watch** (10 inches): "Flooding is possible in your area"
    - **Flash Flood Alert** (19 inches): "Flash flooding is occurring or imminent"
    - **Flash Flood Emergency** (37 inches): "LIFE-THREATENING flash flooding is happening NOW"
 
 3. **Features:**
+
    - Restricted operator access with password authentication
    - Cooldown timer (60 seconds between alerts)
    - Custom message editing
@@ -394,12 +405,14 @@ A dedicated testing interface for simulating different water levels:
 
 1. **Access**: http://localhost:3000/water-control
 2. **Four Control Buttons:**
+
    - 🟢 CLEAR (0 inches)
    - 🟡 2 INCHES
    - 🟠 10 INCHES
    - 🔴 19 INCHES
 
 3. **Features:**
+
    - Visual water filling animation
    - Real-time WebSocket updates
    - Commands sent directly to Arduino

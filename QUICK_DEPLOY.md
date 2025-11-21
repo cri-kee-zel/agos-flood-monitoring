@@ -1,6 +1,7 @@
 # 🚀 Quick Deploy to Digital Ocean - Arduino R4 WiFi Integration
 
 ## Server Information
+
 - **IP**: 178.128.83.244
 - **User**: agosadmin
 - **Password**: 2000Rbbca12
@@ -81,6 +82,7 @@ pm2 logs agos-server --lines 50
 ```
 
 You should see:
+
 - `🚀 AGOS Server running on port 3000`
 - `✅ WebSocket server is ready`
 - Arduino polling: `GET /api/arduino-command`
@@ -133,15 +135,18 @@ git pull origin main
 ## 🎯 WHAT'S NEW IN THIS DEPLOYMENT
 
 ✅ Arduino R4 WiFi integration endpoints:
+
 - `POST /api/arduino-serial` - Receives sensor data from Arduino
 - `GET /api/arduino-command` - Sends commands to Arduino
 
 ✅ Two-way communication system:
+
 - Arduino polls every 2 seconds for commands
 - Web interface can send commands (sim10, demo, status, etc.)
 - WebSocket broadcasts data to all connected clients
 
 ✅ Emergency panel features:
+
 - Arduino Serial Data Monitor section
 - Real-time command input
 - Live sensor data display
@@ -151,6 +156,7 @@ git pull origin main
 ## 📱 AFTER DEPLOYMENT
 
 Your Arduino should now be able to:
+
 1. ✅ Connect to Digital Ocean server at 178.128.83.244:3000
 2. ✅ Send sensor data every 5 seconds
 3. ✅ Poll for commands every 2 seconds
@@ -158,6 +164,7 @@ Your Arduino should now be able to:
 5. ✅ Display data on dashboard
 
 **Test Commands from Web Interface:**
+
 - Open: http://178.128.83.244:3000/emergency
 - Scroll to "Arduino Serial Data Monitor"
 - Type commands: `sim10`, `demo`, `status`, `help`
