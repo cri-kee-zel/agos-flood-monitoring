@@ -1,0 +1,17 @@
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "." }
+    }
+  ],
+  "routes": [
+    { "src": "^/$", "dest": "/main/main.html" },
+    { "src": "^/main/?$", "dest": "/main/main.html" },
+    { "src": "^/module_1/?$", "dest": "/module_1/index.html" },
+    { "src": "^/module_4/?$", "dest": "/module_4/module4.html" },
+    { "src": "^/serial-monitor/?$", "dest": "/module_5/serial-monitor.html" },
+    { "src": "^/(.*)$", "dest": "/$1" }
+  ]
+}
