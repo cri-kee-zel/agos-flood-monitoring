@@ -22,8 +22,8 @@ class AGOSEmergencySystem {
         },
         cloud: {
           url: "https://api.sms-gate.app/3rdparty/v1/message",
-          username: "6LLSLH",
-          password: "ea2bb5pxdxperx",
+          username: "",
+          password: "",
         },
       },
     };
@@ -819,12 +819,9 @@ class AGOSEmergencySystem {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            gatewayUrl: config.url,
-            username: config.username,
-            password: config.password,
-            payload: payload,
-          }),
+          // Do NOT send credentials from the client. Server will use its
+          // environment-configured SMS_GATEWAY_* values.
+          body: JSON.stringify({ payload: payload }),
         },
       );
 
