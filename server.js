@@ -11,26 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Security middleware
-app.use(
-  try {
-    // Always use server-side SMS gateway credentials from environment
-    const { payload } = req.body;
-
-    const gatewayUrl = process.env.SMS_GATEWAY_URL;
-    const username = process.env.SMS_GATEWAY_USER;
-    const password = process.env.SMS_GATEWAY_PASS;
-
-    console.log("📱 SMS Gateway Proxy Request:");
-    console.log("  URL:", gatewayUrl);
-    console.log("  Username:", username ? username.replace(/.(?=.{2})/g, '*') : '(none)');
-    console.log("  Recipients:", payload ? payload.phoneNumbers.length : 0);
-    console.log("  Payload:", JSON.stringify(payload, null, 2));
-
-    // Create Basic Auth header using environment credentials only
-    const auth = Buffer.from(`${username}:${password}`).toString("base64");
-    },
-  }),
-);
+app.use(helmet());
 
 // CORS configuration
 const allowedOrigins =
@@ -540,17 +521,12 @@ app.delete("/api/recipients/:phoneNumber", (req, res) => {
 // SMS Gateway Proxy Endpoint (to avoid CORS issues)
 app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
   try {
-    // Accept credentials from request but fall back to environment variables
-    const {
-      gatewayUrl: reqGatewayUrl,
-      username: reqUsername,
-      password: reqPassword,
-      payload,
-    } = req.body;
+    // Use server-side SMS gateway credentials from environment only
+    const { payload } = req.body;
 
-    const gatewayUrl = reqGatewayUrl || process.env.SMS_GATEWAY_URL;
-    const username = reqUsername || process.env.SMS_GATEWAY_USER;
-    const password = reqPassword || process.env.SMS_GATEWAY_PASS;
+    const gatewayUrl = process.env.SMS_GATEWAY_URL;
+    const username = process.env.SMS_GATEWAY_USER;
+    const password = process.env.SMS_GATEWAY_PASS;
 
     console.log("📱 SMS Gateway Proxy Request:");
     console.log("  URL:", gatewayUrl);
@@ -561,13 +537,12 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
     console.log("  Recipients:", payload ? payload.phoneNumbers.length : 0);
     console.log("  Payload:", JSON.stringify(payload, null, 2));
 
-    // Create Basic Auth header
+    // Create Basic Auth header using environment credentials only
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
     // Determine which module to use (http or https)
-    const isHttps = gatewayUrl.startsWith("https");
+    const isHttps = gatewayUrl && gatewayUrl.startsWith("https");
     const httpModule = isHttps ? require("https") : require("http");
-    const urlModule = require("url");
     const parsedUrl = new URL(gatewayUrl);
 
     const options = {
@@ -578,7 +553,7 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Basic ${auth}`,
-        "Content-Length": Buffer.byteLength(JSON.stringify(payload)),
+        "Content-Length": Buffer.byteLength(JSON.stringify(payload || {})),
       },
     };
 
@@ -611,7 +586,7 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
       });
     });
 
-    proxyReq.write(JSON.stringify(payload));
+    proxyReq.write(JSON.stringify(payload || {}));
     proxyReq.end();
   } catch (error) {
     console.error("❌ Error in SMS Gateway Proxy:", error);
