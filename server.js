@@ -34,7 +34,7 @@ app.use(
         upgradeInsecureRequests: null, // Explicitly disable this for HTTP deployment
       },
     },
-  })
+  }),
 );
 
 // CORS configuration
@@ -47,7 +47,7 @@ app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : false,
     credentials: true,
-  })
+  }),
 );
 
 // Logging
@@ -130,7 +130,7 @@ app.post("/api/arduino-data", (req, res) => {
   };
 
   console.log(
-    `📡 Arduino data received: distance1=${distance1}cm, distance2=${distance2}cm`
+    `📡 Arduino data received: distance1=${distance1}cm, distance2=${distance2}cm`,
   );
 
   // Broadcast to all WebSocket clients
@@ -146,7 +146,7 @@ app.post("/api/arduino-data", (req, res) => {
             batteryLevel: 90,
             signalStrength: -45,
           },
-        })
+        }),
       );
     }
   });
@@ -213,7 +213,7 @@ app.post("/api/arduino-serial", express.json(), (req, res) => {
                 batteryLevel: 90,
                 signalStrength: rssi || -45,
               },
-            })
+            }),
           );
         }
       });
@@ -237,7 +237,7 @@ app.post("/api/arduino-serial", express.json(), (req, res) => {
             message: logMessage,
             logType: logType,
             rawData: req.body,
-          })
+          }),
         );
       }
     });
@@ -365,7 +365,7 @@ app.post("/api/sms-webhook", express.json(), (req, res) => {
       });
 
       console.log(
-        `✅ Incoming SMS broadcasted to ${wss.clients.size} WebSocket clients`
+        `✅ Incoming SMS broadcasted to ${wss.clients.size} WebSocket clients`,
       );
 
       // Optional: Store in database or log file
@@ -515,7 +515,7 @@ app.delete("/api/recipients/:phoneNumber", (req, res) => {
     // Filter out the recipient
     const originalLength = recipients.recipients.length;
     recipients.recipients = recipients.recipients.filter(
-      (r) => r.phoneNumber !== phoneNumber && r !== phoneNumber
+      (r) => r.phoneNumber !== phoneNumber && r !== phoneNumber,
     );
 
     if (recipients.recipients.length === originalLength) {
@@ -559,7 +559,10 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
 
     console.log("📱 SMS Gateway Proxy Request:");
     console.log("  URL:", gatewayUrl);
-    console.log("  Username:", username ? username.replace(/.(?=.{2})/g, '*') : '(none)');
+    console.log(
+      "  Username:",
+      username ? username.replace(/.(?=.{2})/g, "*") : "(none)",
+    );
     console.log("  Recipients:", payload ? payload.phoneNumbers.length : 0);
     console.log("  Payload:", JSON.stringify(payload, null, 2));
 
@@ -658,7 +661,7 @@ function getSimulatedWaterLevel() {
 wss.on("connection", (ws, req) => {
   console.log(
     "📡 New WebSocket connection from:",
-    req.connection.remoteAddress
+    req.connection.remoteAddress,
   );
 
   // Reset simulation timer for each new connection
@@ -674,14 +677,14 @@ wss.on("connection", (ws, req) => {
         flowRate: Math.random() * 5 + 1,
         batteryLevel: 90,
       },
-    })
+    }),
   );
 
   // Set up periodic data sending
   const interval = setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
       let waterLevel;
-      
+
       // Check if manual control is active
       if (manualWaterLevelControl) {
         waterLevel = manualWaterLevel;
@@ -711,7 +714,7 @@ wss.on("connection", (ws, req) => {
             batteryLevel: Math.random() * 20 + 80,
             signalStrength: Math.floor(Math.random() * 31),
           },
-        })
+        }),
       );
     }
   }, 5000); // Send data every 5 seconds
@@ -754,7 +757,7 @@ wss.on("connection", (ws, req) => {
                     batteryLevel: 90,
                     signalStrength: -45,
                   },
-                })
+                }),
               );
             }
           });
@@ -780,7 +783,7 @@ wss.on("connection", (ws, req) => {
                   timestamp: displayTime,
                   message: `📤 Command queued for Arduino: ${data.command}`,
                   logType: "info",
-                })
+                }),
               );
             }
           });
@@ -857,7 +860,7 @@ function generateFloodEvents() {
   // Generate some sample flood events
   for (let i = 0; i < 5; i++) {
     const eventTime = new Date(
-      now.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000
+      now.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000,
     );
 
     events.push({
@@ -890,7 +893,7 @@ function handleEmergencyAlert(data) {
         JSON.stringify({
           type: "emergency-alert",
           data: data,
-        })
+        }),
       );
     }
   });
