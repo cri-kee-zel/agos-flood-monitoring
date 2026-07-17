@@ -12,27 +12,22 @@ const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://unpkg.com",
-          "https://cdn.jsdelivr.net",
-        ],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://unpkg.com",
-          "https://fonts.googleapis.com",
-        ],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:", "http:"],
-        connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
-        upgradeInsecureRequests: null, // Explicitly disable this for HTTP deployment
-      },
+  try {
+    // Always use server-side SMS gateway credentials from environment
+    const { payload } = req.body;
+
+    const gatewayUrl = process.env.SMS_GATEWAY_URL;
+    const username = process.env.SMS_GATEWAY_USER;
+    const password = process.env.SMS_GATEWAY_PASS;
+
+    console.log("📱 SMS Gateway Proxy Request:");
+    console.log("  URL:", gatewayUrl);
+    console.log("  Username:", username ? username.replace(/.(?=.{2})/g, '*') : '(none)');
+    console.log("  Recipients:", payload ? payload.phoneNumbers.length : 0);
+    console.log("  Payload:", JSON.stringify(payload, null, 2));
+
+    // Create Basic Auth header using environment credentials only
+    const auth = Buffer.from(`${username}:${password}`).toString("base64");
     },
   }),
 );
