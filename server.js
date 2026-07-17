@@ -545,12 +545,22 @@ app.delete("/api/recipients/:phoneNumber", (req, res) => {
 // SMS Gateway Proxy Endpoint (to avoid CORS issues)
 app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
   try {
-    const { gatewayUrl, username, password, payload } = req.body;
+    // Accept credentials from request but fall back to environment variables
+    const {
+      gatewayUrl: reqGatewayUrl,
+      username: reqUsername,
+      password: reqPassword,
+      payload,
+    } = req.body;
+
+    const gatewayUrl = reqGatewayUrl || process.env.SMS_GATEWAY_URL;
+    const username = reqUsername || process.env.SMS_GATEWAY_USER;
+    const password = reqPassword || process.env.SMS_GATEWAY_PASS;
 
     console.log("📱 SMS Gateway Proxy Request:");
     console.log("  URL:", gatewayUrl);
-    console.log("  Username:", username);
-    console.log("  Recipients:", payload.phoneNumbers.length);
+    console.log("  Username:", username ? username.replace(/.(?=.{2})/g, '*') : '(none)');
+    console.log("  Recipients:", payload ? payload.phoneNumbers.length : 0);
     console.log("  Payload:", JSON.stringify(payload, null, 2));
 
     // Create Basic Auth header
