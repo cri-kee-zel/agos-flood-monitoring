@@ -604,61 +604,81 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
     // Create Basic Auth header using the resolved gateway credentials
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
-    // Determine which module to use (http or https)
-    const isHttps = gatewayUrl && gatewayUrl.startsWith("https");
-    const httpModule = isHttps ? require("https") : require("http");
-    const parsedUrl = new URL(gatewayUrl);
+    // Follow redirects: helper that performs POST and follows 3xx up to a limit
+    const MAX_REDIRECTS = 5;
 
-    const options = {
-      hostname: parsedUrl.hostname,
-      port: parsedUrl.port || (isHttps ? 443 : 80),
-      // include pathname and query string so requests go directly to the API
-      path: (parsedUrl.pathname || "") + (parsedUrl.search || ""),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${auth}`,
-        "Content-Length": Buffer.byteLength(JSON.stringify(payload || {})),
-      },
-    };
-
-    // Make request to Android SMS Gateway
-    const proxyReq = httpModule.request(options, (proxyRes) => {
-      let data = "";
-
-      proxyRes.on("data", (chunk) => {
-        data += chunk;
-      });
-
-      proxyRes.on("end", () => {
-        console.log(`✅ SMS Gateway Response: ${proxyRes.statusCode}`);
-        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
-          console.log(
-            "🔁 SMS Gateway redirected to:",
-            proxyRes.headers.location || "(no location header)",
-          );
-        }
-        console.log("📄 Response:", data);
-
+    function performPost(urlToCall, bodyObj, redirectsLeft) {
+      return new Promise((resolve, reject) => {
         try {
-          const response = JSON.parse(data);
-          res.status(proxyRes.statusCode).json(response);
-        } catch (e) {
-          res.status(proxyRes.statusCode).send(data);
+          const parsed = new URL(urlToCall);
+          const useHttps = parsed.protocol === "https:";
+          const mod = useHttps ? require("https") : require("http");
+
+          const opts = {
+            hostname: parsed.hostname,
+            port: parsed.port || (useHttps ? 443 : 80),
+            path: (parsed.pathname || "") + (parsed.search || ""),
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Basic ${auth}`,
+              "Content-Length": Buffer.byteLength(JSON.stringify(bodyObj || {})),
+            },
+          };
+
+          const r = mod.request(opts, (gatewayRes) => {
+            let chunks = "";
+            gatewayRes.on("data", (c) => (chunks += c));
+            gatewayRes.on("end", async () => {
+              // If redirect and Location header present, follow it
+              if (
+                gatewayRes.statusCode >= 300 &&
+                gatewayRes.statusCode < 400 &&
+                gatewayRes.headers.location &&
+                redirectsLeft > 0
+              ) {
+                const next = new URL(gatewayRes.headers.location, parsed).toString();
+                console.log(
+                  `🔁 SMS Gateway responded ${gatewayRes.statusCode}, following to ${next}`,
+                );
+                try {
+                  const followed = await performPost(next, bodyObj, redirectsLeft - 1);
+                  return resolve(followed);
+                } catch (e) {
+                  return reject(e);
+                }
+              }
+
+              resolve({ statusCode: gatewayRes.statusCode, headers: gatewayRes.headers, body: chunks });
+            });
+          });
+
+          r.on("error", (err) => reject(err));
+          r.write(JSON.stringify(bodyObj || {}));
+          r.end();
+        } catch (err) {
+          reject(err);
         }
       });
-    });
+    }
 
-    proxyReq.on("error", (error) => {
-      console.error("❌ SMS Gateway Proxy Error:", error);
-      res.status(500).json({
-        error: "Failed to connect to SMS Gateway",
-        message: error.message,
-      });
-    });
+    // Execute and return final response
+    try {
+      const final = await performPost(gatewayUrl, payload, MAX_REDIRECTS);
+      console.log(`✅ SMS Gateway final status: ${final.statusCode}`);
+      console.log("📄 headers:", final.headers);
+      console.log("📄 body:", final.body);
 
-    proxyReq.write(JSON.stringify(payload || {}));
-    proxyReq.end();
+      try {
+        const json = JSON.parse(final.body || "null");
+        return res.status(final.statusCode).json(json);
+      } catch (e) {
+        return res.status(final.statusCode).send(final.body);
+      }
+    } catch (err) {
+      console.error("❌ SMS Gateway Proxy Error:", err);
+      return res.status(502).json({ error: "Failed to connect to SMS Gateway", message: err.message });
+    }
   } catch (error) {
     console.error("❌ Error in SMS Gateway Proxy:", error);
     res.status(500).json({ error: "Internal server error" });
