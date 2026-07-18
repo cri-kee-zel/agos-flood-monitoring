@@ -766,12 +766,29 @@ class AGOSEmergencySystem {
       const gateway = this.config.SMS_GATEWAY;
       const config = gateway.mode === "cloud" ? gateway.cloud : gateway.local;
 
-      // Check if Android SMS Gateway is configured
-      if (!config.username || !config.password) {
+      // Check if Android SMS Gateway is configured on the SERVER side
+      // (We do not want client-side code to hold secrets).
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      const apiBase =
+        runtimeBackend || `${window.location.protocol}//${window.location.host}`;
+
+      let serverGatewayOk = false;
+      try {
+        const dbgRes = await fetch(`${apiBase.replace(/\/$/, "")}/api/debug-gateway`);
+        if (dbgRes.ok) {
+          const dbgJson = await dbgRes.json();
+          // debug endpoint returns masked user/url when configured
+          serverGatewayOk = !!(dbgJson.smsGatewayUrl || dbgJson.smsGatewayUserMasked);
+        }
+      } catch (e) {
+        console.warn("⚠️ Could not reach /api/debug-gateway:", e);
+      }
+
+      if (!serverGatewayOk) {
         alert(
-          `⚠️ Android SMS Gateway not configured!\n\nPlease update credentials in module4-app.js:\n\nSMS_GATEWAY.${gateway.mode}.username\nSMS_GATEWAY.${gateway.mode}.password\n\nGet credentials from the Android SMS Gateway app.`,
+          `⚠️ Android SMS Gateway not configured on server!\n\nPlease set SMS_GATEWAY_* environment variables on the server (Render/host) or ask the admin to configure them.`,
         );
-        console.error("❌ Android SMS Gateway credentials not set");
+        console.error("❌ Android SMS Gateway not configured on server");
         return;
       }
 
