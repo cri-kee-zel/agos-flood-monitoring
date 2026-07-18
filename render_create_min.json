@@ -1,7 +1,0 @@
-﻿{
-  "type": "web_service",
-  "name": "agos-flood-monitoring backend",
-  "ownerId": "tea-d9cqp8e1a83c739ljqb0",
-  "repo": "https://github.com/cri-kee-zel/agos-flood-monitoring",
-  "branch": "vercel-render-deploy"
-}
