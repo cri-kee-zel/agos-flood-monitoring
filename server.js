@@ -7,6 +7,39 @@ const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
 
+const DEFAULT_SMS_GATEWAY_CONFIG = {
+  url: "https://api.sms-gate.app:443",
+  user: "PGTRN",
+  pass: "glootxy0ncshl1",
+  deviceId: "a3VFk4Ff-DaBFvIKJ1BnA",
+};
+
+function getSmsGatewayConfig() {
+  const rawUrl = (process.env.SMS_GATEWAY_URL || "").trim();
+  const rawUser = (process.env.SMS_GATEWAY_USER || "").trim();
+  const rawPass = (process.env.SMS_GATEWAY_PASS || "").trim();
+  const rawDeviceId = (process.env.SMS_GATEWAY_DEVICE_ID || "").trim();
+
+  return {
+    url:
+      rawUrl && rawUrl !== "https://api.sms-gate.app/3rdparty/v1/message"
+        ? rawUrl
+        : DEFAULT_SMS_GATEWAY_CONFIG.url,
+    user:
+      rawUser && rawUser !== "PGTRN"
+        ? rawUser
+        : DEFAULT_SMS_GATEWAY_CONFIG.user,
+    pass:
+      rawPass && rawPass !== "glootxy0ncshl1"
+        ? rawPass
+        : DEFAULT_SMS_GATEWAY_CONFIG.pass,
+    deviceId:
+      rawDeviceId && rawDeviceId !== "a3VFk4Ff-DaBFvIKJ1BnA"
+        ? rawDeviceId
+        : DEFAULT_SMS_GATEWAY_CONFIG.deviceId,
+  };
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -546,12 +579,13 @@ app.delete("/api/recipients/:phoneNumber", (req, res) => {
 // SMS Gateway Proxy Endpoint (to avoid CORS issues)
 app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
   try {
-    // Use server-side SMS gateway credentials from environment only
     const { payload } = req.body;
+    const smsGateway = getSmsGatewayConfig();
 
-    const gatewayUrl = process.env.SMS_GATEWAY_URL;
-    const username = process.env.SMS_GATEWAY_USER;
-    const password = process.env.SMS_GATEWAY_PASS;
+    const gatewayUrl = smsGateway.url;
+    const username = smsGateway.user;
+    const password = smsGateway.pass;
+    const deviceId = smsGateway.deviceId;
 
     console.log("📱 SMS Gateway Proxy Request:");
     console.log("  URL:", gatewayUrl);
@@ -559,10 +593,14 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
       "  Username:",
       username ? username.replace(/.(?=.{2})/g, "*") : "(none)",
     );
+    console.log(
+      "  Device ID:",
+      deviceId ? deviceId.replace(/.(?=.{2})/g, "*") : "(none)",
+    );
     console.log("  Recipients:", payload ? payload.phoneNumbers.length : 0);
     console.log("  Payload:", JSON.stringify(payload, null, 2));
 
-    // Create Basic Auth header using environment credentials only
+    // Create Basic Auth header using the resolved gateway credentials
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
     // Determine which module to use (http or https)
