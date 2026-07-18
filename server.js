@@ -8,7 +8,8 @@ const fs = require("fs");
 require("dotenv").config();
 
 const DEFAULT_SMS_GATEWAY_CONFIG = {
-  url: "https://api.sms-gate.app:443",
+  // Use the full API path to avoid gateway redirects (301)
+  url: "https://api.sms-gate.app/3rdparty/v1/message",
   user: "PGTRN",
   pass: "glootxy0ncshl1",
   deviceId: "a3VFk4Ff-DaBFvIKJ1BnA",
@@ -611,7 +612,8 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
     const options = {
       hostname: parsedUrl.hostname,
       port: parsedUrl.port || (isHttps ? 443 : 80),
-      path: parsedUrl.pathname,
+      // include pathname and query string so requests go directly to the API
+      path: (parsedUrl.pathname || "") + (parsedUrl.search || ""),
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -630,6 +632,9 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
 
       proxyRes.on("end", () => {
         console.log(`✅ SMS Gateway Response: ${proxyRes.statusCode}`);
+        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
+          console.log("🔁 SMS Gateway redirected to:", proxyRes.headers.location || "(no location header)");
+        }
         console.log("📄 Response:", data);
 
         try {
