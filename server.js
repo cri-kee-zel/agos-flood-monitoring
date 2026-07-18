@@ -614,15 +614,24 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
           const useHttps = parsed.protocol === "https:";
           const mod = useHttps ? require("https") : require("http");
 
+          // If the provided gateway URL has no path (root), use the
+          // known Android SMS Gateway API path for POST requests.
+          let reqPath = (parsed.pathname || "") + (parsed.search || "");
+          if (!reqPath || reqPath === "/") {
+            reqPath = "/3rdparty/v1/message";
+          }
+
           const opts = {
             hostname: parsed.hostname,
             port: parsed.port || (useHttps ? 443 : 80),
-            path: (parsed.pathname || "") + (parsed.search || ""),
+            path: reqPath,
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Basic ${auth}`,
-              "Content-Length": Buffer.byteLength(JSON.stringify(bodyObj || {})),
+              "Content-Length": Buffer.byteLength(
+                JSON.stringify(bodyObj || {}),
+              ),
             },
           };
 
@@ -637,19 +646,30 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
                 gatewayRes.headers.location &&
                 redirectsLeft > 0
               ) {
-                const next = new URL(gatewayRes.headers.location, parsed).toString();
+                const next = new URL(
+                  gatewayRes.headers.location,
+                  parsed,
+                ).toString();
                 console.log(
                   `🔁 SMS Gateway responded ${gatewayRes.statusCode}, following to ${next}`,
                 );
                 try {
-                  const followed = await performPost(next, bodyObj, redirectsLeft - 1);
+                  const followed = await performPost(
+                    next,
+                    bodyObj,
+                    redirectsLeft - 1,
+                  );
                   return resolve(followed);
                 } catch (e) {
                   return reject(e);
                 }
               }
 
-              resolve({ statusCode: gatewayRes.statusCode, headers: gatewayRes.headers, body: chunks });
+              resolve({
+                statusCode: gatewayRes.statusCode,
+                headers: gatewayRes.headers,
+                body: chunks,
+              });
             });
           });
 
@@ -677,7 +697,12 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
       }
     } catch (err) {
       console.error("❌ SMS Gateway Proxy Error:", err);
-      return res.status(502).json({ error: "Failed to connect to SMS Gateway", message: err.message });
+      return res
+        .status(502)
+        .json({
+          error: "Failed to connect to SMS Gateway",
+          message: err.message,
+        });
     }
   } catch (error) {
     console.error("❌ Error in SMS Gateway Proxy:", error);
