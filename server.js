@@ -10,7 +10,7 @@ require("dotenv").config();
 const DEFAULT_SMS_GATEWAY_CONFIG = {
   // Use the full API path to avoid gateway redirects (301)
   url: "https://api.sms-gate.app/3rdparty/v1/message",
-  user: "PGTRN",
+  user: "PGTRN_",
   pass: "glootxy0ncshl1",
   deviceId: "a3VFk4Ff-DaBFvIKJ1BnA",
 };
@@ -27,7 +27,7 @@ function getSmsGatewayConfig() {
   return {
     url: finalUrl,
     user:
-      rawUser && rawUser !== "PGTRN"
+      rawUser && rawUser !== "PGTRN_"
         ? rawUser
         : DEFAULT_SMS_GATEWAY_CONFIG.user,
     pass:
