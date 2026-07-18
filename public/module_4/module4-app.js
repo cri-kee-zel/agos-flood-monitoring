@@ -828,11 +828,7 @@ class AGOSEmergencySystem {
         recipients: recipientNumbers.length,
       });
 
-      // Send to Android SMS Gateway
-      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
-      const apiBase =
-        runtimeBackend ||
-        `${window.location.protocol}//${window.location.host}`;
+      // Send to Android SMS Gateway (reuse `apiBase` from above)
 
       const response = await fetch(
         `${apiBase.replace(/\/$/, "")}/api/sms-gateway-proxy`,
