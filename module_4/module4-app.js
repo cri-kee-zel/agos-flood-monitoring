@@ -768,8 +768,9 @@ class AGOSEmergencySystem {
 
       // Check if Android SMS Gateway is configured on the SERVER side
       // (We do not want client-side code to hold secrets).
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
       const apiBase =
-        (window.AGOS_BACKEND || "").replace(/\/$/, "") ||
+        runtimeBackend ||
         `${window.location.protocol}//${window.location.host}`;
 
       let serverGatewayOk = false;
