@@ -858,8 +858,8 @@ class AGOSMappingSystem {
     }
 
     // Update timestamp - Convert to Philippine Time (UTC+8)
-    const phtTime = new Date(results.timestamp.getTime() + (8 * 60 * 60 * 1000));
-    const ts = phtTime.toLocaleString('en-PH');
+    const phtTime = new Date(results.timestamp.getTime() + 8 * 60 * 60 * 1000);
+    const ts = phtTime.toLocaleString("en-PH");
     this.safeSetText("analysis-timestamp", ts);
   }
 

@@ -7,35 +7,44 @@ const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
 
+const DEFAULT_SMS_GATEWAY_CONFIG = {
+  url: "https://api.sms-gate.app:443",
+  user: "PGTRN",
+  pass: "glootxy0ncshl1",
+  deviceId: "a3VFk4Ff-DaBFvIKJ1BnA",
+};
+
+function getSmsGatewayConfig() {
+  const rawUrl = (process.env.SMS_GATEWAY_URL || "").trim();
+  const rawUser = (process.env.SMS_GATEWAY_USER || "").trim();
+  const rawPass = (process.env.SMS_GATEWAY_PASS || "").trim();
+  const rawDeviceId = (process.env.SMS_GATEWAY_DEVICE_ID || "").trim();
+
+  return {
+    url:
+      rawUrl && rawUrl !== "https://api.sms-gate.app/3rdparty/v1/message"
+        ? rawUrl
+        : DEFAULT_SMS_GATEWAY_CONFIG.url,
+    user:
+      rawUser && rawUser !== "PGTRN"
+        ? rawUser
+        : DEFAULT_SMS_GATEWAY_CONFIG.user,
+    pass:
+      rawPass && rawPass !== "glootxy0ncshl1"
+        ? rawPass
+        : DEFAULT_SMS_GATEWAY_CONFIG.pass,
+    deviceId:
+      rawDeviceId && rawDeviceId !== "a3VFk4Ff-DaBFvIKJ1BnA"
+        ? rawDeviceId
+        : DEFAULT_SMS_GATEWAY_CONFIG.deviceId,
+  };
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Security middleware
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://unpkg.com",
-          "https://cdn.jsdelivr.net",
-        ],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://unpkg.com",
-          "https://fonts.googleapis.com",
-        ],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:", "http:"],
-        connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
-        upgradeInsecureRequests: null, // Explicitly disable this for HTTP deployment
-      },
-    },
-  })
-);
+app.use(helmet());
 
 // CORS configuration
 const allowedOrigins =
@@ -47,7 +56,7 @@ app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : false,
     credentials: true,
-  })
+  }),
 );
 
 // Logging
@@ -77,6 +86,23 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Temporary debug endpoint to verify which SMS gateway credentials the
+// running instance is using. Returns masked username and gateway URL.
+app.get("/api/debug-gateway", (req, res) => {
+  const user = process.env.SMS_GATEWAY_USER || null;
+  const gatewayUrl = process.env.SMS_GATEWAY_URL || null;
+  const mask = (s) => {
+    if (!s) return null;
+    return s.replace(/.(?=.{2})/g, "*");
+  };
+
+  res.json({
+    smsGatewayUserMasked: mask(user),
+    smsGatewayUrl: gatewayUrl,
+    nodeEnv: process.env.NODE_ENV || "development",
+  });
+});
+
 // Serve AGOS modules
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "main", "main.html"));
@@ -95,7 +121,15 @@ app.get("/analytics", (req, res) => {
 });
 
 app.get("/emergency", (req, res) => {
-  res.sendFile(path.join(__dirname, "module_4", "module4.html"));
+  const filePath = path.join(__dirname, "module_4", "module4.html");
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error(`❌ Failed to serve /emergency -> ${filePath}:`, err);
+      if (!res.headersSent) res.status(err.status || 500).end();
+    } else {
+      console.log(`📄 Served /emergency -> ${filePath}`);
+    }
+  });
 });
 
 app.get("/water-control", (req, res) => {
@@ -130,7 +164,7 @@ app.post("/api/arduino-data", (req, res) => {
   };
 
   console.log(
-    `📡 Arduino data received: distance1=${distance1}cm, distance2=${distance2}cm`
+    `📡 Arduino data received: distance1=${distance1}cm, distance2=${distance2}cm`,
   );
 
   // Broadcast to all WebSocket clients
@@ -146,7 +180,7 @@ app.post("/api/arduino-data", (req, res) => {
             batteryLevel: 90,
             signalStrength: -45,
           },
-        })
+        }),
       );
     }
   });
@@ -213,7 +247,7 @@ app.post("/api/arduino-serial", express.json(), (req, res) => {
                 batteryLevel: 90,
                 signalStrength: rssi || -45,
               },
-            })
+            }),
           );
         }
       });
@@ -237,7 +271,7 @@ app.post("/api/arduino-serial", express.json(), (req, res) => {
             message: logMessage,
             logType: logType,
             rawData: req.body,
-          })
+          }),
         );
       }
     });
@@ -365,7 +399,7 @@ app.post("/api/sms-webhook", express.json(), (req, res) => {
       });
 
       console.log(
-        `✅ Incoming SMS broadcasted to ${wss.clients.size} WebSocket clients`
+        `✅ Incoming SMS broadcasted to ${wss.clients.size} WebSocket clients`,
       );
 
       // Optional: Store in database or log file
@@ -515,7 +549,7 @@ app.delete("/api/recipients/:phoneNumber", (req, res) => {
     // Filter out the recipient
     const originalLength = recipients.recipients.length;
     recipients.recipients = recipients.recipients.filter(
-      (r) => r.phoneNumber !== phoneNumber && r !== phoneNumber
+      (r) => r.phoneNumber !== phoneNumber && r !== phoneNumber,
     );
 
     if (recipients.recipients.length === originalLength) {
@@ -545,21 +579,33 @@ app.delete("/api/recipients/:phoneNumber", (req, res) => {
 // SMS Gateway Proxy Endpoint (to avoid CORS issues)
 app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
   try {
-    const { gatewayUrl, username, password, payload } = req.body;
+    const { payload } = req.body;
+    const smsGateway = getSmsGatewayConfig();
+
+    const gatewayUrl = smsGateway.url;
+    const username = smsGateway.user;
+    const password = smsGateway.pass;
+    const deviceId = smsGateway.deviceId;
 
     console.log("📱 SMS Gateway Proxy Request:");
     console.log("  URL:", gatewayUrl);
-    console.log("  Username:", username);
-    console.log("  Recipients:", payload.phoneNumbers.length);
+    console.log(
+      "  Username:",
+      username ? username.replace(/.(?=.{2})/g, "*") : "(none)",
+    );
+    console.log(
+      "  Device ID:",
+      deviceId ? deviceId.replace(/.(?=.{2})/g, "*") : "(none)",
+    );
+    console.log("  Recipients:", payload ? payload.phoneNumbers.length : 0);
     console.log("  Payload:", JSON.stringify(payload, null, 2));
 
-    // Create Basic Auth header
+    // Create Basic Auth header using the resolved gateway credentials
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
     // Determine which module to use (http or https)
-    const isHttps = gatewayUrl.startsWith("https");
+    const isHttps = gatewayUrl && gatewayUrl.startsWith("https");
     const httpModule = isHttps ? require("https") : require("http");
-    const urlModule = require("url");
     const parsedUrl = new URL(gatewayUrl);
 
     const options = {
@@ -570,7 +616,7 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Basic ${auth}`,
-        "Content-Length": Buffer.byteLength(JSON.stringify(payload)),
+        "Content-Length": Buffer.byteLength(JSON.stringify(payload || {})),
       },
     };
 
@@ -603,7 +649,7 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
       });
     });
 
-    proxyReq.write(JSON.stringify(payload));
+    proxyReq.write(JSON.stringify(payload || {}));
     proxyReq.end();
   } catch (error) {
     console.error("❌ Error in SMS Gateway Proxy:", error);
@@ -648,7 +694,7 @@ function getSimulatedWaterLevel() {
 wss.on("connection", (ws, req) => {
   console.log(
     "📡 New WebSocket connection from:",
-    req.connection.remoteAddress
+    req.connection.remoteAddress,
   );
 
   // Reset simulation timer for each new connection
@@ -664,14 +710,14 @@ wss.on("connection", (ws, req) => {
         flowRate: Math.random() * 5 + 1,
         batteryLevel: 90,
       },
-    })
+    }),
   );
 
   // Set up periodic data sending
   const interval = setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
       let waterLevel;
-      
+
       // Check if manual control is active
       if (manualWaterLevelControl) {
         waterLevel = manualWaterLevel;
@@ -701,7 +747,7 @@ wss.on("connection", (ws, req) => {
             batteryLevel: Math.random() * 20 + 80,
             signalStrength: Math.floor(Math.random() * 31),
           },
-        })
+        }),
       );
     }
   }, 5000); // Send data every 5 seconds
@@ -744,7 +790,7 @@ wss.on("connection", (ws, req) => {
                     batteryLevel: 90,
                     signalStrength: -45,
                   },
-                })
+                }),
               );
             }
           });
@@ -770,7 +816,7 @@ wss.on("connection", (ws, req) => {
                   timestamp: displayTime,
                   message: `📤 Command queued for Arduino: ${data.command}`,
                   logType: "info",
-                })
+                }),
               );
             }
           });
@@ -847,7 +893,7 @@ function generateFloodEvents() {
   // Generate some sample flood events
   for (let i = 0; i < 5; i++) {
     const eventTime = new Date(
-      now.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000
+      now.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000,
     );
 
     events.push({
@@ -880,7 +926,7 @@ function handleEmergencyAlert(data) {
         JSON.stringify({
           type: "emergency-alert",
           data: data,
-        })
+        }),
       );
     }
   });

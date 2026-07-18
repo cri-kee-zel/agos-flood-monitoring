@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,6 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script src="/runtime-config.js"></script>
   </head>
   <body>
     <!--
@@ -102,7 +103,7 @@
           <p>Emergency Response & SMS Alert Control</p>
         </div>
         <div class="module-nav">
-          <button class="nav-btn" onclick="window.location.href='/'">
+          <button class="nav-btn" onclick="window.location.href = '/'">
             📊 Dashboard
           </button>
           <!-- <button class="nav-btn" onclick="window.location.href='/dashboard'">
@@ -249,7 +250,7 @@
       <!-- Arduino Data Monitor Panel -->
       <section class="arduino-monitor-panel">
         <div class="panel-header">
-          <h2>📡 Arduino Data Monitor</h2>
+          <h2>📡 Arduino Serial Data Monitor</h2>
           <div class="status-badge-container">
             <div
               class="status-badge status-disconnected"
@@ -290,7 +291,8 @@
           <div class="log-line">
             <span class="timestamp">[00:00:00.000]</span>
             <span class="message info">
-              📡 Arduino Data Monitor - Real-time Arduino → Server Communication
+              📡 Arduino Serial Data Monitor - Real-time Arduino → Server
+              Communication
             </span>
           </div>
           <div class="log-line">
