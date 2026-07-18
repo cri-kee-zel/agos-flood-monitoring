@@ -104,7 +104,13 @@ class AGOSMainGateway {
    */
   async fetchSystemData() {
     try {
-      const response = await fetch("/api/system-overview");
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      const apiBase =
+        runtimeBackend ||
+        `${window.location.protocol}//${window.location.host}`;
+      const response = await fetch(
+        `${apiBase.replace(/\/$/, "")}/api/system-overview`,
+      );
       const data = await response.json();
 
       // Update state with new data
@@ -114,7 +120,7 @@ class AGOSMainGateway {
     } catch (error) {
       console.warn(
         "⚠️ Failed to fetch system data, using simulated data:",
-        error
+        error,
       );
     }
   }
@@ -125,9 +131,9 @@ class AGOSMainGateway {
    */
   navigateToModule(moduleUrl) {
     console.log(`🚀 Navigating to: ${moduleUrl}`);
-    
+
     // Check if we already have a loading overlay to prevent duplicates
-    if (document.querySelector('.agos-loading-overlay')) {
+    if (document.querySelector(".agos-loading-overlay")) {
       console.log("⚠️ Loading overlay already exists, skipping navigation");
       return;
     }
@@ -143,11 +149,11 @@ class AGOSMainGateway {
     // Reduced wait time for smoother experience
     setTimeout(() => {
       console.log(`🔧 Navigating now to: ${moduleUrl}`);
-      
+
       // Store current page info for back navigation
-      sessionStorage.setItem('agos-previous-page', window.location.href);
-      sessionStorage.setItem('agos-navigation-time', Date.now().toString());
-      
+      sessionStorage.setItem("agos-previous-page", window.location.href);
+      sessionStorage.setItem("agos-navigation-time", Date.now().toString());
+
       window.location.href = moduleUrl; // Navigate to the requested module
     }, 600);
   }
@@ -192,7 +198,7 @@ class AGOSMainGateway {
                         filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.5)); /* Glow effect */
                     ">🌊</div>
                     <p style="
-                        font-size: 1.3rem; 
+                        font-size: 1.3rem;
                         opacity: 0.95;
                         margin: 0;
                         font-weight: 500;
@@ -219,9 +225,9 @@ class AGOSMainGateway {
         `;
 
     // Create enhanced CSS animations if not already added
-    if (!document.getElementById('agos-loading-styles')) {
+    if (!document.getElementById("agos-loading-styles")) {
       const style = document.createElement("style");
-      style.id = 'agos-loading-styles';
+      style.id = "agos-loading-styles";
       style.textContent = `
                 @keyframes spin {
                     from { transform: rotate(0deg); }
@@ -232,13 +238,13 @@ class AGOSMainGateway {
                     to { opacity: 1; }
                 }
                 @keyframes slideInContent {
-                    from { 
-                        transform: translateY(30px); 
-                        opacity: 0; 
+                    from {
+                        transform: translateY(30px);
+                        opacity: 0;
                     }
-                    to { 
-                        transform: translateY(0); 
-                        opacity: 1; 
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
                     }
                 }
                 @keyframes loadingProgress {
@@ -288,11 +294,11 @@ class AGOSMainGateway {
     // Update status overview items (safe)
     this.safeSetText(
       "current-water-level",
-      `${this.state.currentData.waterLevel} cm`
+      `${this.state.currentData.waterLevel} cm`,
     );
     this.safeSetText(
       "current-flow-rate",
-      `${this.state.currentData.flowRate} m/s`
+      `${this.state.currentData.flowRate} m/s`,
     );
     this.safeSetText("alert-status", this.state.currentData.alertStatus);
     // Format battery level to two decimal places, handling numbers or strings
@@ -369,7 +375,7 @@ class AGOSMainGateway {
         const cardModule = card ? card.dataset.module : "";
 
         console.log(
-          `🔧 Button text: ${buttonText}, Card module: ${cardModule}`
+          `🔧 Button text: ${buttonText}, Card module: ${cardModule}`,
         );
 
         if (buttonText.includes("dashboard") || cardModule === "dashboard") {
@@ -398,7 +404,7 @@ class AGOSMainGateway {
           // button label issues during iterative edits.
           console.error(
             "❌ Could not determine module URL for button:",
-            button
+            button,
           );
         }
       });
@@ -413,34 +419,34 @@ class AGOSMainGateway {
     console.log("🔧 Setting up navigation handlers...");
 
     // Handle browser back/forward navigation
-    window.addEventListener('popstate', (event) => {
+    window.addEventListener("popstate", (event) => {
       console.log("🔙 Browser back button detected");
-      
+
       // Remove any existing loading overlay smoothly
       this.removeLoadingOverlay();
-      
+
       // Check if we're returning from a navigation
-      const previousPage = sessionStorage.getItem('agos-previous-page');
+      const previousPage = sessionStorage.getItem("agos-previous-page");
       if (previousPage) {
         console.log("🔄 Returning from navigation, showing smooth transition");
-        
+
         // Show a brief loading for smooth transition
         const overlay = this.createLoadingOverlay();
         document.body.appendChild(overlay);
-        
+
         // Quick fade out for smooth back navigation
         setTimeout(() => {
           this.removeLoadingOverlay();
         }, 400);
-        
+
         // Clear the stored navigation info
-        sessionStorage.removeItem('agos-previous-page');
-        sessionStorage.removeItem('agos-navigation-time');
+        sessionStorage.removeItem("agos-previous-page");
+        sessionStorage.removeItem("agos-navigation-time");
       }
     });
 
     // Handle page visibility changes (when user returns to tab)
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         console.log("👀 Page became visible");
         // Remove any lingering loading overlays
@@ -449,12 +455,12 @@ class AGOSMainGateway {
     });
 
     // Handle page load/unload for cleanup
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       this.removeLoadingOverlay();
     });
 
     // Handle page focus/blur
-    window.addEventListener('focus', () => {
+    window.addEventListener("focus", () => {
       console.log("🎯 Window focused");
       this.removeLoadingOverlay();
     });
@@ -464,17 +470,17 @@ class AGOSMainGateway {
    * Remove loading overlay with smooth fade out
    */
   removeLoadingOverlay() {
-    const overlay = document.querySelector('.agos-loading-overlay');
+    const overlay = document.querySelector(".agos-loading-overlay");
     if (overlay) {
       console.log("🗑️ Removing loading overlay");
-      
+
       // Fade out smoothly
-      overlay.style.animation = 'fadeOutOverlay 0.3s ease-out forwards';
-      
+      overlay.style.animation = "fadeOutOverlay 0.3s ease-out forwards";
+
       // Add fade out keyframes if not already added
-      if (!document.getElementById('agos-fadeout-styles')) {
+      if (!document.getElementById("agos-fadeout-styles")) {
         const style = document.createElement("style");
-        style.id = 'agos-fadeout-styles';
+        style.id = "agos-fadeout-styles";
         style.textContent = `
           @keyframes fadeOutOverlay {
             from { opacity: 1; }
@@ -483,7 +489,7 @@ class AGOSMainGateway {
         `;
         document.head.appendChild(style);
       }
-      
+
       // Remove from DOM after animation
       setTimeout(() => {
         if (overlay.parentNode) {

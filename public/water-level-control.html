@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -176,9 +176,9 @@
       }
 
       .control-btn.active {
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5),
+        box-shadow:
+          0 0 0 4px rgba(255, 255, 255, 0.5),
           0 0 20px rgba(0, 0, 0, 0.3);
-        transform: scale(1.05);
       }
 
       .control-btn::after {
@@ -191,7 +191,9 @@
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.5);
         transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
+        transition:
+          width 0.6s,
+          height 0.6s;
       }
 
       .control-btn:active::after {
@@ -255,6 +257,7 @@
         }
       }
     </style>
+    <script src="/runtime-config.js"></script>
   </head>
   <body>
     <div class="container">
@@ -274,29 +277,26 @@
       </div>
 
       <div class="button-grid">
-        <button
-          class="control-btn btn-clear active"
-          onclick="setWaterLevel(0, this)"
-        >
+        <button class="control-btn btn-clear active" data-level="0">
           🟢 CLEAR
           <span class="btn-level">0 inches</span>
         </button>
-        <button class="control-btn btn-half" onclick="setWaterLevel(2, this)">
+        <button class="control-btn btn-half" data-level="2">
           🟡 2 INCHES
           <span class="btn-level">2 inches</span>
         </button>
-        <button class="control-btn btn-knee" onclick="setWaterLevel(10, this)">
+        <button class="control-btn btn-knee" data-level="10">
           🟠 10 INCHES
           <span class="btn-level">10 inches</span>
         </button>
-        <button class="control-btn btn-waist" onclick="setWaterLevel(19, this)">
+        <button class="control-btn btn-waist" data-level="19">
           🔴 19 INCHES
           <span class="btn-level">19 inches</span>
         </button>
       </div>
 
       <div class="last-command" id="lastCommand">
-        Ready to send commands to Arduino...
+        Click a button to set water level...
       </div>
     </div>
 
@@ -305,12 +305,15 @@
       let currentLevel = 0;
       const maxHeight = 19; // inches (maximum water level)
 
-      // WebSocket connection
+      // WebSocket connection (uses runtime BACKEND_URL when available)
       function connectWebSocket() {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `${protocol}//${window.location.hostname}:${
-          window.location.port || 3000
-        }`;
+        const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+        let backendHost =
+          runtimeBackend ||
+          `${window.location.protocol}//${window.location.host}`;
+        const wsProtocol = backendHost.startsWith("https") ? "wss:" : "ws:";
+        const wsHost = new URL(backendHost).host;
+        const wsUrl = `${wsProtocol}//${wsHost}`;
 
         ws = new WebSocket(wsUrl);
 
@@ -348,6 +351,9 @@
       }
 
       function setWaterLevel(inches, buttonElement) {
+        console.log(`🔵 Button clicked: ${inches} inches`);
+        console.log(`🔵 Button element:`, buttonElement);
+
         currentLevel = inches;
 
         // Update visual display in this page
@@ -361,28 +367,31 @@
         // Add active class to clicked button (stays clicked)
         if (buttonElement) {
           buttonElement.classList.add("active");
+          console.log(`✅ Active class added to button`);
         }
 
         // Send water level to Module 1 via WebSocket
         if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(
-            JSON.stringify({
-              type: "water-level-control",
-              level: inches,
-              timestamp: new Date().toISOString(),
-            })
-          );
+          const payload = {
+            type: "water-level-control",
+            level: inches,
+            timestamp: new Date().toISOString(),
+          };
+          console.log(`📤 Sending WebSocket message:`, payload);
 
-          document.getElementById(
-            "lastCommand"
-          ).textContent = `✅ Water level set to ${inches} inches - Sent to Module 1`;
+          ws.send(JSON.stringify(payload));
+
+          document.getElementById("lastCommand").textContent =
+            `✅ Water level set to ${inches} inches - Sent to Module 1`;
           console.log(
-            `💧 Water level changed to: ${inches} inches - Broadcasting to Module 1`
+            `💧 Water level changed to: ${inches} inches - Broadcasting to Module 1`,
           );
         } else {
-          document.getElementById(
-            "lastCommand"
-          ).textContent = `⚠️ Water level set to ${inches} inches - Not connected to server`;
+          console.warn(
+            `⚠️ WebSocket not ready. State: ${ws ? ws.readyState : "null"}`,
+          );
+          document.getElementById("lastCommand").textContent =
+            `⚠️ Water level set to ${inches} inches - Not connected to server`;
           console.warn("WebSocket not connected, cannot send to Module 1");
         }
       }
@@ -417,6 +426,14 @@
       // Initialize
       connectWebSocket();
       updateWaterDisplay(0);
+
+      // Add click event listeners to all buttons
+      document.querySelectorAll(".control-btn").forEach((button) => {
+        button.addEventListener("click", function () {
+          const level = parseInt(this.getAttribute("data-level"));
+          setWaterLevel(level, this);
+        });
+      });
 
       // Handle page visibility to reconnect WebSocket
       document.addEventListener("visibilitychange", () => {

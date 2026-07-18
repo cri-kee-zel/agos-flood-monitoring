@@ -53,6 +53,23 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Temporary debug endpoint to verify which SMS gateway credentials the
+// running instance is using. Returns masked username and gateway URL.
+app.get("/api/debug-gateway", (req, res) => {
+  const user = process.env.SMS_GATEWAY_USER || null;
+  const gatewayUrl = process.env.SMS_GATEWAY_URL || null;
+  const mask = (s) => {
+    if (!s) return null;
+    return s.replace(/.(?=.{2})/g, "*");
+  };
+
+  res.json({
+    smsGatewayUserMasked: mask(user),
+    smsGatewayUrl: gatewayUrl,
+    nodeEnv: process.env.NODE_ENV || "development",
+  });
+});
+
 // Serve AGOS modules
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "main", "main.html"));
@@ -71,7 +88,15 @@ app.get("/analytics", (req, res) => {
 });
 
 app.get("/emergency", (req, res) => {
-  res.sendFile(path.join(__dirname, "module_4", "module4.html"));
+  const filePath = path.join(__dirname, "module_4", "module4.html");
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error(`❌ Failed to serve /emergency -> ${filePath}:`, err);
+      if (!res.headersSent) res.status(err.status || 500).end();
+    } else {
+      console.log(`📄 Served /emergency -> ${filePath}`);
+    }
+  });
 });
 
 app.get("/water-control", (req, res) => {

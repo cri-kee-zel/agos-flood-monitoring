@@ -171,7 +171,7 @@ class AGOSSystem {
     if (this.elements["water-surface"]) {
       console.log(
         "🌊 Water surface element found:",
-        this.elements["water-surface"]
+        this.elements["water-surface"],
       );
     } else {
       console.error("❌ CRITICAL: water-surface element is MISSING!");
@@ -184,13 +184,13 @@ class AGOSSystem {
   setupEventListeners() {
     // Control buttons
     this.elements["simulate-btn"]?.addEventListener("click", () =>
-      this.toggleSimulation()
+      this.toggleSimulation(),
     );
     this.elements["reset-btn"]?.addEventListener("click", () =>
-      this.resetSystem()
+      this.resetSystem(),
     );
     this.elements["export-btn"]?.addEventListener("click", () =>
-      this.exportData()
+      this.exportData(),
     );
 
     // Test water level slider
@@ -212,10 +212,10 @@ class AGOSSystem {
 
     // Reference height changes
     this.elements["human-height"]?.addEventListener("input", () =>
-      this.updateReferencePositions()
+      this.updateReferencePositions(),
     );
     this.elements["car-height"]?.addEventListener("input", () =>
-      this.updateReferencePositions()
+      this.updateReferencePositions(),
     );
 
     // Show/hide reference visuals
@@ -249,7 +249,7 @@ class AGOSSystem {
 
     // Visibility change (for power management)
     document.addEventListener("visibilitychange", () =>
-      this.handleVisibilityChange()
+      this.handleVisibilityChange(),
     );
   }
 
@@ -260,9 +260,15 @@ class AGOSSystem {
     try {
       console.log("🔌 Initializing WebSocket connection...");
 
-      // Create real WebSocket connection
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}`;
+      // Create real WebSocket connection using runtime BACKEND_URL when available
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      let backendHost = runtimeBackend;
+      if (!backendHost) {
+        backendHost = `${window.location.protocol}//${window.location.host}`;
+      }
+      const wsProtocol = backendHost.startsWith("https") ? "wss:" : "ws:";
+      const wsHost = new URL(backendHost).host;
+      const wsUrl = `${wsProtocol}//${wsHost}`;
 
       this.socket = new WebSocket(wsUrl);
 
@@ -283,7 +289,7 @@ class AGOSSystem {
           this.state.lastUpdate = new Date(message.data.timestamp);
 
           console.log(
-            `🌊 Water level updated: ${this.state.waterLevel} inches`
+            `🌊 Water level updated: ${this.state.waterLevel} inches`,
           );
 
           // Update the visualization
@@ -359,7 +365,7 @@ class AGOSSystem {
   scheduleReconnect() {
     this.state.reconnectAttempts++;
     console.log(
-      `🔄 Scheduling reconnect attempt ${this.state.reconnectAttempts}/${this.config.MAX_RECONNECT_ATTEMPTS}`
+      `🔄 Scheduling reconnect attempt ${this.state.reconnectAttempts}/${this.config.MAX_RECONNECT_ATTEMPTS}`,
     );
 
     this.reconnectTimer = setTimeout(() => {
@@ -451,7 +457,7 @@ class AGOSSystem {
     const levelVariation = Math.sin(time * 0.001) * 20 + Math.random() * 10 - 5;
     this.state.waterLevel = Math.max(
       0,
-      Math.min(this.config.MAX_WATER_LEVEL, baseLevel + levelVariation)
+      Math.min(this.config.MAX_WATER_LEVEL, baseLevel + levelVariation),
     );
 
     // Simulate flow rate correlated with water level
@@ -461,8 +467,8 @@ class AGOSSystem {
       0,
       Math.min(
         this.config.MAX_FLOW_RATE,
-        baseFlow + this.state.waterLevel / 100 + flowVariation
-      )
+        baseFlow + this.state.waterLevel / 100 + flowVariation,
+      ),
     );
 
     // Simulate turbidity sensors
@@ -473,7 +479,7 @@ class AGOSSystem {
     // Simulate battery discharge
     this.state.batteryLevel = Math.max(
       0,
-      this.state.batteryLevel - Math.random() * 0.01
+      this.state.batteryLevel - Math.random() * 0.01,
     );
 
     // Update timestamp
@@ -567,12 +573,12 @@ class AGOSSystem {
     // Update water fill animation
     const fillPercentage = Math.min(
       100,
-      (level / this.config.MAX_WATER_LEVEL) * 100
+      (level / this.config.MAX_WATER_LEVEL) * 100,
     );
     console.log(
       `💧 Water level: ${level.toFixed(2)}" | Fill: ${fillPercentage.toFixed(
-        1
-      )}% | Max: ${this.config.MAX_WATER_LEVEL}"`
+        1,
+      )}% | Max: ${this.config.MAX_WATER_LEVEL}"`,
     );
     if (fillElement) {
       fillElement.style.height = `${fillPercentage}%`;
@@ -785,8 +791,9 @@ class AGOSSystem {
   playAlertSound() {
     try {
       // Create audio context for emergency beep
-      const audioContext = new (window.AudioContext ||
-        window.webkitAudioContext)();
+      const audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 

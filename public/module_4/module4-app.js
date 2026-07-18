@@ -22,8 +22,8 @@ class AGOSEmergencySystem {
         },
         cloud: {
           url: "https://api.sms-gate.app/3rdparty/v1/message",
-          username: "6LLSLH",
-          password: "ea2bb5pxdxperx",
+          username: "",
+          password: "",
         },
       },
     };
@@ -101,10 +101,17 @@ class AGOSEmergencySystem {
   initializeWebSocket() {
     try {
       console.log(
-        "🔌 Initializing WebSocket connection for emergency system..."
+        "🔌 Initializing WebSocket connection for emergency system...",
       );
 
-      const wsUrl = `ws://${window.location.host}`;
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      let backendHost = runtimeBackend;
+      if (!backendHost) {
+        backendHost = `${window.location.protocol}//${window.location.host}`;
+      }
+      const wsProtocol = backendHost.startsWith("https") ? "wss:" : "ws:";
+      const wsHost = new URL(backendHost).host;
+      const wsUrl = `${wsProtocol}//${wsHost}`;
       this.socket = new WebSocket(wsUrl);
 
       this.socket.onopen = () => {
@@ -142,7 +149,7 @@ class AGOSEmergencySystem {
             console.log(
               `🔄 Attempting to reconnect WebSocket (attempt ${
                 this.reconnectionAttempts
-              }/10) in ${delay / 1000}s...`
+              }/10) in ${delay / 1000}s...`,
             );
 
             setTimeout(() => {
@@ -151,10 +158,10 @@ class AGOSEmergencySystem {
             }, delay);
           } else {
             console.log(
-              "❌ Max reconnection attempts reached. Please refresh the page."
+              "❌ Max reconnection attempts reached. Please refresh the page.",
             );
             alert(
-              "WebSocket connection lost. Please refresh the page to reconnect."
+              "WebSocket connection lost. Please refresh the page to reconnect.",
             );
           }
         }
@@ -234,14 +241,14 @@ class AGOSEmergencySystem {
       flashFloodBtn.style.opacity = "1";
       flashFloodBtn.style.cursor = "pointer";
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
-        1
+        1,
       )}" - Flash Flood Alert Ready`;
 
       floodWatchBtn.disabled = false;
       floodWatchBtn.style.opacity = "1";
       floodWatchBtn.style.cursor = "pointer";
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
-        1
+        1,
       )}" - Flood Watch Ready`;
 
       // AUTO-SEND Flash Flood SMS (only once when threshold crossed)
@@ -256,14 +263,14 @@ class AGOSEmergencySystem {
       flashFloodBtn.style.opacity = "0.5";
       flashFloodBtn.style.cursor = "not-allowed";
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
-        1
+        1,
       )}" - Requires 19+ inches`;
 
       floodWatchBtn.disabled = false;
       floodWatchBtn.style.opacity = "1";
       floodWatchBtn.style.cursor = "pointer";
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
-        1
+        1,
       )}" - Flood Watch Ready`;
 
       // AUTO-SEND Flood Watch SMS (only once when threshold crossed)
@@ -284,14 +291,14 @@ class AGOSEmergencySystem {
       flashFloodBtn.style.opacity = "0.5";
       flashFloodBtn.style.cursor = "not-allowed";
       flashFloodBtn.title = `Water level: ${waterLevel.toFixed(
-        1
+        1,
       )}" - Requires 19+ inches`;
 
       floodWatchBtn.disabled = true;
       floodWatchBtn.style.opacity = "0.5";
       floodWatchBtn.style.cursor = "not-allowed";
       floodWatchBtn.title = `Water level: ${waterLevel.toFixed(
-        1
+        1,
       )}" - Requires 10+ inches`;
 
       // Reset both auto-alert flags ONLY when water level is at 0" (start of new cycle)
@@ -333,8 +340,14 @@ class AGOSEmergencySystem {
     try {
       console.log("📱 Loading SMS recipients from server...");
       console.log("🔗 Fetching from: /api/recipients");
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      const apiBase =
+        runtimeBackend ||
+        `${window.location.protocol}//${window.location.host}`;
 
-      const response = await fetch("/api/recipients");
+      const response = await fetch(
+        `${apiBase.replace(/\/$/, "")}/api/recipients`,
+      );
       console.log("📡 Response status:", response.status, response.statusText);
 
       if (!response.ok) {
@@ -352,7 +365,7 @@ class AGOSEmergencySystem {
       } else {
         console.error("❌ Failed to load recipients:", data.error);
         alert(
-          "Failed to load SMS recipients: " + (data.error || "Unknown error")
+          "Failed to load SMS recipients: " + (data.error || "Unknown error"),
         );
       }
     } catch (error) {
@@ -365,19 +378,26 @@ class AGOSEmergencySystem {
     try {
       console.log("📱 Adding new recipient:", phoneNumber);
       console.log("🔗 Posting to: /api/recipients");
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      const apiBase =
+        runtimeBackend ||
+        `${window.location.protocol}//${window.location.host}`;
 
-      const response = await fetch("/api/recipients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${apiBase.replace(/\/$/, "")}/api/recipients`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ phoneNumber: phoneNumber }),
         },
-        body: JSON.stringify({ phoneNumber: phoneNumber }),
-      });
+      );
 
       console.log(
         "📡 Add response status:",
         response.status,
-        response.statusText
+        response.statusText,
       );
 
       if (!response.ok) {
@@ -410,14 +430,19 @@ class AGOSEmergencySystem {
     try {
       console.log("🗑️ Deleting recipient:", phoneNumber);
 
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      const apiBase =
+        runtimeBackend ||
+        `${window.location.protocol}//${window.location.host}`;
+
       const response = await fetch(
-        `/api/recipients/${encodeURIComponent(phoneNumber)}`,
+        `${apiBase.replace(/\/$/, "")}/api/recipients/${encodeURIComponent(phoneNumber)}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -511,7 +536,7 @@ class AGOSEmergencySystem {
     if (recipientCount) {
       recipientCount.textContent = this.state.recipients.length;
       console.log(
-        `📊 Updated recipient count to: ${this.state.recipients.length}`
+        `📊 Updated recipient count to: ${this.state.recipients.length}`,
       );
     } else {
       console.error("❌ Recipient count element not found!");
@@ -545,7 +570,7 @@ class AGOSEmergencySystem {
 
         if (!this.validatePhoneNumber(phoneNumber)) {
           alert(
-            "Invalid phone number format. Use international format like +639171234567"
+            "Invalid phone number format. Use international format like +639171234567",
           );
           return;
         }
@@ -648,21 +673,21 @@ class AGOSEmergencySystem {
     // Store button references for cooldown system IMMEDIATELY
     this.alertButtonElements = {
       "flash-flood": document.querySelector(
-        '[data-alert="flash-flood"] .quick-alert-btn'
+        '[data-alert="flash-flood"] .quick-alert-btn',
       ),
       "flood-watch": document.querySelector(
-        '[data-alert="flood-watch"] .quick-alert-btn'
+        '[data-alert="flood-watch"] .quick-alert-btn',
       ),
       "weather-update": document.querySelector(
-        '[data-alert="weather-update"] .quick-alert-btn'
+        '[data-alert="weather-update"] .quick-alert-btn',
       ),
       "all-clear": document.querySelector(
-        '[data-alert="all-clear"] .quick-alert-btn'
+        '[data-alert="all-clear"] .quick-alert-btn',
       ),
     };
     console.log(
       "✅ Alert button references stored:",
-      Object.keys(this.alertButtonElements)
+      Object.keys(this.alertButtonElements),
     );
 
     alertButtons.forEach((button, index) => {
@@ -719,7 +744,7 @@ class AGOSEmergencySystem {
 
     try {
       console.log(
-        `📱 Sending ${alertType} SMS alert via Android SMS Gateway...`
+        `📱 Sending ${alertType} SMS alert via Android SMS Gateway...`,
       );
       console.log("📊 Current system state:", {
         operator: this.state.currentOperator,
@@ -731,7 +756,7 @@ class AGOSEmergencySystem {
       // Check if we have recipients
       if (this.state.recipientCount === 0) {
         alert(
-          "⚠️ No SMS recipients configured! Please add phone numbers first."
+          "⚠️ No SMS recipients configured! Please add phone numbers first.",
         );
         console.log("❌ No recipients configured for SMS alerts");
         return;
@@ -744,7 +769,7 @@ class AGOSEmergencySystem {
       // Check if Android SMS Gateway is configured
       if (!config.username || !config.password) {
         alert(
-          `⚠️ Android SMS Gateway not configured!\n\nPlease update credentials in module4-app.js:\n\nSMS_GATEWAY.${gateway.mode}.username\nSMS_GATEWAY.${gateway.mode}.password\n\nGet credentials from the Android SMS Gateway app.`
+          `⚠️ Android SMS Gateway not configured!\n\nPlease update credentials in module4-app.js:\n\nSMS_GATEWAY.${gateway.mode}.username\nSMS_GATEWAY.${gateway.mode}.password\n\nGet credentials from the Android SMS Gateway app.`,
         );
         console.error("❌ Android SMS Gateway credentials not set");
         return;
@@ -765,7 +790,7 @@ class AGOSEmergencySystem {
 
       // Prepare Android SMS Gateway payload
       const recipientNumbers = this.state.recipients.map((r) =>
-        typeof r === "string" ? r : r.phoneNumber
+        typeof r === "string" ? r : r.phoneNumber,
       );
 
       const payload = {
@@ -782,23 +807,28 @@ class AGOSEmergencySystem {
       });
 
       // Send to Android SMS Gateway
-      const response = await fetch("/api/sms-gateway-proxy", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      const apiBase =
+        runtimeBackend ||
+        `${window.location.protocol}//${window.location.host}`;
+
+      const response = await fetch(
+        `${apiBase.replace(/\/$/, "")}/api/sms-gateway-proxy`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Do NOT send credentials from the client. Server will use its
+          // environment-configured SMS_GATEWAY_* values.
+          body: JSON.stringify({ payload: payload }),
         },
-        body: JSON.stringify({
-          gatewayUrl: config.url,
-          username: config.username,
-          password: config.password,
-          payload: payload,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Android SMS Gateway returned ${response.status}: ${errorText}`
+          `Android SMS Gateway returned ${response.status}: ${errorText}`,
         );
       }
 
@@ -812,7 +842,7 @@ class AGOSEmergencySystem {
           alertType: alertType,
           message: message,
           recipients: this.state.recipients.map((r) =>
-            typeof r === "string" ? r : r.phoneNumber
+            typeof r === "string" ? r : r.phoneNumber,
           ),
           timestamp: new Date().toISOString(),
           operator: this.state.currentOperator,
@@ -963,7 +993,7 @@ class AGOSEmergencySystem {
       });
 
       console.log(
-        `✅ Login successful: ${operatorId} (${this.state.operatorRole})`
+        `✅ Login successful: ${operatorId} (${this.state.operatorRole})`,
       );
 
       this.updateOperatorInfo();
@@ -1012,14 +1042,14 @@ class AGOSEmergencySystem {
     if (this.elements["operator-name"]) {
       this.safeSetText(
         "operator-name",
-        this.state.currentOperator || "Unknown"
+        this.state.currentOperator || "Unknown",
       );
     }
 
     if (this.elements["operator-institution"]) {
       this.safeSetText(
         "operator-institution",
-        this.state.operatorRole || "Unknown Role"
+        this.state.operatorRole || "Unknown Role",
       );
     }
   }
@@ -1091,7 +1121,7 @@ function initializeArduinoMonitor() {
         const message = data.message || "No message";
         const logType = data.logType || "info";
         addArduinoLog(message, logType);
-        
+
         // Update data received counter
         arduinoDataReceived += event.data.length / 1024; // KB
         updateArduinoStats();
@@ -1128,7 +1158,7 @@ function initializeArduinoMonitor() {
     updateArduinoStatus("disconnected", "Disconnected");
     addArduinoLog(
       "⚠️ Disconnected from server. Attempting to reconnect...",
-      "warning"
+      "warning",
     );
 
     // Attempt to reconnect after 3 seconds
@@ -1282,7 +1312,7 @@ function sendArduinoCommand() {
       JSON.stringify({
         type: "arduino-command",
         command: command,
-      })
+      }),
     );
 
     addArduinoLog("✅ Command sent to Arduino", "success");
@@ -1292,7 +1322,7 @@ function sendArduinoCommand() {
     console.error("❌ Cannot send command - WebSocket not connected");
     console.log(
       "WebSocket state:",
-      arduinoSocket ? arduinoSocket.readyState : "null"
+      arduinoSocket ? arduinoSocket.readyState : "null",
     );
   }
 
@@ -1332,7 +1362,7 @@ function startArduinoUptime() {
     const seconds = Math.floor((elapsed % 60000) / 1000);
 
     const formatted = `${String(hours).padStart(2, "0")}:${String(
-      minutes
+      minutes,
     ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     uptimeEl.textContent = formatted;
   }, 1000);
@@ -1420,14 +1450,14 @@ function saveCustomMessage() {
 
   console.log(
     `💾 Saved custom message for ${currentEditingAlertType}:`,
-    customMsg || "Using default"
+    customMsg || "Using default",
   );
 
   // Optional: Save to localStorage for persistence
   try {
     localStorage.setItem(
       "agos-custom-messages",
-      JSON.stringify(customMessages)
+      JSON.stringify(customMessages),
     );
     console.log("✅ Custom messages saved to localStorage");
   } catch (error) {
@@ -1454,7 +1484,7 @@ function resetToDefaultMessage() {
   try {
     localStorage.setItem(
       "agos-custom-messages",
-      JSON.stringify(customMessages)
+      JSON.stringify(customMessages),
     );
   } catch (error) {
     console.error("⚠️ Could not save to localStorage:", error);
@@ -1510,7 +1540,7 @@ function startGlobalCooldown(agosSystem) {
   console.log("⏳ Starting global alert cooldown (10 seconds)");
   console.log(
     "📋 Button elements available:",
-    Object.keys(agosSystem.alertButtonElements)
+    Object.keys(agosSystem.alertButtonElements),
   );
   console.log("📋 Button elements check:", agosSystem.alertButtonElements);
 
@@ -1656,7 +1686,7 @@ console.log("🔧 Arduino Monitor Functions Registered:");
 console.log("  clearArduinoOutput:", typeof window.clearArduinoOutput);
 console.log(
   "  toggleArduinoAutoscroll:",
-  typeof window.toggleArduinoAutoscroll
+  typeof window.toggleArduinoAutoscroll,
 );
 console.log("  sendArduinoCommand:", typeof window.sendArduinoCommand);
 console.log("  handleArduinoKeyPress:", typeof window.handleArduinoKeyPress);
@@ -1724,7 +1754,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const element = document.getElementById(btn.id);
       if (element) {
         element.addEventListener("click", () =>
-          openMessageCustomization(btn.type)
+          openMessageCustomization(btn.type),
         );
         console.log(`✅ Customize button attached: ${btn.type}`);
       }

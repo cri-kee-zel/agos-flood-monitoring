@@ -48,6 +48,23 @@ AGOS is a complete flood monitoring solution featuring:
 
 ## 🚀 Quick Start - Local Development
 
+### PowerShell workflow
+Use this project with PowerShell only:
+
+```powershell
+npm install
+Copy-Item .env.example .env -Force
+npm start
+```
+
+For updates that should be pushed to GitHub and Render, run:
+
+```powershell
+./scripts/deploy-and-verify.ps1 -CommitMessage "Your update message"
+```
+
+This script refreshes the public folder, verifies key files, and pushes to GitHub. If Render credentials are configured, it also triggers a deploy.
+
 1. **Clone the repository**
 
    ```bash
