@@ -104,7 +104,13 @@ class AGOSMainGateway {
    */
   async fetchSystemData() {
     try {
-      const response = await fetch("/api/system-overview");
+      const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+      const apiBase =
+        runtimeBackend ||
+        `${window.location.protocol}//${window.location.host}`;
+      const response = await fetch(
+        `${apiBase.replace(/\/$/, "")}/api/system-overview`,
+      );
       const data = await response.json();
 
       // Update state with new data
@@ -114,7 +120,7 @@ class AGOSMainGateway {
     } catch (error) {
       console.warn(
         "⚠️ Failed to fetch system data, using simulated data:",
-        error
+        error,
       );
     }
   }
@@ -288,11 +294,11 @@ class AGOSMainGateway {
     // Update status overview items (safe)
     this.safeSetText(
       "current-water-level",
-      `${this.state.currentData.waterLevel} cm`
+      `${this.state.currentData.waterLevel} cm`,
     );
     this.safeSetText(
       "current-flow-rate",
-      `${this.state.currentData.flowRate} m/s`
+      `${this.state.currentData.flowRate} m/s`,
     );
     this.safeSetText("alert-status", this.state.currentData.alertStatus);
     // Format battery level to two decimal places, handling numbers or strings
@@ -369,7 +375,7 @@ class AGOSMainGateway {
         const cardModule = card ? card.dataset.module : "";
 
         console.log(
-          `🔧 Button text: ${buttonText}, Card module: ${cardModule}`
+          `🔧 Button text: ${buttonText}, Card module: ${cardModule}`,
         );
 
         if (buttonText.includes("dashboard") || cardModule === "dashboard") {
@@ -398,7 +404,7 @@ class AGOSMainGateway {
           // button label issues during iterative edits.
           console.error(
             "❌ Could not determine module URL for button:",
-            button
+            button,
           );
         }
       });

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <!-- HTML5 document type and language declaration -->
@@ -17,6 +17,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script src="/runtime-config.js"></script>
   </head>
   <body>
     <!--
@@ -279,20 +280,20 @@
 
         <div class="flow-container">
           <div class="flow-direction">
-            <span class="direction-label">UPSTREAM</span>
+            <span class="direction-label"></span>
             <div class="arrow-flow">
               <div class="flow-arrow" id="flow-arrow-1">→</div>
               <div class="flow-arrow" id="flow-arrow-2">→</div>
               <div class="flow-arrow" id="flow-arrow-3">→</div>
             </div>
-            <span class="direction-label">DOWNSTREAM</span>
+            <span class="direction-label"></span>
           </div>
 
           <div class="flow-pipe">
             <div class="pipe-section upstream">
               <div class="sensor-indicator">
-                <span class="sensor-label">POF1</span>
-                <span class="sensor-value" id="upstream-turbidity">0.0</span>
+                <span class="sensor-label">Attenuation:</span>
+                <span class="sensor-value" id="upstream-turbidity">0.0000</span>
               </div>
             </div>
             <div class="pipe-section middle">
@@ -300,24 +301,24 @@
             </div>
             <div class="pipe-section downstream">
               <div class="sensor-indicator">
-                <span class="sensor-label">POF2</span>
-                <span class="sensor-value" id="downstream-turbidity">0.0</span>
+                <span class="sensor-label">Variance:</span>
+                <span class="sensor-value" id="downstream-turbidity">0.00</span>
               </div>
             </div>
           </div>
 
           <div class="flow-analytics">
             <div class="analytics-item">
-              <span class="analytics-label">Velocity:</span>
-              <span class="analytics-value" id="flow-velocity">0.00 m/s</span>
+              <span class="analytics-label">Flow Velocity:</span>
+              <span class="analytics-value" id="flow-velocity">0.0000 m/s</span>
             </div>
             <div class="analytics-item">
-              <span class="analytics-label">Debris Detection:</span>
-              <span class="analytics-value" id="debris-status">CLEAR</span>
+              <span class="analytics-label">Fluctuation:</span>
+              <span class="analytics-value" id="debris-status">0.0000</span>
             </div>
             <div class="analytics-item">
-              <span class="analytics-label">Differential:</span>
-              <span class="analytics-value" id="turbidity-diff">0.0%</span>
+              <span class="analytics-label">Flow (cm/s):</span>
+              <span class="analytics-value" id="turbidity-diff">0.00</span>
             </div>
           </div>
         </div>

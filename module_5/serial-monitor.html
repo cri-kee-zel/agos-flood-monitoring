@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -269,6 +269,7 @@
         color: #1e293b;
       }
     </style>
+    <script src="/runtime-config.js"></script>
   </head>
   <body>
     <div class="container">
@@ -369,17 +370,22 @@
       function connectWebSocket() {
         addLogLine(
           "⚠️ Arduino Serial Monitor requires physical USB connection",
-          "warning"
+          "warning",
         );
         addLogLine("📊 Showing Arduino → Server data instead...", "info");
         addLogLine(
           "💡 For full serial output, use Arduino IDE Serial Monitor (115200 baud)",
-          "info"
+          "info",
         );
         addLogLine("", "info");
 
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `${protocol}//${window.location.host}`;
+        const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+        let backendHost =
+          runtimeBackend ||
+          `${window.location.protocol}//${window.location.host}`;
+        const wsProtocol = backendHost.startsWith("https") ? "wss:" : "ws:";
+        const wsHost = new URL(backendHost).host;
+        const wsUrl = `${wsProtocol}//${wsHost}`;
 
         try {
           ws = new WebSocket(wsUrl);
@@ -388,7 +394,7 @@
             updateStatus(true);
             addLogLine(
               "✅ Connected to AGOS server - Listening for Arduino data",
-              "success"
+              "success",
             );
           };
 
@@ -570,9 +576,9 @@
         const seconds = Math.floor((elapsed % 60000) / 1000);
 
         document.getElementById("uptime").textContent = `${String(
-          hours
+          hours,
         ).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-          seconds
+          seconds,
         ).padStart(2, "0")}`;
       }
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -176,7 +176,8 @@
       }
 
       .control-btn.active {
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5),
+        box-shadow:
+          0 0 0 4px rgba(255, 255, 255, 0.5),
           0 0 20px rgba(0, 0, 0, 0.3);
       }
 
@@ -190,7 +191,9 @@
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.5);
         transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
+        transition:
+          width 0.6s,
+          height 0.6s;
       }
 
       .control-btn:active::after {
@@ -254,6 +257,7 @@
         }
       }
     </style>
+    <script src="/runtime-config.js"></script>
   </head>
   <body>
     <div class="container">
@@ -301,12 +305,15 @@
       let currentLevel = 0;
       const maxHeight = 19; // inches (maximum water level)
 
-      // WebSocket connection
+      // WebSocket connection (uses runtime BACKEND_URL when available)
       function connectWebSocket() {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `${protocol}//${window.location.hostname}:${
-          window.location.port || 3000
-        }`;
+        const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
+        let backendHost =
+          runtimeBackend ||
+          `${window.location.protocol}//${window.location.host}`;
+        const wsProtocol = backendHost.startsWith("https") ? "wss:" : "ws:";
+        const wsHost = new URL(backendHost).host;
+        const wsUrl = `${wsProtocol}//${wsHost}`;
 
         ws = new WebSocket(wsUrl);
 
@@ -374,19 +381,17 @@
 
           ws.send(JSON.stringify(payload));
 
-          document.getElementById(
-            "lastCommand"
-          ).textContent = `✅ Water level set to ${inches} inches - Sent to Module 1`;
+          document.getElementById("lastCommand").textContent =
+            `✅ Water level set to ${inches} inches - Sent to Module 1`;
           console.log(
-            `💧 Water level changed to: ${inches} inches - Broadcasting to Module 1`
+            `💧 Water level changed to: ${inches} inches - Broadcasting to Module 1`,
           );
         } else {
           console.warn(
-            `⚠️ WebSocket not ready. State: ${ws ? ws.readyState : "null"}`
+            `⚠️ WebSocket not ready. State: ${ws ? ws.readyState : "null"}`,
           );
-          document.getElementById(
-            "lastCommand"
-          ).textContent = `⚠️ Water level set to ${inches} inches - Not connected to server`;
+          document.getElementById("lastCommand").textContent =
+            `⚠️ Water level set to ${inches} inches - Not connected to server`;
           console.warn("WebSocket not connected, cannot send to Module 1");
         }
       }
