@@ -770,15 +770,20 @@ class AGOSEmergencySystem {
       // (We do not want client-side code to hold secrets).
       const runtimeBackend = (window.AGOS_BACKEND || "").replace(/\/$/, "");
       const apiBase =
-        runtimeBackend || `${window.location.protocol}//${window.location.host}`;
+        runtimeBackend ||
+        `${window.location.protocol}//${window.location.host}`;
 
       let serverGatewayOk = false;
       try {
-        const dbgRes = await fetch(`${apiBase.replace(/\/$/, "")}/api/debug-gateway`);
+        const dbgRes = await fetch(
+          `${apiBase.replace(/\/$/, "")}/api/debug-gateway`,
+        );
         if (dbgRes.ok) {
           const dbgJson = await dbgRes.json();
           // debug endpoint returns masked user/url when configured
-          serverGatewayOk = !!(dbgJson.smsGatewayUrl || dbgJson.smsGatewayUserMasked);
+          serverGatewayOk = !!(
+            dbgJson.smsGatewayUrl || dbgJson.smsGatewayUserMasked
+          );
         }
       } catch (e) {
         console.warn("⚠️ Could not reach /api/debug-gateway:", e);
