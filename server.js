@@ -633,7 +633,10 @@ app.post("/api/sms-gateway-proxy", express.json(), async (req, res) => {
       proxyRes.on("end", () => {
         console.log(`✅ SMS Gateway Response: ${proxyRes.statusCode}`);
         if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
-          console.log("🔁 SMS Gateway redirected to:", proxyRes.headers.location || "(no location header)");
+          console.log(
+            "🔁 SMS Gateway redirected to:",
+            proxyRes.headers.location || "(no location header)",
+          );
         }
         console.log("📄 Response:", data);
 
