@@ -20,21 +20,9 @@ function getSmsGatewayConfig() {
   const rawUser = (process.env.SMS_GATEWAY_USER || "").trim();
   const rawPass = (process.env.SMS_GATEWAY_PASS || "").trim();
   const rawDeviceId = (process.env.SMS_GATEWAY_DEVICE_ID || "").trim();
-  // Normalize URL: ensure API path is present when only host/port provided
-  let finalUrl = DEFAULT_SMS_GATEWAY_CONFIG.url;
-  if (rawUrl) {
-    try {
-      const u = new URL(rawUrl);
-      // If pathname is empty or root, append the API path
-      if (!u.pathname || u.pathname === "/") {
-        u.pathname = "/3rdparty/v1/message";
-      }
-      finalUrl = u.toString();
-    } catch (e) {
-      // If parsing fails, fallback to default
-      finalUrl = DEFAULT_SMS_GATEWAY_CONFIG.url;
-    }
-  }
+  // Respect exactly the SMS_GATEWAY_URL provided in environment.
+  // Do not append or change the path — use the value as-is when present.
+  const finalUrl = rawUrl || DEFAULT_SMS_GATEWAY_CONFIG.url;
 
   return {
     url: finalUrl,
