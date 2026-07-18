@@ -49,6 +49,7 @@ AGOS is a complete flood monitoring solution featuring:
 ## 🚀 Quick Start - Local Development
 
 ### PowerShell workflow
+
 Use this project with PowerShell only:
 
 ```powershell
@@ -108,7 +109,6 @@ This script refreshes the public folder, verifies key files, and pushes to GitHu
 ### Step 1: DigitalOcean Droplet Setup
 
 1. **Create a new droplet**:
-
    - Ubuntu 22.04 LTS
    - Minimum: 2GB RAM, 1 vCPU, 50GB SSD
    - Recommended: 4GB RAM, 2 vCPU, 80GB SSD
@@ -152,7 +152,6 @@ This script refreshes the public folder, verifies key files, and pushes to GitHu
    ```
 
 2. **GitHub Actions will automatically**:
-
    - Run tests and build checks
    - Deploy to your DigitalOcean droplet
    - Start the application with Docker
@@ -253,7 +252,6 @@ WEATHER_API_KEY=your-api-key
    ```
 
 2. **Sensor Pins:**
-
    - IR LED 1: Pin 9 (10" sensor)
    - IR LED 2: Pin 10 (19" sensor)
    - IR LED 3: Pin 11 (37" sensor)
@@ -336,7 +334,6 @@ npm test
 The system uses **Android SMS Gateway** (sms-gate.app) for reliable SMS delivery:
 
 1. **Gateway Setup:**
-
    - Download SMS Gateway app on Android device
    - Configure API credentials in `recipients.json`:
      ```json
@@ -347,13 +344,11 @@ The system uses **Android SMS Gateway** (sms-gate.app) for reliable SMS delivery
      ```
 
 2. **Alert Levels:**
-
    - **Flood Watch** (10 inches): "Flooding is possible in your area"
    - **Flash Flood Alert** (19 inches): "Flash flooding is occurring or imminent"
    - **Flash Flood Emergency** (37 inches): "LIFE-THREATENING flash flooding is happening NOW"
 
 3. **Features:**
-
    - Restricted operator access with password authentication
    - Cooldown timer (60 seconds between alerts)
    - Custom message editing
@@ -422,14 +417,12 @@ A dedicated testing interface for simulating different water levels:
 
 1. **Access**: http://localhost:3000/water-control
 2. **Four Control Buttons:**
-
    - 🟢 CLEAR (0 inches)
    - 🟡 2 INCHES
    - 🟠 10 INCHES
    - 🔴 19 INCHES
 
 3. **Features:**
-
    - Visual water filling animation
    - Real-time WebSocket updates
    - Commands sent directly to Arduino
